@@ -1,10 +1,12 @@
 Package: annotparsr
-Title: What the Package Does (one line, title case)
+Title: A R package for Parsing Annotation File for Database Import
 Version: 0.0.0.9000
-Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+Authors@R: person("Ben", "Heavner", email = "bheavner@uw.edu", role = c("aut", "cre"))
+Description: This package reads the annotation source data line by line, parses the lines,
+  and imports to a database. Since the lines are independant, this will hopefully be done in
+  parallel.
 Depends: R (>= 3.3.2)
-License: What license is it under?
+License: MIT _ file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
