@@ -12,3 +12,9 @@ LazyData: true
 RoxygenNote: 6.0.1
 Suggests: testthat,
     lintr
+Imports: stringr,
+    digest,
+    readr,
+    dplyr,
+    purrr,
+    tidyr
