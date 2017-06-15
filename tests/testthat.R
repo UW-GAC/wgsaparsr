@@ -1,4 +1,4 @@
 library(testthat)
-library(annotparsr)
+library(wgsaparsr)
 
-test_check("annotparsr")
+test_check("wgsaparsr")

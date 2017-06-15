@@ -1,10 +1,8 @@
-Package: annotparsr
+Package: wgsaparsr
 Title: A R package for Parsing Annotation File for Database Import
 Version: 0.0.0.9000
 Authors@R: person("Ben", "Heavner", email = "bheavner@uw.edu", role = c("aut", "cre"))
-Description: This package reads the annotation source data line by line, parses the lines,
-  and imports to a database. Since the lines are independant, this will hopefully be done in
-  parallel.
+Description: This package contains R functions to work with the output files produced by the WGSA annotation tool.
 Depends: R (>= 3.3.2)
 License: MIT + file LICENSE
 Encoding: UTF-8

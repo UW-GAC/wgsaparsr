@@ -13,7 +13,8 @@ parse_to_file(source_file, destination, desired_columns, to_split,
 \item{destination}{Path to the desired output file}
 
 \item{desired_columns}{a character vector with the names of fields to extract
-from the WGSA output}
+from the WGSA output. Column names with unusual characters should be
+wrapped in backticks (e.g. `#chr`).}
 
 \item{to_split}{list-fields to be tidied}
 

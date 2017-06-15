@@ -1,18 +1,17 @@
-# annotparsr
+# wgsaparsr
 
 This package includes tools to work with annotation files produced by
-\href{https://sites.google.com/site/jpopgen/wgsa}{WGSA}.
+the WGSA annotation tool (https://sites.google.com/site/jpopgen/wgsa)
 
 ## Installation
 
-You can install annotparsr from github with:
+You can install wgsaparsr from github with:
 
-```R # install.packages("devtools") 
-devtools::install_github("annotparsr/UW-GAC") ```
+```R 
+# install.packages("devtools") 
+devtools::install_github("UW-GAC/wgsaparsr") ```
 
 ## Example
-
-This'll come, once I have some!
 
 ```R 
 
