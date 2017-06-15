@@ -40,6 +40,8 @@
 #' @importFrom tidyr unite
 #' @importFrom digest digest
 #' @importFrom purrr map_chr
+#' @importFrom stringr str_replace_all
+#' @importFrom stringr str_sub
 #' @export
 
 parse_to_file <- function(source_file, destination
@@ -48,7 +50,8 @@ parse_to_file <- function(source_file, destination
 
   # check that desired_columns are in source file
   all_fields <- get_fields(source_file)
-  if (!all(desired_columns %in% all_fields)){
+  cleaned_desired <- str_replace_all(desired_columns, "`", "")
+  if (!all(cleaned_desired %in% all_fields)){
     close(readfile_con)
     stop("Not all desired columns are in source file")
   }
