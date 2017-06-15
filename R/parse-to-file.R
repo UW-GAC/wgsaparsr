@@ -52,8 +52,9 @@
 #' @importFrom dplyr distinct_
 #' @export
 
-parse_to_file <- function(source_file, destination
-                          , desired_columns, to_split, chunk_size = 10000) {
+parse_to_file <- function(source_file, destination,
+                          desired_columns, to_split, chunk_size = 10000,
+                          verbose = TRUE) {
   readfile_con <- gzfile(source_file, "r")
 
   # check that desired_columns are in source file
@@ -125,16 +126,18 @@ parse_to_file <- function(source_file, destination
     }
 
     index <- index + 1L
-    print(
-      paste0(
-        "Chunks: ",
-        index,
-        " Lines: <= ",
-        chunk_size * index,
-        " Records in current import: ",
-        dim(parsed_lines)[1]
+    if (verbose == TRUE) {
+      print(
+        paste0(
+          "Chunks: ",
+          index,
+          " Lines: <= ",
+          chunk_size * index,
+          " Records in current import: ",
+          dim(parsed_lines)[1]
+        )
       )
-    )
+    }
   }
   close(readfile_con)
 }
