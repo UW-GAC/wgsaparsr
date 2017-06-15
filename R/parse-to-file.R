@@ -11,7 +11,8 @@
 #' @param source_file Path to the WGSA output file to parse
 #' @param destination Path to the desired output file
 #' @param desired_columns a character vector with the names of fields to extract
-#'   from the WGSA output
+#'   from the WGSA output. Column names with unusual characters should be
+#'   wrapped in backticks (e.g. `#chr`).
 #' @param to_split list-fields to be tidied
 #' @param chunk_size Number of lines to parse each iteration (default 10,000)
 #'
