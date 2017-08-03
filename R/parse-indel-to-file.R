@@ -55,7 +55,7 @@
 #' @importFrom dplyr distinct_
 #' @export
 
-parse_to_file <- function(source_file, destination,
+parse_indel_to_file <- function(source_file, destination,
                           desired_columns, to_split, chunk_size = 10000,
                           verbose = FALSE) {
   readfile_con <- gzfile(source_file, "r")
@@ -107,7 +107,7 @@ parse_to_file <- function(source_file, destination,
     selected_columns <- all_fields %>%
       select_(.dots = desired_columns) %>% # select fields of interest
       select(chr = `#chr`, everything()) %>% # rename #chr to chr
-      mutate(wgsa_version = "WGSA065") %>% # add wgsa version
+      mutate(wgsa_version = "WGSA065") # add wgsa version
 
     # parse bracket fields if they're there by picking first value
     if (all(bracket_fields %in% cleaned_desired)){
