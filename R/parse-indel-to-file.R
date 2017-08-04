@@ -126,7 +126,7 @@ parse_indel_to_file <- function(source_file, destination,
     lines <- expanded %>% unite(foo, everything()) #nolint
 
     # then make list of variable names for ordering
-    nohash <- str_replace_all(cleaned_desired, "#", "")
+    nohash <- str_replace_all(cleaned_desired, "#chr", "chr")
 
     # add MD5 hash of each string and save resulting tibble e.g.
     # digest(paste(data.frame(letters[1:10], letters[11:20])[1,], collapse =
