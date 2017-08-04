@@ -61,6 +61,7 @@ parse_indel_to_file <- function(source_file, destination,
   readfile_con <- gzfile(source_file, "r")
 
   # check that desired_columns are in source file
+  # requires stripping backtics from desired_columns
   all_fields <- get_fields(source_file)
   cleaned_desired <- str_replace_all(desired_columns, "`", "")
   if (!all(cleaned_desired %in% all_fields)){
@@ -119,12 +120,15 @@ parse_indel_to_file <- function(source_file, destination,
     expanded <- selected_columns %>%
       separate_rows_(to_split, sep = "\\|")
 
-    ## add a hash of each line as a unique key
+    ## add a MD5 hash of each line as a unique key
 
     # first, combine columns by row for hashing
     lines <- expanded %>% unite(foo, everything()) #nolint
 
-    # add hash of each string and save resulting tibble e.g.
+    # then make list of variable names for ordering
+    nohash <- str_replace_all(cleaned_desired, "#", "")
+
+    # add MD5 hash of each string and save resulting tibble e.g.
     # digest(paste(data.frame(letters[1:10], letters[11:20])[1,], collapse =
     # ""), algo = "md5", serialize = FALSE)
     parsed_lines <-
@@ -132,7 +136,7 @@ parse_indel_to_file <- function(source_file, destination,
         digest(
           x, algo = "md5", serialize = FALSE
         ))) %>%
-      distinct_(.dots = desired_columns) # hopefully a minor pre-filter
+      distinct_(.dots = nohash) # hopefully a minor pre-filter
 
     # write tibble to tsv file
     if (header_flag) {
