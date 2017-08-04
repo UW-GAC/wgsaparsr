@@ -1,10 +1,3 @@
-## test
-# target_columns <- c("`#chr`", "pos", "ref", "alt","VEP_ensembl_Transcript_ID", "VEP_ensembl_Gene_ID")
-# columns_to_split <- c("VEP_ensembl_Transcript_ID", "VEP_ensembl_Gene_ID")
-# parse_to_file(source_file = "tests/testthat/1k_annotation.gz",  destination = "test_out.csv",  
-# desired_columns = target_columns, to_split = columns_to_split, chunk_size = 10)
-
-
 #' Parse the WGSA indels output file to tidy and select columns of interest
 #' 
 #' \href{https://sites.google.com/site/jpopgen/wgsa}{WGSA} output files can 
@@ -52,6 +45,7 @@
 #' @importFrom purrr map_chr
 #' @importFrom stringr str_replace_all
 #' @importFrom stringr str_sub
+#' @importFrom stringr str_extract
 #' @importFrom dplyr distinct_
 #' @export
 

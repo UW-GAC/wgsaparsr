@@ -43,6 +43,7 @@
 #' @importFrom purrr map_chr
 #' @importFrom stringr str_replace_all
 #' @importFrom stringr str_sub
+#' @importFrom stringr str_extract
 #' @importFrom dplyr distinct_
 #' @export
 
