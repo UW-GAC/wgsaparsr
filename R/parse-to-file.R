@@ -1,10 +1,3 @@
-## test
-# target_columns <- c("`#chr`", "pos", "ref", "alt","VEP_ensembl_Transcript_ID", "VEP_ensembl_Gene_ID")
-# columns_to_split <- c("VEP_ensembl_Transcript_ID", "VEP_ensembl_Gene_ID")
-# parse_to_file(source_file = "tests/testthat/1k_annotation.gz",  destination = "test_out.csv",  
-# desired_columns = target_columns, to_split = columns_to_split, chunk_size = 10)
-
-
 #' Parse the WGSA output file to tidy and select columns of interest
 #' 
 #' \href{https://sites.google.com/site/jpopgen/wgsa}{WGSA} output files can 
@@ -22,6 +15,7 @@
 #'   wrapped in backticks (e.g. `#chr`).
 #' @param to_split list-fields to be tidied
 #' @param chunk_size Number of lines to parse each iteration (default 10,000)
+#' @param verbose more output to screen (default FALSE)
 #'
 #' @examples 
 #' \dontrun{
@@ -54,7 +48,7 @@
 
 parse_to_file <- function(source_file, destination,
                           desired_columns, to_split, chunk_size = 10000,
-                          verbose = TRUE) {
+                          verbose = FALSE) {
   readfile_con <- gzfile(source_file, "r")
 
   # check that desired_columns are in source file
@@ -103,12 +97,15 @@ parse_to_file <- function(source_file, destination,
     expanded <- selected_columns %>%
       separate_rows_(to_split, sep = "\\|")
 
-    ## add a hash of each line as a unique key
+    ## add a MD5 hash of each line as a unique key
 
     # first, combine columns by row for hashing
     lines <- expanded %>% unite(foo, everything()) #nolint
 
-    # add hash of each string and save resulting tibble e.g.
+    # then make list of variable names for ordering
+    nohash <- str_replace_all(cleaned_desired, "#chr", "chr")
+
+    # add MD5 hash of each string and save resulting tibble e.g.
     # digest(paste(data.frame(letters[1:10], letters[11:20])[1,], collapse =
     # ""), algo = "md5", serialize = FALSE)
     parsed_lines <-
@@ -116,7 +113,7 @@ parse_to_file <- function(source_file, destination,
         digest(
           x, algo = "md5", serialize = FALSE
         ))) %>%
-      distinct_(.dots = desired_columns) # hopefully a minor pre-filter
+      distinct_(.dots = nohash) # hopefully a minor pre-filter
 
     # write tibble to tsv file
     if (header_flag) {

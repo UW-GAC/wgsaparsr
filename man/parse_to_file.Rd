@@ -5,7 +5,7 @@
 \title{Parse the WGSA output file to tidy and select columns of interest}
 \usage{
 parse_to_file(source_file, destination, desired_columns, to_split,
-  chunk_size = 10000, verbose = TRUE)
+  chunk_size = 10000, verbose = FALSE)
 }
 \arguments{
 \item{source_file}{Path to the WGSA output file to parse}
@@ -19,6 +19,8 @@ wrapped in backticks (e.g. `#chr`).}
 \item{to_split}{list-fields to be tidied}
 
 \item{chunk_size}{Number of lines to parse each iteration (default 10,000)}
+
+\item{verbose}{more output to screen (default FALSE)}
 }
 \description{
 \href{https://sites.google.com/site/jpopgen/wgsa}{WGSA} output files can 
