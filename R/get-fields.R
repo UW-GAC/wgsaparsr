@@ -19,8 +19,9 @@ get_fields <- function(source) {
   header <- suppressWarnings(readLines(readfile_con, n = 1))
   close(readfile_con)
   fields <- str_split(header, "\t")[[1]]
-  if (str_split(header, "\t")[[1]][[1]] != "#chr") {
+  if (!any(fields[[1]] == "#chr" | fields[[1]] == "chr")) {
     stop("First line of source doesn't look like a WGSA header")
   }
+  fields <- str_split(header, "\t")[[1]]
   return(fields)
 }
