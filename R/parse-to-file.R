@@ -42,7 +42,7 @@
 #' @importFrom digest digest
 #' @importFrom purrr map_chr
 #' @importFrom stringr str_replace_all
-#' @importFrom stringr str_sub
+#' @importFrom stringr str_detect
 #' @importFrom stringr str_extract
 #' @importFrom dplyr distinct_
 #' @export
@@ -67,7 +67,7 @@ parse_to_file <- function(source_file, destination,
 
     # check for header and grab if in chunk
     if (.has_header(raw_chunk)) {
-      raw_header <- raw_chunk[str_sub(raw_chunk, 1, 4) == "#chr"]
+      raw_header <- raw_chunk[str_detect(raw_chunk, "^#chr")]
       all_fields <-
         read_tsv(paste0(raw_chunk, collapse = "\n"),
                  #paste all lines to a single string
@@ -145,8 +145,8 @@ parse_to_file <- function(source_file, destination,
 # ----------------------------------------------------------------------------------------
 #
 #' Check if the current chunk includes a header row describing the fields
-#' @importFrom stringr str_sub
+#' @importFrom stringr str_detect
 
 .has_header <- function(raw_chunk){
-  any(str_sub(raw_chunk, 1, 4) == "#chr")
+  any(str_detect(raw_chunk, "^#chr"))
 }
