@@ -5,7 +5,7 @@
 \title{Parse the WGSA output file to tidy and select columns of interest}
 \usage{
 parse_to_file(source_file, destination, desired_columns, to_split,
-  chunk_size = 10000, verbose = FALSE)
+  WGSA_version = "WGSA065", chunk_size = 10000, verbose = TRUE)
 }
 \arguments{
 \item{source_file}{Path to the WGSA output file to parse}
@@ -13,10 +13,11 @@ parse_to_file(source_file, destination, desired_columns, to_split,
 \item{destination}{Path to the desired output file}
 
 \item{desired_columns}{a character vector with the names of fields to extract
-from the WGSA output. Column names with unusual characters should be
-wrapped in backticks (e.g. `#chr`).}
+from the WGSA output (names must match names in WGSA output file).}
 
-\item{to_split}{list-fields to be tidied}
+\item{to_split}{a character vector with the names of list-fields to be tidied}
+
+\item{WGSA_version}{The version of WGSA used to generate output}
 
 \item{chunk_size}{Number of lines to parse each iteration (default 10,000)}
 
@@ -34,7 +35,7 @@ own row in the output file (other fields are duplicated as necessary)
 }
 \examples{
 \dontrun{
- target_columns <- c("`#chr`", 
+ target_columns <- c("#chr", 
    "pos", 
    "ref", 
    "alt",
@@ -50,4 +51,5 @@ parse_to_file(source_file = "WGSA_chr_1.gz",
  to_split = columns_to_split, 
  chunk_size = 1000)
 }
+
 }
