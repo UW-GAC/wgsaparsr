@@ -97,6 +97,9 @@ parse_to_file <- function(source_file,
     # write tibble to tsv file
     .write_to_file(parsed_lines, destination, desired_columns, header_flag)
 
+    # ready for the next chunk!
+    index <- index + 1L
+
     # update progress if desired
     if (verbose) {
       msg <- paste0(
@@ -106,9 +109,6 @@ parse_to_file <- function(source_file,
       )
       message(msg)
     }
-
-    # and on to the next chunk!
-    index <- index + 1L
   }
   close(readfile_con)
 }
