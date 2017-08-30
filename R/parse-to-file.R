@@ -207,46 +207,129 @@ parse_to_file <- function(source_file,
 
   # if it's an older version annotation file, rename columns from WGSA fields
   # with weird characters to database column names
-  if (names(expanded)[[1]] == "#chr") {
-    expanded <- expanded %>%
-      rename(
-        chr = `#chr`,
-        MAP20_149bp = `MAP20(+-149bp)`,
-        MAP35_149bp = `MAP35(+-149bp)`,
-        GMS_single_end = `GMS_single-end`,
-        GMS_paired_end = `GMS_paired-end`,
-        H1_hESC_fitCons_score = `H1-hESC_fitCons_score`, #nolint
-        H1_hESC_fitCons_rankscore = `H1-hESC_fitCons_rankscore`, #nolint
-        H1_hESC_confidence_value = `H1-hESC_confidence_value`, #nolint
-        KGP_strict_masked = `1000G_strict_masked`,
-        KGP3_AC = `1000Gp3_AC`,
-        KGP3_AF = `1000Gp3_AF`,
-        KGP3_AFR_AC = `1000Gp3_AFR_AC`,
-        KGP3_AFR_AF = `1000Gp3_AFR_AF`,
-        KGP3_EUR_AC = `1000Gp3_EUR_AC`,
-        KGP3_EUR_AF = `1000Gp3_EUR_AF`,
-        KGP3_AMR_AC = `1000Gp3_AMR_AC`,
-        KGP3_AMR_AF = `1000Gp3_AMR_AF`,
-        KGP3_EAS_AC = `1000Gp3_EAS_AC`,
-        KGP3_EAS_AF = `1000Gp3_EAS_AF`,
-        KGP3_SAS_AC = `1000Gp3_SAS_AC`,
-        KGP3_SAS_AF = `1000Gp3_SAS_AF`,
-        fathmm_MKL_non_coding_score = `fathmm-MKL_non-coding_score`,
-        fathmm_MKL_non_coding_rankscore = `fathmm-MKL_non-coding_rankscore`, #nolint
-        fathmm_MKL_non_coding_group = `fathmm-MKL_non-coding_group`,
-        fathmm_MKL_coding_score = `fathmm-MKL_coding_score`,
-        fathmm_MKL_coding_rankscore = `fathmm-MKL_coding_rankscore`,
-        fathmm_MKL_coding_pred = `fathmm-MKL_coding_pred`,
-        fathmm_MKL_coding_group = `fathmm-MKL_coding_group`,
-        Eigen_raw = `Eigen-raw`,
-        Eigen_phred = `Eigen-phred`,
-        Eigen_raw_rankscore = `Eigen-raw_rankscore`,
-        Eigen_PC_raw = `Eigen-PC-raw`,
-        Eigen_PC_raw_rankscore = `Eigen-PC-raw_rankscore`
-      )
+  if (.check_names(names(expanded))) {
+    names(expanded) <- .fix_names(names(expanded))
   }
 
   expanded <- distinct(expanded)
+}
+
+#' check whether field names are the old style
+.check_names <- function(field_names){
+  old_names <- c(
+    "`#chr`",
+    "`MAP20(+-149bp)`",
+    "`MAP35(+-149bp)`",
+    "`GMS_single-end`",
+    "`GMS_paired-end`",
+    "`H1-hESC_fitCons_score`", #nolint
+    "`H1-hESC_fitCons_rankscore`", #nolint
+    "`H1-hESC_confidence_value`", #nolint
+    "`1000G_strict_masked`",
+    "`1000Gp3_AC`",
+    "`1000Gp3_AF`",
+    "`1000Gp3_AFR_AC`",
+    "`1000Gp3_AFR_AF`",
+    "`1000Gp3_EUR_AC`",
+    "`1000Gp3_EUR_AF`",
+    "`1000Gp3_AMR_AC`",
+    "`1000Gp3_AMR_AF`",
+    "`1000Gp3_EAS_AC`",
+    "`1000Gp3_EAS_AF`",
+    "`1000Gp3_SAS_AC`",
+    "`1000Gp3_SAS_AF`",
+    "`fathmm-MKL_non-coding_score`",
+    "`fathmm-MKL_non-coding_rankscore`", #nolint
+    "`fathmm-MKL_non-coding_group`",
+    "`fathmm-MKL_coding_score`",
+    "`fathmm-MKL_coding_rankscore`",
+    "`fathmm-MKL_coding_pred`",
+    "`fathmm-MKL_coding_group`",
+    "`Eigen-raw`",
+    "`Eigen-phred`",
+    "`Eigen-raw_rankscore`",
+    "`Eigen-PC-raw`",
+    "`Eigen-PC-raw_rankscore`"
+  )
+  any(old_names %in% field_names)
+}
+
+#' change any old names to new style names
+.fix_names <- function(name_vector) {
+  old_names <- c(
+    "`#chr`",
+    "`MAP20(+-149bp)`",
+    "`MAP35(+-149bp)`",
+    "`GMS_single-end`",
+    "`GMS_paired-end`",
+    "`H1-hESC_fitCons_score`", #nolint
+    "`H1-hESC_fitCons_rankscore`", #nolint
+    "`H1-hESC_confidence_value`", #nolint
+    "`1000G_strict_masked`",
+    "`1000Gp3_AC`",
+    "`1000Gp3_AF`",
+    "`1000Gp3_AFR_AC`",
+    "`1000Gp3_AFR_AF`",
+    "`1000Gp3_EUR_AC`",
+    "`1000Gp3_EUR_AF`",
+    "`1000Gp3_AMR_AC`",
+    "`1000Gp3_AMR_AF`",
+    "`1000Gp3_EAS_AC`",
+    "`1000Gp3_EAS_AF`",
+    "`1000Gp3_SAS_AC`",
+    "`1000Gp3_SAS_AF`",
+    "`fathmm-MKL_non-coding_score`",
+    "`fathmm-MKL_non-coding_rankscore`", #nolint
+    "`fathmm-MKL_non-coding_group`",
+    "`fathmm-MKL_coding_score`",
+    "`fathmm-MKL_coding_rankscore`",
+    "`fathmm-MKL_coding_pred`",
+    "`fathmm-MKL_coding_group`",
+    "`Eigen-raw`",
+    "`Eigen-phred`",
+    "`Eigen-raw_rankscore`",
+    "`Eigen-PC-raw`",
+    "`Eigen-PC-raw_rankscore`"
+  )
+
+  new_names <- c(
+    "chr",
+    "MAP20_149bp",
+    "MAP35_149bp",
+    "GMS_single_end",
+    "GMS_paired_end",
+    "H1_hESC_fitCons_score", #nolint
+    "H1_hESC_fitCons_rankscore", #nolint
+    "H1_hESC_confidence_value", #nolint
+    "KGP_strict_masked",
+    "KGP3_AC",
+    "KGP3_AF",
+    "KGP3_AFR_AC",
+    "KGP3_AFR_AF",
+    "KGP3_EUR_AC",
+    "KGP3_EUR_AF",
+    "KGP3_AMR_AC",
+    "KGP3_AMR_AF",
+    "KGP3_EAS_AC",
+    "KGP3_EAS_AF",
+    "KGP3_SAS_AC",
+    "KGP3_SAS_AF",
+    "fathmm_MKL_non_coding_score",
+    "fathmm_MKL_non_coding_rankscore", #nolint
+    "fathmm_MKL_non_coding_group",
+    "fathmm_MKL_coding_score",
+    "fathmm_MKL_coding_rankscore",
+    "fathmm_MKL_coding_pred",
+    "fathmm_MKL_coding_group",
+    "Eigen_raw",
+    "Eigen_phred",
+    "Eigen_raw_rankscore",
+    "Eigen_PC_raw",
+    "Eigen_PC_raw_rankscore"
+  )
+
+  name_vector[name_vector %in% old_names] <-
+    new_names[old_names %in% name_vector]
 }
 
 #' select columns to set order and write_tsv
@@ -262,6 +345,8 @@ parse_to_file <- function(source_file,
                                    "VEP_ensembl_Codon_Change_or_Distance"),
                            "VEP_ensembl_Distance", "VEP_ensembl_Codon_Change")
     }
+
+  # desired_columns may have old naming scheme. Fix.
     if (header_flag) {
       parsed_lines %>%
         select(one_of(c(desired_columns, "wgsa_version"))) %>%
