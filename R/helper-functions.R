@@ -62,7 +62,6 @@
 #' parse string (as from the columns in get_max) and return maximum numeric 
 #' value as a string
 #' @importFrom stringr str_split
-#' @importFrom rlang .data
 .get_max_value <- function(a_string){
   if (length(a_string) > 1) {
     stop(".get_max_value isn't vectorized")
@@ -77,8 +76,8 @@
   if (all(is.na(numbers))) {
     return(".")
   } else {
-    numbers %>% 
-      max(.data, na.rm = TRUE) %>% 
+    numbers %>%
+      max(., na.rm = TRUE) %>%
       toString()
   }
 }
@@ -86,14 +85,14 @@
 #' parse columns from tibble for which we want to select maximum value
 #' @importFrom dplyr mutate_at rename_at ungroup rowwise
 .parse_max_columns <- function(selected_columns){
-  columns_to_max <- .get_list("parse_max")[.get_list("parse_max") %in% 
+  columns_to_max <- .get_list("parse_max")[.get_list("parse_max") %in%
                                              names(selected_columns)]
-  
-  selected_columns <- selected_columns %>% 
-    rowwise() %>% 
-    mutate_at(vars(columns_to_max), .funs = 
-                funs(test = suppressWarnings(.get_max_value(.)))) %>% 
-    rename_at(vars(columns_to_max), funs(paste(., "unparsed", sep = "_"))) %>% 
+
+  selected_columns <- selected_columns %>%
+    rowwise() %>%
+    mutate_at(vars(columns_to_max), .funs =
+                funs(test = suppressWarnings(.get_max_value(.)))) %>%
+    rename_at(vars(columns_to_max), funs(paste(., "unparsed", sep = "_"))) %>%
     rename_at(vars(ends_with("_test")), funs(gsub("_test", "", .))) %>%
     ungroup()
 }
@@ -116,16 +115,21 @@
 #' parse columns from tibble for which we want to parse to N if there is an N 
 #' present
 #' CAUTION - ASSUMES THAT THERE IS ONLY ONE DEFAULT NO COLUMN FOR NAMING
-#' @importFrom dplyr mutate_at rename_at
+#' @importFrom dplyr mutate_at rename_at rowwise ungroup
 .parse_no_columns <- function(selected_columns){
   columns_to_no <-
     .get_list("parse_string_no")[.get_list("parse_string_no") %in%
                                    names(selected_columns)]
-  
-  selected_columns <- selected_columns %>% rowwise() %>%
-    mutate_at(vars(columns_to_no), .funs = funs(wacky_no_column = .check_default_no(.))) %>%
-    rename_at(vars(columns_to_no), funs(paste(., "unparsed", sep = "_"))) %>%
-    rename_at(vars(wacky_no_column), funs(paste(columns_to_no)))
+
+  selected_columns <- selected_columns %>%
+    rowwise() %>%
+    mutate_at(vars(columns_to_no),
+              .funs = funs(wacky_no_column = .check_default_no(.))) %>%
+    rename_at(vars(columns_to_no),
+              funs(paste(., "unparsed", sep = "_"))) %>%
+    rename_at(vars(wacky_no_column),
+              funs(paste(columns_to_no))) %>%
+    ungroup()
 }
 
 #' check string for
@@ -145,56 +149,60 @@
 
 #' parse columns from tibble for which we want to parse to Y if there is a Y 
 #' present
-#' @importFrom dplyr mutate_at rename_at
+#' @importFrom dplyr mutate_at rename_at ungroup rowwise
 .parse_yes_columns <- function(selected_columns){
   columns_to_yes <-
     .get_list("parse_string_yes")[.get_list("parse_string_yes") %in%
                                     names(selected_columns)]
-  
-  selected_columns <- selected_columns %>% rowwise() %>%
-    mutate_at(vars(columns_to_yes), .funs = funs(test = .check_default_yes(.))) %>%
-    rename_at(vars(columns_to_yes), funs(paste(., "unparsed", sep = "_"))) %>%
-    rename_at(vars(ends_with("_test")), funs(gsub("_test", "", .)))
+
+  selected_columns <- selected_columns %>%
+    rowwise() %>%
+    mutate_at(vars(columns_to_yes),
+              .funs = funs(test = .check_default_yes(.))) %>%
+    rename_at(vars(columns_to_yes),
+              funs(paste(., "unparsed", sep = "_"))) %>%
+    rename_at(vars(ends_with("_test")),
+              funs(gsub("_test", "", .))) %>%
+    ungroup()
 }
 
 #' parse column pairs from tibble for which we want to get logical mask from 
 #' first column and apply to second column
-#' @import rlang
 #' @importFrom dplyr mutate select rename
 #' @importFrom purrr map map_dbl map2 map2_chr
 .parse_column_pairs <- function(selected_columns) {
   column_pairs <-
     .get_list("parse_pairs")
-  
+
   if (!all(unlist(column_pairs) %in% names(selected_columns))) {
     stop("not all pair columns are in selected_columns")
   }
-  
+
   for (pair in column_pairs) {
     current_pair <- syms(pair)
-    
-    score_name = pair[[1]]
-    rankscore_name = pair[[2]]
-    unparsed_score_name = paste0(score_name, "_unparsed")
-    unparsed_rankscore_name = paste0(rankscore_name, "_unparsed")
-    
+
+    score_name <- pair[[1]]
+    rankscore_name <- pair[[2]]
+    unparsed_score_name <- paste0(score_name, "_unparsed")
+    unparsed_rankscore_name <- paste0(rankscore_name, "_unparsed")
+
     selected_columns <-
       suppressWarnings(
         selected_columns %>% ungroup() %>% # thanks James!
           mutate(
-            p_clean = gsub('(?:\\{.*?\\})|;', ' ', x = !!current_pair[[1]]),
-            p_list = strsplit(p_clean, '\\s+'),
+            p_clean = gsub("(?:\\{.*?\\})|;", " ", x = !!current_pair[[1]]),
+            p_list = strsplit(p_clean, "\\s+"),
             p_list = map(p_list, as.numeric),
             p_max = map_dbl(p_list, max, na.rm = TRUE),
             p_max = as.character(p_max),
-            p_max = ifelse((p_max == "-Inf"), ".", p_max),
+            p_max = ifelse( (p_max == "-Inf"), ".", p_max),
             match_mask = map2(p_list, p_max, str_detect),
             match_mask = replace(match_mask, is.na(match_mask), TRUE),
             match_mask = map(match_mask,
                              function(x)
                                x & !duplicated(x)), # thanks Adrienne!
-            r_clean = gsub('(?:\\{.*?\\})|;', ' ', x = !!current_pair[[2]]),
-            r_list =  strsplit(r_clean, '\\s+'),
+            r_clean = gsub("(?:\\{.*?\\})|;", " ", x = !!current_pair[[2]]),
+            r_list =  strsplit(r_clean, "\\s+"),
             r_corresponding = map2_chr(match_mask, r_list,
                                        function(logical, string)
                                          subset(string, logical))
@@ -219,49 +227,48 @@
 #' parse column triples from tibble for which we want to get logical mask from 
 #' first column and apply to second and third columns. Assumes 2nd column is 
 #' rankscore.
-#' @import rlang
 #' @importFrom dplyr mutate select rename
 #' @importFrom purrr map map_dbl map2 map2_chr
 .parse_column_triples <- function(selected_columns) {
   column_triples <-
-    .get_list("parse_triples") # NEED TO UPDATE .get_list
-  
+    .get_list("parse_triples")
+
   if (!all(unlist(column_triples) %in% names(selected_columns))) {
     stop("not all column triples are in selected_columns")
   }
-  
+
   for (triple in column_triples) {
     current_triple <- syms(triple)
-    
-    score_name = triple[[1]]
-    rankscore_name = triple[[2]]
-    value_name = triple[[3]]
-    unparsed_score_name = paste0(score_name, "_unparsed")
-    unparsed_rankscore_name = paste0(rankscore_name, "_unparsed")
-    unparsed_value_name = paste0(value_name, "_unparsed")
-    
+
+    score_name <- triple[[1]]
+    rankscore_name <- triple[[2]]
+    value_name <- triple[[3]]
+    unparsed_score_name <- paste0(score_name, "_unparsed")
+    unparsed_rankscore_name <- paste0(rankscore_name, "_unparsed")
+    unparsed_value_name <- paste0(value_name, "_unparsed")
+
     selected_columns <-
       suppressWarnings(
         selected_columns %>% ungroup() %>%
           mutate(
-            p_clean = gsub('(?:\\{.*?\\})|;', ' ', x = !!current_triple[[1]]),
-            p_list = strsplit(p_clean, '\\s+'),
+            p_clean = gsub("(?:\\{.*?\\})|;", " ", x = !!current_triple[[1]]),
+            p_list = strsplit(p_clean, "\\s+"),
             p_list = map(p_list, as.numeric),
             p_max = map_dbl(p_list, max, na.rm = TRUE),
             p_max = as.character(p_max),
-            p_max = ifelse((p_max == "-Inf"), ".", p_max),
+            p_max = ifelse( (p_max == "-Inf"), ".", p_max),
             match_mask = map2(p_list, p_max, str_detect),
             match_mask = replace(match_mask, is.na(match_mask), TRUE),
             match_mask = map(match_mask,
                              function(x)
                                x & !duplicated(x)), # thanks Adrienne!
-            r_clean = gsub('(?:\\{.*?\\})|;', ' ', x = !!current_triple[[2]]),
-            r_list =  strsplit(r_clean, '\\s+'),
+            r_clean = gsub("(?:\\{.*?\\})|;", " ", x = !!current_triple[[2]]),
+            r_list =  strsplit(r_clean, "\\s+"),
             r_corresponding = map2_chr(match_mask, r_list,
                                        function(logical, string)
                                          subset(string, logical)),
-            v_clean = gsub('(?:\\{.*?\\})|;', ' ', x = !!current_triple[[3]]),
-            v_list =  strsplit(v_clean, '\\s+'),
+            v_clean = gsub("(?:\\{.*?\\})|;", " ", x = !!current_triple[[3]]),
+            v_list =  strsplit(v_clean, "\\s+"),
             v_corresponding = map2_chr(match_mask, v_list,
                                        function(logical, string)
                                          subset(string, logical))
@@ -295,16 +302,16 @@
                              desired_columns,
                              to_split,
                              WGSA_version) {
-  
+
   # pick out the desired columns for further operation
   selected_columns <- all_fields %>%
     select(one_of(desired_columns)) %>% # select fields of interest
     mutate(wgsa_version = WGSA_version) # add wgsa version
-  
+
   # pivot the VEP_* fields
   expanded <- selected_columns %>%
     separate_rows(one_of(to_split), sep = "\\|")
-  
+
   # split the VEP_ensembl_Codon_Change_or_Distance field as follows:
   # if number, put in VEP_ensembl_Distance field
   # if string, put in VEP_ensembl_Codon_Change field
@@ -323,13 +330,13 @@
         ., pattern = "^$", replacement = "."
       ))) # fill blanks with "."
   }
-  
+
   # if it's an older version annotation file, rename columns from WGSA fields
   # with weird characters to database column names
   if (.check_names(names(expanded))) {
     names(expanded) <- .fix_names(names(expanded))
   }
-  
+
   expanded <- distinct(expanded)
 }
 
@@ -410,7 +417,7 @@
     "`Eigen-PC-raw`",
     "`Eigen-PC-raw_rankscore`"
   )
-  
+
   new_names <- c(
     "chr",
     "MAP20_149bp",
@@ -446,7 +453,7 @@
     "Eigen_PC_raw",
     "Eigen_PC_raw_rankscore"
   )
-  
+
   name_vector[name_vector %in% old_names] <-
     new_names[old_names %in% name_vector]
 }
@@ -464,7 +471,7 @@
                                  "VEP_ensembl_Codon_Change_or_Distance"),
                          "VEP_ensembl_Distance", "VEP_ensembl_Codon_Change")
   }
-  
+
   # desired_columns may have old naming scheme. Fix.
   if (header_flag) {
     parsed_lines %>%
