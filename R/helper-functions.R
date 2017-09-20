@@ -296,7 +296,7 @@
 
 #' Parse a chunk tibble from a SNV annotation file
 #' @importFrom magrittr %>%
-#' @importFrom dplyr select mutate mutate_at rename distinct one_of vars
+#' @importFrom dplyr select mutate mutate_at rename distinct one_of vars funs
 #' @importFrom tidyr separate_rows extract
 #' @importFrom stringr str_replace
 .parse_snv_chunk <- function(all_fields,
@@ -343,7 +343,7 @@
 
 #' Parse a chunk tibble from an indel annotation file
 #' @importFrom magrittr %>%
-#' @importFrom dplyr select mutate mutate_at rename distinct one_of vars
+#' @importFrom dplyr select mutate mutate_at rename distinct one_of vars funs
 #' @importFrom tidyr separate_rows extract
 #' @importFrom stringr str_replace
 .parse_indel_chunk <- function(all_fields,

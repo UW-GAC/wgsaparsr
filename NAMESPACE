@@ -3,6 +3,7 @@
 export(get_fields)
 export(parse_to_file)
 importFrom(dplyr,distinct)
+importFrom(dplyr,funs)
 importFrom(dplyr,mutate)
 importFrom(dplyr,mutate_at)
 importFrom(dplyr,one_of)
