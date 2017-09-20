@@ -295,6 +295,7 @@
 }
 
 #' Parse a chunk tibble from a SNV annotation file
+#' @importFrom magrittr %>%
 #' @importFrom dplyr select mutate mutate_at rename distinct one_of
 #' @importFrom tidyr separate_rows extract
 #' @importFrom stringr str_replace
@@ -341,6 +342,7 @@
 }
 
 #' Parse a chunk tibble from an indel annotation file
+#' @importFrom magrittr %>%
 #' @importFrom dplyr select mutate mutate_at rename distinct one_of
 #' @importFrom tidyr separate_rows extract
 #' @importFrom stringr str_replace
