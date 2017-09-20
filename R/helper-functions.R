@@ -83,7 +83,7 @@
 }
 
 #' parse columns from tibble for which we want to select maximum value
-#' @importFrom dplyr mutate_at rename_at ungroup rowwise vars select_helpers
+#' @importFrom dplyr mutate_at rename_at ungroup rowwise vars ends_with
 .parse_max_columns <- function(selected_columns){
   columns_to_max <- .get_list("parse_max")[.get_list("parse_max") %in%
                                              names(selected_columns)]
@@ -149,7 +149,7 @@
 
 #' parse columns from tibble for which we want to parse to Y if there is a Y 
 #' present
-#' @importFrom dplyr mutate_at rename_at ungroup rowwise vars select_helpers
+#' @importFrom dplyr mutate_at rename_at ungroup rowwise vars ends_with
 .parse_yes_columns <- function(selected_columns){
   columns_to_yes <-
     .get_list("parse_string_yes")[.get_list("parse_string_yes") %in%
