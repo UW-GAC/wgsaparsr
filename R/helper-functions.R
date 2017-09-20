@@ -340,6 +340,70 @@
   expanded <- distinct(expanded)
 }
 
+#' Parse a chunk tibble from an indel annotation file
+#' @importFrom dplyr select mutate mutate_at rename distinct one_of
+#' @importFrom tidyr separate_rows extract
+#' @importFrom stringr str_replace
+.parse_indel_chunk <- function(all_fields,
+                             desired_columns,
+                             to_split,
+                             WGSA_version) {
+
+  # pick out the desired columns for further operation
+  selected_columns <- all_fields %>%
+    select(one_of(desired_columns)) %>% # select fields of interest
+    mutate(wgsa_version = WGSA_version) # add wgsa version
+
+  # check whether desired fields require parsing; parse if so
+  if (.check_for_parseable(desired_columns)){
+    # parse columns for which we want max value
+    selected_columns <- .parse_max_columns(selected_columns)
+
+    # parse columns for which we want No string default
+    selected_columns <- .parse_no_columns(selected_columns)
+
+    # parse columns for which we want Yes string default
+    selected_columns <- .parse_yes_columns(selected_columns)
+
+    # parse pair-columns
+    selected_columns <- .parse_column_pairs(selected_columns)
+
+    # parse triple-columns
+    selected_columns <- .parse_column_triples(selected_columns)
+  }
+
+  # pivot the VEP_* fields
+  expanded <- selected_columns %>%
+    separate_rows(one_of(to_split), sep = "\\|")
+
+  # split the VEP_ensembl_Codon_Change_or_Distance field as follows:
+  # if number, put in VEP_ensembl_Distance field
+  # if string, put in VEP_ensembl_Codon_Change field
+  if ("VEP_ensembl_Codon_Change_or_Distance" %in% desired_columns) {
+    expanded <- expanded %>%
+      extract(
+        col = VEP_ensembl_Codon_Change_or_Distance, #nolint
+        into = c("VEP_ensembl_Distance", "VEP_ensembl_Codon_Change"),
+        regex = "(\\d*)(\\D*)"
+      ) %>%
+      mutate_at(vars(one_of(
+        c("VEP_ensembl_Distance",
+          "VEP_ensembl_Codon_Change")
+      )),
+      funs(str_replace(
+        ., pattern = "^$", replacement = "."
+      ))) # fill blanks with "."
+  }
+
+  # if it's an older version annotation file, rename columns from WGSA fields
+  # with weird characters to database column names
+  if (.check_names(names(expanded))) {
+    names(expanded) <- .fix_names(names(expanded))
+  }
+
+  expanded <- distinct(expanded)
+}
+
 #' check whether field names are the old style
 .check_names <- function(field_names){
   old_names <- c(
