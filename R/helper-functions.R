@@ -83,7 +83,7 @@
 }
 
 #' parse columns from tibble for which we want to select maximum value
-#' @importFrom dplyr mutate_at rename_at ungroup rowwise
+#' @importFrom dplyr mutate_at rename_at ungroup rowwise vars
 .parse_max_columns <- function(selected_columns){
   columns_to_max <- .get_list("parse_max")[.get_list("parse_max") %in%
                                              names(selected_columns)]
@@ -115,7 +115,7 @@
 #' parse columns from tibble for which we want to parse to N if there is an N 
 #' present
 #' CAUTION - ASSUMES THAT THERE IS ONLY ONE DEFAULT NO COLUMN FOR NAMING
-#' @importFrom dplyr mutate_at rename_at rowwise ungroup
+#' @importFrom dplyr mutate_at rename_at rowwise ungroup vars
 .parse_no_columns <- function(selected_columns){
   columns_to_no <-
     .get_list("parse_string_no")[.get_list("parse_string_no") %in%
@@ -149,7 +149,7 @@
 
 #' parse columns from tibble for which we want to parse to Y if there is a Y 
 #' present
-#' @importFrom dplyr mutate_at rename_at ungroup rowwise
+#' @importFrom dplyr mutate_at rename_at ungroup rowwise vars
 .parse_yes_columns <- function(selected_columns){
   columns_to_yes <-
     .get_list("parse_string_yes")[.get_list("parse_string_yes") %in%
@@ -296,7 +296,7 @@
 
 #' Parse a chunk tibble from a SNV annotation file
 #' @importFrom magrittr %>%
-#' @importFrom dplyr select mutate mutate_at rename distinct one_of
+#' @importFrom dplyr select mutate mutate_at rename distinct one_of vars
 #' @importFrom tidyr separate_rows extract
 #' @importFrom stringr str_replace
 .parse_snv_chunk <- function(all_fields,
@@ -343,7 +343,7 @@
 
 #' Parse a chunk tibble from an indel annotation file
 #' @importFrom magrittr %>%
-#' @importFrom dplyr select mutate mutate_at rename distinct one_of
+#' @importFrom dplyr select mutate mutate_at rename distinct one_of vars
 #' @importFrom tidyr separate_rows extract
 #' @importFrom stringr str_replace
 .parse_indel_chunk <- function(all_fields,
