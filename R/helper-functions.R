@@ -48,7 +48,7 @@
 }
 
 #' use read_tsv to read fields from raw chunk of TSV from readLines()
-#' @importFrom readr read_tsv cols
+#' @importFrom readr read_tsv cols col_character
 .get_fields_from_chunk <- function(raw_chunk) {
   read_tsv(paste0(raw_chunk, collapse = "\n"),
            col_types = cols(.default = col_character()))
