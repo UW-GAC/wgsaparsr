@@ -358,7 +358,7 @@
 
   # check whether desired fields require parsing; parse if so
   if (.check_for_parseable(desired_columns)){
-    # parse columns for which we want max value
+    # parse columns for which we want max value #SLOW
     selected_columns <- .parse_max_columns(selected_columns)
 
     # parse columns for which we want No string default
@@ -409,39 +409,39 @@
 #' check whether field names are the old style
 .check_names <- function(field_names){
   old_names <- c(
-    "`#chr`",
-    "`MAP20(+-149bp)`",
-    "`MAP35(+-149bp)`",
-    "`GMS_single-end`",
-    "`GMS_paired-end`",
-    "`H1-hESC_fitCons_score`", #nolint
-    "`H1-hESC_fitCons_rankscore`", #nolint
-    "`H1-hESC_confidence_value`", #nolint
-    "`1000G_strict_masked`",
-    "`1000Gp3_AC`",
-    "`1000Gp3_AF`",
-    "`1000Gp3_AFR_AC`",
-    "`1000Gp3_AFR_AF`",
-    "`1000Gp3_EUR_AC`",
-    "`1000Gp3_EUR_AF`",
-    "`1000Gp3_AMR_AC`",
-    "`1000Gp3_AMR_AF`",
-    "`1000Gp3_EAS_AC`",
-    "`1000Gp3_EAS_AF`",
-    "`1000Gp3_SAS_AC`",
-    "`1000Gp3_SAS_AF`",
-    "`fathmm-MKL_non-coding_score`",
-    "`fathmm-MKL_non-coding_rankscore`", #nolint
-    "`fathmm-MKL_non-coding_group`",
-    "`fathmm-MKL_coding_score`",
-    "`fathmm-MKL_coding_rankscore`",
-    "`fathmm-MKL_coding_pred`",
-    "`fathmm-MKL_coding_group`",
-    "`Eigen-raw`",
-    "`Eigen-phred`",
-    "`Eigen-raw_rankscore`",
-    "`Eigen-PC-raw`",
-    "`Eigen-PC-raw_rankscore`"
+    "#chr",
+    "MAP20(+-149bp)",
+    "MAP35(+-149bp)",
+    "GMS_single-end",
+    "GMS_paired-end",
+    "H1-hESC_fitCons_score", #nolint
+    "H1-hESC_fitCons_rankscore", #nolint
+    "H1-hESC_confidence_value", #nolint
+    "1000G_strict_masked",
+    "1000Gp3_AC",
+    "1000Gp3_AF",
+    "1000Gp3_AFR_AC",
+    "1000Gp3_AFR_AF",
+    "1000Gp3_EUR_AC",
+    "1000Gp3_EUR_AF",
+    "1000Gp3_AMR_AC",
+    "1000Gp3_AMR_AF",
+    "1000Gp3_EAS_AC",
+    "1000Gp3_EAS_AF",
+    "1000Gp3_SAS_AC",
+    "1000Gp3_SAS_AF",
+    "fathmm-MKL_non-coding_score",
+    "fathmm-MKL_non-coding_rankscore", #nolint
+    "fathmm-MKL_non-coding_group",
+    "fathmm-MKL_coding_score",
+    "fathmm-MKL_coding_rankscore",
+    "fathmm-MKL_coding_pred",
+    "fathmm-MKL_coding_group",
+    "Eigen-raw",
+    "Eigen-phred",
+    "Eigen-raw_rankscore",
+    "Eigen-PC-raw",
+    "Eigen-PC-raw_rankscore"
   )
   any(old_names %in% field_names)
 }
@@ -449,56 +449,56 @@
 #' change any old names to new style names
 .fix_names <- function(name_vector) {
   old_names <- c(
-    "`#chr`",
-    "`MAP20(+-149bp)`",
-    "`MAP35(+-149bp)`",
-    "`GMS_single-end`",
-    "`GMS_paired-end`",
-    "`H1-hESC_fitCons_score`", #nolint
-    "`H1-hESC_fitCons_rankscore`", #nolint
-    "`H1-hESC_confidence_value`", #nolint
-    "`1000G_strict_masked`",
-    "`1000Gp3_AC`",
-    "`1000Gp3_AF`",
-    "`1000Gp3_AFR_AC`",
-    "`1000Gp3_AFR_AF`",
-    "`1000Gp3_EUR_AC`",
-    "`1000Gp3_EUR_AF`",
-    "`1000Gp3_AMR_AC`",
-    "`1000Gp3_AMR_AF`",
-    "`1000Gp3_EAS_AC`",
-    "`1000Gp3_EAS_AF`",
-    "`1000Gp3_SAS_AC`",
-    "`1000Gp3_SAS_AF`",
-    "`fathmm-MKL_non-coding_score`",
-    "`fathmm-MKL_non-coding_rankscore`", #nolint
-    "`fathmm-MKL_non-coding_group`",
-    "`fathmm-MKL_coding_score`",
-    "`fathmm-MKL_coding_rankscore`",
-    "`fathmm-MKL_coding_pred`",
-    "`fathmm-MKL_coding_group`",
-    "`Eigen-raw`",
-    "`Eigen-phred`",
-    "`Eigen-raw_rankscore`",
-    "`Eigen-PC-raw`",
-    "`Eigen-PC-raw_rankscore`",
-    "`MAP20(+-149bp)_unparsed`",
-    "`MAP35(+-149bp)_unparsed`",
-    "`GMS_single-end_unparsed`",
-    "`GMS_paired-end_unparsed`",
-    "`1000G_strict_masked_unparsed`",
-    "`fathmm-MKL_non-coding_score_unparsed`",
-    "`fathmm-MKL_non-coding_rankscore_unparsed`", #nolint
-    "`fathmm-MKL_non-coding_group_unparsed`",
-    "`fathmm-MKL_coding_score_unparsed`",
-    "`fathmm-MKL_coding_rankscore_unparsed`",
-    "`fathmm-MKL_coding_pred_unparsed`",
-    "`fathmm-MKL_coding_group_unparsed`",
-    "`Eigen-raw_unparsed`",
-    "`Eigen-phred_unparsed`",
-    "`Eigen-raw_rankscore_unparsed`",
-    "`Eigen-PC-raw_unparsed`",
-    "`Eigen-PC-raw_rankscore_unparsed`",
+    "#chr",
+    "MAP20(+-149bp)",
+    "MAP35(+-149bp)",
+    "GMS_single-end",
+    "GMS_paired-end",
+    "H1-hESC_fitCons_score", #nolint
+    "H1-hESC_fitCons_rankscore", #nolint
+    "H1-hESC_confidence_value", #nolint
+    "1000G_strict_masked",
+    "1000Gp3_AC",
+    "1000Gp3_AF",
+    "1000Gp3_AFR_AC",
+    "1000Gp3_AFR_AF",
+    "1000Gp3_EUR_AC",
+    "1000Gp3_EUR_AF",
+    "1000Gp3_AMR_AC",
+    "1000Gp3_AMR_AF",
+    "1000Gp3_EAS_AC",
+    "1000Gp3_EAS_AF",
+    "1000Gp3_SAS_AC",
+    "1000Gp3_SAS_AF",
+    "fathmm-MKL_non-coding_score",
+    "fathmm-MKL_non-coding_rankscore", #nolint
+    "fathmm-MKL_non-coding_group",
+    "fathmm-MKL_coding_score",
+    "fathmm-MKL_coding_rankscore",
+    "fathmm-MKL_coding_pred",
+    "fathmm-MKL_coding_group",
+    "Eigen-raw",
+    "Eigen-phred",
+    "Eigen-raw_rankscore",
+    "Eigen-PC-raw",
+    "Eigen-PC-raw_rankscore",
+    "MAP20(+-149bp)_unparsed",
+    "MAP35(+-149bp)_unparsed",
+    "GMS_single-end_unparsed",
+    "GMS_paired-end_unparsed",
+    "1000G_strict_masked_unparsed",
+    "fathmm-MKL_non-coding_score_unparsed",
+    "fathmm-MKL_non-coding_rankscore_unparsed", #nolint
+    "fathmm-MKL_non-coding_group_unparsed",
+    "fathmm-MKL_coding_score_unparsed",
+    "fathmm-MKL_coding_rankscore_unparsed",
+    "fathmm-MKL_coding_pred_unparsed",
+    "fathmm-MKL_coding_group_unparsed",
+    "Eigen-raw_unparsed",
+    "Eigen-phred_unparsed",
+    "Eigen-raw_rankscore_unparsed",
+    "Eigen-PC-raw_unparsed",
+    "Eigen-PC-raw_rankscore_unparsed",
     "CADDraw",
     "CADDphred"
   )
@@ -560,6 +560,8 @@
 
   name_vector[name_vector %in% old_names] <-
     new_names[old_names %in% name_vector]
+
+  return(name_vector)
 }
 
 #' select columns to set order and write_tsv
