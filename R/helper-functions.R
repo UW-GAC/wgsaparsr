@@ -481,7 +481,24 @@
     "`Eigen-phred`",
     "`Eigen-raw_rankscore`",
     "`Eigen-PC-raw`",
-    "`Eigen-PC-raw_rankscore`"
+    "`Eigen-PC-raw_rankscore`",
+    "`MAP20(+-149bp)_unparsed`",
+    "`MAP35(+-149bp)_unparsed`",
+    "`GMS_single-end_unparsed`",
+    "`GMS_paired-end_unparsed`",
+    "`1000G_strict_masked_unparsed`",
+    "`fathmm-MKL_non-coding_score_unparsed`",
+    "`fathmm-MKL_non-coding_rankscore_unparsed`", #nolint
+    "`fathmm-MKL_non-coding_group_unparsed`",
+    "`fathmm-MKL_coding_score_unparsed`",
+    "`fathmm-MKL_coding_rankscore_unparsed`",
+    "`fathmm-MKL_coding_pred_unparsed`",
+    "`fathmm-MKL_coding_group_unparsed`",
+    "`Eigen-raw_unparsed`",
+    "`Eigen-phred_unparsed`",
+    "`Eigen-raw_rankscore_unparsed`",
+    "`Eigen-PC-raw_unparsed`",
+    "`Eigen-PC-raw_rankscore_unparsed`"
   )
 
   new_names <- c(
@@ -517,7 +534,24 @@
     "Eigen_phred",
     "Eigen_raw_rankscore",
     "Eigen_PC_raw",
-    "Eigen_PC_raw_rankscore"
+    "Eigen_PC_raw_rankscore",
+    "MAP20_149bp_unparsed",
+    "MAP35_149bp_unparsed",
+    "GMS_single_end_unparsed",
+    "GMS_paired_end_unparsed",
+    "KGP_strict_masked_unparsed",
+    "fathmm_MKL_non_coding_score_unparsed",
+    "fathmm_MKL_non_coding_rankscore_unparsed", #nolint
+    "fathmm_MKL_non_coding_group_unparsed",
+    "fathmm_MKL_coding_score_unparsed",
+    "fathmm_MKL_coding_rankscore_unparsed",
+    "fathmm_MKL_coding_pred_unparsed",
+    "fathmm_MKL_coding_group_unparsed",
+    "Eigen_raw_unparsed",
+    "Eigen_phred_unparsed",
+    "Eigen_raw_rankscore_unparsed",
+    "Eigen_PC_raw_unparsed",
+    "Eigen_PC_raw_rankscore_unparsed"
   )
 
   name_vector[name_vector %in% old_names] <-
@@ -538,7 +572,7 @@
                          "VEP_ensembl_Distance", "VEP_ensembl_Codon_Change")
   }
 
-  # desired_columns may have old naming scheme. Fix.
+  # use select statement to write column headers and make sure of column order.
   if (header_flag) {
     parsed_lines %>%
       select(one_of(c(desired_columns, "wgsa_version"))) %>%
