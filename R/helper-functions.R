@@ -170,6 +170,7 @@
 #' first column and apply to second column
 #' @importFrom dplyr mutate select rename
 #' @importFrom purrr map map_dbl map2 map2_chr
+#' @importFrom rlang syms
 .parse_column_pairs <- function(selected_columns) {
   column_pairs <-
     .get_list("parse_pairs")
@@ -229,6 +230,7 @@
 #' rankscore.
 #' @importFrom dplyr mutate select rename
 #' @importFrom purrr map map_dbl map2 map2_chr
+#' @importFrom rlang syms
 .parse_column_triples <- function(selected_columns) {
   column_triples <-
     .get_list("parse_triples")
