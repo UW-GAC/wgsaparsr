@@ -498,7 +498,9 @@
     "`Eigen-phred_unparsed`",
     "`Eigen-raw_rankscore_unparsed`",
     "`Eigen-PC-raw_unparsed`",
-    "`Eigen-PC-raw_rankscore_unparsed`"
+    "`Eigen-PC-raw_rankscore_unparsed`",
+    "CADDraw",
+    "CADDphred"
   )
 
   new_names <- c(
@@ -551,7 +553,9 @@
     "Eigen_phred_unparsed",
     "Eigen_raw_rankscore_unparsed",
     "Eigen_PC_raw_unparsed",
-    "Eigen_PC_raw_rankscore_unparsed"
+    "Eigen_PC_raw_rankscore_unparsed",
+    "CADD_raw",
+    "CADD_phred"
   )
 
   name_vector[name_vector %in% old_names] <-
@@ -564,7 +568,8 @@
 .write_to_file <- function(parsed_lines,
                            destination,
                            desired_columns,
-                           header_flag) {
+                           header_flag,
+                           indel_flag) {
   # desired_columns may have VEP_ensembl_Codon_Change_or_Distance. Fix.
   if ("VEP_ensembl_Codon_Change_or_Distance" %in% desired_columns) {
     desired_columns <- c(setdiff(desired_columns,
@@ -572,14 +577,18 @@
                          "VEP_ensembl_Distance", "VEP_ensembl_Codon_Change")
   }
 
-  # use select statement to write column headers and make sure of column order.
-  if (header_flag) {
-    parsed_lines %>%
-      select(one_of(c(desired_columns, "wgsa_version"))) %>%
-      write_tsv(path = destination, append = FALSE)
-  } else {
-    parsed_lines %>%
-      select(one_of(c(desired_columns, "wgsa_version"))) %>%
-      write_tsv(path = destination, append = TRUE)
+  # add _unparsed columns to desired_columns for parsed indel chunk
+  if (indel_flag){
+    desired_columns <- names(parsed_lines)[names(parsed_lines) %in%
+                                             .get_list("all_fields")]
   }
+  # use select statement to write column headers and make sure of column order.
+  parsed_lines %>%
+    select(one_of(c(desired_columns, "wgsa_version"))) %>% {
+      if (header_flag) {
+        write_tsv(path = destination, append = FALSE)
+      } else {
+        write_tsv(path = destination, append = TRUE)
+      }
+    }
 }

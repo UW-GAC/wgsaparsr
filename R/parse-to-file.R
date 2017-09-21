@@ -11,7 +11,9 @@
 #' @param source_file Path to the WGSA output file to parse
 #' @param destination Path to the desired output file
 #' @param desired_columns a character vector with the names of fields to extract
-#'   from the WGSA output (names must match names in WGSA output file).
+#'   from the WGSA output (names must match names in WGSA output file). For
+#'   indel annotation, unparsed columns will be retained in addition to parsed 
+#'   columns.
 #' @param to_split a character vector with the names of list-fields to be tidied
 #' @param WGSA_version The version of WGSA used to generate output
 #' @param chunk_size Number of lines to parse each iteration (default 10,000)
@@ -95,7 +97,11 @@ parse_to_file <- function(source_file,
     }
 
     # write tibble to tsv file
-    .write_to_file(parsed_lines, destination, desired_columns, header_flag)
+    .write_to_file(parsed_lines,
+                   destination,
+                   desired_columns,
+                   header_flag,
+                   indel_flag)
 
     # ready for the next chunk!
     index <- index + 1L

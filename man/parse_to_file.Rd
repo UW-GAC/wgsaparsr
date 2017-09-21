@@ -13,7 +13,9 @@ parse_to_file(source_file, destination, desired_columns, to_split,
 \item{destination}{Path to the desired output file}
 
 \item{desired_columns}{a character vector with the names of fields to extract
-from the WGSA output (names must match names in WGSA output file).}
+from the WGSA output (names must match names in WGSA output file). For
+indel annotation, unparsed columns will be retained in addition to parsed 
+columns.}
 
 \item{to_split}{a character vector with the names of list-fields to be tidied}
 
