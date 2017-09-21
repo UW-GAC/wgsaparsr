@@ -11,15 +11,17 @@
 #' @param source_file Path to the WGSA output file to parse
 #' @param destination Path to the desired output file
 #' @param desired_columns a character vector with the names of fields to extract
-#'   from the WGSA output. Column names with unusual characters should be
-#'   wrapped in backticks (e.g. `#chr`).
-#' @param to_split list-fields to be tidied
+#'   from the WGSA output (names must match names in WGSA output file). For
+#'   indel annotation, unparsed columns will be retained in addition to parsed 
+#'   columns.
+#' @param to_split a character vector with the names of list-fields to be tidied
+#' @param WGSA_version The version of WGSA used to generate output
 #' @param chunk_size Number of lines to parse each iteration (default 10,000)
 #' @param verbose more output to screen (default FALSE)
 #'
 #' @examples 
 #' \dontrun{
-#'  target_columns <- c("`#chr`", 
+#'  target_columns <- c("#chr", 
 #'    "pos", 
 #'    "ref", 
 #'    "alt",
@@ -35,50 +37,44 @@
 #'  to_split = columns_to_split, 
 #'  chunk_size = 1000)
 #' }
-#' @import readr
-#' @import dplyr
-#' @importFrom tidyr separate_rows_
-#' @importFrom tidyr unite
-#' @importFrom digest digest
-#' @importFrom purrr map_chr
-#' @importFrom stringr str_replace_all
-#' @importFrom stringr str_sub
-#' @importFrom stringr str_extract
-#' @importFrom dplyr distinct_
+#' 
 #' @export
 
-parse_to_file <- function(source_file, destination,
-                          desired_columns, to_split, chunk_size = 10000,
-                          verbose = FALSE) {
+parse_to_file <- function(source_file,
+                          destination,
+                          desired_columns,
+                          to_split,
+                          WGSA_version = "WGSA065",
+                          chunk_size = 10000,
+                          verbose = TRUE) {
+
+  # check that desired_columns and to_split are possible
+  .check_to_split(desired_columns, to_split)
+  .check_desired(source_file, desired_columns)
+
+  # main loop - read file by chunk, process chunk, write chunk
   readfile_con <- gzfile(source_file, "r")
-
-  # check that desired_columns are in source file
-  all_fields <- get_fields(source_file)
-  cleaned_desired <- str_replace_all(desired_columns, "`", "")
-  if (!all(cleaned_desired %in% all_fields)){
-    close(readfile_con)
-    stop("Not all desired columns are in source file")
-  }
-
   index <- 0L
   while (TRUE) {
-    # read a chunk
+    # read a raw chunk
     raw_chunk <- suppressWarnings(readLines(readfile_con, n = chunk_size))
 
-    # check for header and grab if in chunk
+    # check for header line and read raw chunk to all_fields tibble
     if (.has_header(raw_chunk)) {
-      raw_header <- raw_chunk[str_sub(raw_chunk, 1, 4) == "#chr"]
-      all_fields <-
-        read_tsv(paste0(raw_chunk, collapse = "\n"),
-                 #paste all lines to a single string
-                 col_types = cols(.default = col_character()))
+      found_header <- TRUE
       header_flag <- TRUE
+      raw_header <- .get_header(raw_chunk)
+      indel_flag <- .is_indel(raw_header)
+      all_fields <- .get_fields_from_chunk(raw_chunk)
     } else {
-      all_fields <-
-        read_tsv(paste0(raw_header, "\n", # add header to chunk
-                        paste0(raw_chunk, collapse = "\n")),
-                 col_types = cols(.default = col_character()))
+      # header line should have been read in a previous chunk
+      if (!found_header){
+        stop("Didn't find header line in source_file!")
+      }
       header_flag <- FALSE
+      modified_chunk <- paste0(raw_header, "\n",
+                               raw_chunk, collapse = "\n")
+      all_fields <- .get_fields_from_chunk(modified_chunk)
     }
 
     # end iteration if all_fields has 0 observations
@@ -87,66 +83,38 @@ parse_to_file <- function(source_file, destination,
       break
     }
 
-    # pick out the desired columns for further operation
-    selected_columns <- all_fields %>%
-      select_(.dots = desired_columns) %>% # select fields of interest
-      select(chr = `#chr`, everything()) %>% # rename #chr to chr
-      mutate(wgsa_version = "WGSA065") %>% # add wgsa version
-      distinct() # hopefully a minor pre-filter
-
-    # parse the complex columns to unpack them
-    expanded <- selected_columns %>%
-      separate_rows_(to_split, sep = "\\|")
-
-    ## add a MD5 hash of each line as a unique key
-
-    # first, combine columns by row for hashing
-    lines <- expanded %>% unite(foo, everything()) #nolint
-
-    # then make list of variable names for ordering
-    nohash <- str_replace_all(cleaned_desired, "#chr", "chr")
-
-    # add MD5 hash of each string and save resulting tibble e.g.
-    # digest(paste(data.frame(letters[1:10], letters[11:20])[1,], collapse =
-    # ""), algo = "md5", serialize = FALSE)
-    parsed_lines <-
-      mutate(expanded, hash = map_chr(lines$foo, function(x)
-        digest(
-          x, algo = "md5", serialize = FALSE
-        ))) %>%
-      distinct_(.dots = nohash) # hopefully a minor pre-filter
-
-    # write tibble to tsv file
-    if (header_flag) {
-      write_tsv(parsed_lines, destination)
+    # parse the all_fields tibble
+    if (indel_flag) {
+      parsed_lines <- .parse_indel_chunk(all_fields,
+                                         desired_columns,
+                                         to_split,
+                                         WGSA_version)
     } else {
-      write_tsv(parsed_lines, destination, append = TRUE)
+      parsed_lines <- .parse_snv_chunk(all_fields,
+                                       desired_columns,
+                                       to_split,
+                                       WGSA_version)
     }
 
+    # write tibble to tsv file
+    .write_to_file(parsed_lines,
+                   destination,
+                   desired_columns,
+                   header_flag,
+                   indel_flag)
+
+    # ready for the next chunk!
     index <- index + 1L
-    if (verbose == TRUE) {
-      print(
-        paste0(
-          "Chunks: ",
-          index,
-          " Lines: <= ",
-          chunk_size * index,
-          " Records in current import: ",
-          dim(parsed_lines)[1]
-        )
+
+    # update progress if desired
+    if (verbose) {
+      msg <- paste0(
+        "Chunks completed: ", index,
+        "\n Sourcefile lines processed <= ", chunk_size * index,
+        "\n Records in current import: ", dim(parsed_lines)[1]
       )
+      message(msg)
     }
   }
   close(readfile_con)
-}
-
-# ----------------------------------------------------------------------------------------
-# helper functions
-# ----------------------------------------------------------------------------------------
-#
-#' Check if the current chunk includes a header row describing the fields
-#' @importFrom stringr str_sub
-
-.has_header <- function(raw_chunk){
-  any(str_sub(raw_chunk, 1, 4) == "#chr")
 }
