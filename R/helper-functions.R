@@ -572,23 +572,27 @@
                            indel_flag) {
   # desired_columns may have VEP_ensembl_Codon_Change_or_Distance. Fix.
   if ("VEP_ensembl_Codon_Change_or_Distance" %in% desired_columns) {
-    desired_columns <- c(setdiff(desired_columns,
-                                 "VEP_ensembl_Codon_Change_or_Distance"),
-                         "VEP_ensembl_Distance", "VEP_ensembl_Codon_Change")
+    desired_columns <- c(
+      setdiff(desired_columns,
+              "VEP_ensembl_Codon_Change_or_Distance"),
+      "VEP_ensembl_Distance",
+      "VEP_ensembl_Codon_Change"
+    )
   }
 
   # add _unparsed columns to desired_columns for parsed indel chunk
-  if (indel_flag){
+  if (indel_flag) {
     desired_columns <- names(parsed_lines)[names(parsed_lines) %in%
                                              .get_list("all_fields")]
   }
   # use select statement to write column headers and make sure of column order.
-  parsed_lines %>%
-    select(one_of(c(desired_columns, "wgsa_version"))) %>% {
-      if (header_flag) {
-        write_tsv(path = destination, append = FALSE)
-      } else {
-        write_tsv(path = destination, append = TRUE)
-      }
-    }
+  if (header_flag) {
+    parsed_lines %>%
+      select(one_of(c(desired_columns, "wgsa_version"))) %>%
+      write_tsv(path = destination, append = FALSE)
+  } else {
+    parsed_lines %>%
+      select(one_of(c(desired_columns, "wgsa_version"))) %>%
+      write_tsv(path = destination, append = TRUE)
+  }
 }
