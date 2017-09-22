@@ -92,6 +92,7 @@
           )
       )
   }
+  return(selected_columns)
 }
 
 #' check string for
