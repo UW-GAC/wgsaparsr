@@ -59,42 +59,37 @@
   any(.get_list("parseable_fields") %in% field_names)
 }
 
-#' parse string (as from the columns in get_max) and return maximum numeric 
-#' value as a string
-#' @importFrom stringr str_split
-.get_max_value <- function(a_string){
-  if (length(a_string) > 1) {
-    stop(".get_max_value isn't vectorized")
-  }
-  numbers <-
-    suppressWarnings(
-      a_string %>%
-        str_split(pattern = "\\{\\d+\\}|;") %>%
-        unlist() %>%
-        as.numeric())
-
-  if (all(is.na(numbers))) {
-    return(".")
-  } else {
-    numbers %>%
-      max(., na.rm = TRUE) %>%
-      toString()
-  }
-}
-
 #' parse columns from tibble for which we want to select maximum value
 #' @importFrom dplyr mutate_at rename_at ungroup rowwise vars ends_with
+#' @importFrom rlang sym
 .parse_max_columns <- function(selected_columns){
   columns_to_max <- .get_list("parse_max")[.get_list("parse_max") %in%
                                              names(selected_columns)]
 
-  selected_columns <- selected_columns %>%
-    rowwise() %>%
-    mutate_at(vars(columns_to_max), .funs =
-                funs(test = suppressWarnings(.get_max_value(.)))) %>%
-    rename_at(vars(columns_to_max), funs(paste(., "unparsed", sep = "_"))) %>%
-    rename_at(vars(ends_with("_test")), funs(gsub("_test", "", .))) %>%
-    ungroup()
+  for (to_max in columns_to_max) {
+    col_name <- to_max
+    unparsed_col_name <- paste0(col_name, "_unparsed")
+
+    selected_columns <-
+      suppressWarnings(
+        selected_columns %>%
+          mutate(
+            p_clean = str_replace_all(!!sym(col_name),
+                                      "(?:\\{.*?\\})|;", " "),
+            p_list = strsplit(p_clean, "\\s+"),
+            p_list = map(p_list, as.numeric),
+            p_max = map_dbl(p_list, max, na.rm = TRUE),
+            p_max = as.character(p_max),
+            p_max = ifelse( (p_max == "-Inf"), ".", p_max)
+          ) %>%
+          select(
+            -p_clean,
+            -p_list,
+            !!unparsed_col_name := !!col_name,
+            !!col_name := p_max
+          )
+      )
+  }
 }
 
 #' check string for
