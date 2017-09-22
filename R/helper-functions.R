@@ -60,8 +60,10 @@
 }
 
 #' parse columns from tibble for which we want to select maximum value
-#' @importFrom dplyr mutate_at rename_at ungroup rowwise vars ends_with
+#' @importFrom dplyr mutate select
 #' @importFrom rlang sym
+#' @importFrom stringr str_replace_all
+#' @importFrom purrr map map_dbl
 .parse_max_columns <- function(selected_columns){
   columns_to_max <- .get_list("parse_max")[.get_list("parse_max") %in%
                                              names(selected_columns)]
@@ -90,6 +92,7 @@
           )
       )
   }
+  return(selected_columns)
 }
 
 #' check string for
