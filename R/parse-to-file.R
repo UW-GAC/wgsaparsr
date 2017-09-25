@@ -72,8 +72,7 @@ parse_to_file <- function(source_file,
         stop("Didn't find header line in source_file!")
       }
       header_flag <- FALSE
-      modified_chunk <- paste0(raw_header, "\n",
-                               raw_chunk, collapse = "\n")
+      modified_chunk <- c(raw_header, raw_chunk)
       all_fields <- .get_fields_from_chunk(modified_chunk)
     }
 
