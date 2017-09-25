@@ -446,7 +446,7 @@
     desired_columns <- names(parsed_lines)[names(parsed_lines) %in%
                                              .get_list("all_fields")]
   }
-  
+
   # use select statement to write column headers and make sure of column order.
   if (header_flag) {
     parsed_lines %>%

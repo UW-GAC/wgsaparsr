@@ -36,7 +36,23 @@
       "Eigen-PC-raw",
       "Eigen-PC-raw_rankscore",
       "CADDraw",
-      "CADDphred"
+      "CADDphred",
+      "MAP20(+-149bp)_unparsed",
+      "MAP35(+-149bp)_unparsed",
+      "GMS_single-end_unparsed",
+      "GMS_paired-end_unparsed",
+      "1000G_strict_masked_unparsed",
+      "H1-hESC_fitCons_score_unparsed",
+      "H1-hESC_fitCons_rankscore_unparsed",
+      "fathmm-MKL_non-coding_score_unparsed",
+      "fathmm-MKL_non-coding_rankscore_unparsed",
+      "fathmm-MKL_coding_score_unparsed",
+      "fathmm-MKL_coding_rankscore_unparsed",
+      "Eigen-raw_unparsed",
+      "Eigen-phred_unparsed",
+      "Eigen-raw_rankscore_unparsed",
+      "Eigen-PC-raw_unparsed",
+      "Eigen-PC-raw_rankscore_unparsed"
     )
     return(old_names)
   } else if (which_list == "new_names") {
@@ -78,7 +94,23 @@
       "Eigen_PC_raw",
       "Eigen_PC_raw_rankscore",
       "CADD_raw",
-      "CADD_phred"
+      "CADD_phred",
+      "MAP20_149bp_unparsed",
+      "MAP35_149bp_unparsed",
+      "GMS_single_end_unparsed",
+      "GMS_paired_end_unparsed",
+      "KGP_strict_masked_unparsed",
+      "H1_hESC_fitCons_score_unparsed",
+      "H1_hESC_fitCons_rankscore_unparsed",
+      "fathmm_MKL_non_coding_score_unparsed",
+      "fathmm_MKL_non_coding_rankscore_unparsed",
+      "fathmm_MKL_coding_score_unparsed",
+      "fathmm_MKL_coding_rankscore_unparsed",
+      "Eigen_raw_unparsed",
+      "Eigen_phred_unparsed",
+      "Eigen_raw_rankscore_unparsed",
+      "Eigen_PC_raw_unparsed",
+      "Eigen_PC_raw_rankscore_unparsed"
     )
     return(new_names)
   } else if (which_list == "parseable_fields") {
