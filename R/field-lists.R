@@ -2,39 +2,41 @@
 .get_list <- function(which_list) {
   if (which_list == "old_names") {
     old_names <- c(
-      "`#chr`",
-      "`MAP20(+-149bp)`",
-      "`MAP35(+-149bp)`",
-      "`GMS_single-end`",
-      "`GMS_paired-end`",
-      "`H1-hESC_fitCons_score`", #nolint
-      "`H1-hESC_fitCons_rankscore`", #nolint
-      "`H1-hESC_confidence_value`", #nolint
-      "`1000G_strict_masked`",
-      "`1000Gp3_AC`",
-      "`1000Gp3_AF`",
-      "`1000Gp3_AFR_AC`",
-      "`1000Gp3_AFR_AF`",
-      "`1000Gp3_EUR_AC`",
-      "`1000Gp3_EUR_AF`",
-      "`1000Gp3_AMR_AC`",
-      "`1000Gp3_AMR_AF`",
-      "`1000Gp3_EAS_AC`",
-      "`1000Gp3_EAS_AF`",
-      "`1000Gp3_SAS_AC`",
-      "`1000Gp3_SAS_AF`",
-      "`fathmm-MKL_non-coding_score`",
-      "`fathmm-MKL_non-coding_rankscore`", #nolint
-      "`fathmm-MKL_non-coding_group`",
-      "`fathmm-MKL_coding_score`",
-      "`fathmm-MKL_coding_rankscore`",
-      "`fathmm-MKL_coding_pred`",
-      "`fathmm-MKL_coding_group`",
-      "`Eigen-raw`",
-      "`Eigen-phred`",
-      "`Eigen-raw_rankscore`",
-      "`Eigen-PC-raw`",
-      "`Eigen-PC-raw_rankscore`"
+      "#chr",
+      "MAP20(+-149bp)",
+      "MAP35(+-149bp)",
+      "GMS_single-end",
+      "GMS_paired-end",
+      "H1-hESC_fitCons_score", #nolint
+      "H1-hESC_fitCons_rankscore", #nolint
+      "H1-hESC_confidence_value", #nolint
+      "1000G_strict_masked",
+      "1000Gp3_AC",
+      "1000Gp3_AF",
+      "1000Gp3_AFR_AC",
+      "1000Gp3_AFR_AF",
+      "1000Gp3_EUR_AC",
+      "1000Gp3_EUR_AF",
+      "1000Gp3_AMR_AC",
+      "1000Gp3_AMR_AF",
+      "1000Gp3_EAS_AC",
+      "1000Gp3_EAS_AF",
+      "1000Gp3_SAS_AC",
+      "1000Gp3_SAS_AF",
+      "fathmm-MKL_non-coding_score",
+      "fathmm-MKL_non-coding_rankscore", #nolint
+      "fathmm-MKL_non-coding_group",
+      "fathmm-MKL_coding_score",
+      "fathmm-MKL_coding_rankscore",
+      "fathmm-MKL_coding_pred",
+      "fathmm-MKL_coding_group",
+      "Eigen-raw",
+      "Eigen-phred",
+      "Eigen-raw_rankscore",
+      "Eigen-PC-raw",
+      "Eigen-PC-raw_rankscore",
+      "CADDraw",
+      "CADDphred"
     )
     return(old_names)
   } else if (which_list == "new_names") {
@@ -74,7 +76,9 @@
       "Eigen_phred",
       "Eigen_raw_rankscore",
       "Eigen_PC_raw",
-      "Eigen_PC_raw_rankscore"
+      "Eigen_PC_raw_rankscore",
+      "CADD_raw",
+      "CADD_phred"
     )
     return(new_names)
   } else if (which_list == "parseable_fields") {
@@ -436,8 +440,8 @@
       "integrated_fitCons_rankscore_unparsed",
       "GM12878_fitCons_score_unparsed",
       "GM12878_fitCons_rankscore_unparsed",
-      "H1-hESC_fitCons_score_unparsed",
-      "H1-hESC_fitCons_rankscore_unparsed",
+      "H1_hESC_fitCons_score_unparsed",
+      "H1_hESC_fitCons_rankscore_unparsed",
       "HUVEC_fitCons_score_unparsed",
       "HUVEC_fitCons_rankscore_unparsed",
       "GenoCanyon_score_unparsed",
