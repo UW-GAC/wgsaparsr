@@ -49,8 +49,12 @@ parse_to_file <- function(source_file,
                           verbose = TRUE) {
 
   # check that desired_columns and to_split are possible
-  .check_to_split(desired_columns, to_split)
-  .check_desired(source_file, desired_columns)
+  if (!.check_to_split(desired_columns, to_split)) {
+    stop("all to_split fields must be in desired_columns")
+  }
+  if (!.check_desired(source_file, desired_columns)) {
+    stop("not all desired_columns are in source_file")
+  }
 
   # main loop - read file by chunk, process chunk, write chunk
   readfile_con <- gzfile(source_file, "r")
@@ -58,6 +62,11 @@ parse_to_file <- function(source_file,
   while (TRUE) {
     # read a raw chunk
     raw_chunk <- suppressWarnings(readLines(readfile_con, n = chunk_size))
+
+    # readLines() returns a zero length result at EOF
+    if (is.null(dim(raw_chunk))) {
+      break
+    }
 
     # check for header line and read raw chunk to all_fields tibble
     if (.has_header(raw_chunk)) {
@@ -79,7 +88,8 @@ parse_to_file <- function(source_file,
     # end iteration if all_fields has 0 observations
     # (to avoid dplyr error arising from empty tibble)
     if (dim(all_fields)[1] == 0) {
-      break
+      index <- index + 1L
+      next
     }
 
     # parse the all_fields tibble
