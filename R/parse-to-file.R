@@ -64,7 +64,7 @@ parse_to_file <- function(source_file,
     raw_chunk <- suppressWarnings(readLines(readfile_con, n = chunk_size))
 
     # readLines() returns a zero length result at EOF
-    if (is.null(dim(raw_chunk))) {
+    if (length(raw_chunk) == 0) {
       break
     }
 
