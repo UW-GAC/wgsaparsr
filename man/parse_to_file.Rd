@@ -4,53 +4,39 @@
 \alias{parse_to_file}
 \title{Parse the WGSA output file to tidy and select columns of interest}
 \usage{
-parse_to_file(source_file, destination, desired_columns, to_split,
-  WGSA_version = "WGSA065", chunk_size = 10000, verbose = TRUE)
+parse_to_file(source_file, destination, dbnsfp_destination, freeze = 4,
+  chunk_size = 10000, verbose = TRUE)
 }
 \arguments{
-\item{source_file}{Path to the WGSA output file to parse}
+\item{source_file}{Path to the WGSA output file to parse (indel or SNV
+annotation)}
 
-\item{destination}{Path to the desired output file}
+\item{destination}{Path to the desired indel or snv output file}
 
-\item{desired_columns}{a character vector with the names of fields to extract
-from the WGSA output (names must match names in WGSA output file). For
-indel annotation, unparsed columns will be retained in addition to parsed 
-columns.}
+\item{dbnsfp_destination}{Path to the desired dbnsfp output file}
 
-\item{to_split}{a character vector with the names of list-fields to be tidied}
-
-\item{WGSA_version}{The version of WGSA used to generate output}
+\item{freeze}{Which TOPMed freeze is being used (default 4)}
 
 \item{chunk_size}{Number of lines to parse each iteration (default 10,000)}
 
-\item{verbose}{more output to screen (default FALSE)}
+\item{verbose}{more output to screen (default TRUE)}
 }
 \description{
-\href{https://sites.google.com/site/jpopgen/wgsa}{WGSA} output files can 
-contain thousands of fields, including fields with lists of entries. This 
-function reads a WGSA field in chunks, parses the chunks to select desired 
-fields and unnests specified list fields, and writes to an output file.
-}
-\details{
-List fields are tidied by separating so that each entry in the field is its 
-own row in the output file (other fields are duplicated as necessary)
+\href{https://sites.google.com/site/jpopgen/wgsa}{WGSA} generates distinct 
+annotation output files for annotating indel or SNVs. These output files
+contain thousands of fields, including fields with lists of entries. 
+parse_to_file() reads a TOPMed Freeze 4 WGSA file in chunks, parses the
+chunks, writes to two output files - one for the snv or indel annotation,
+and another for the dbnsfp annotation. These tab-separated output files can
+then be imported to a database for aggregation, or used for obtaining
+variant annotation.
 }
 \examples{
 \dontrun{
- target_columns <- c("#chr", 
-   "pos", 
-   "ref", 
-   "alt",
-   "VEP_ensembl_Transcript_ID", 
-   "VEP_ensembl_Gene_ID")
-   
- columns_to_split <- c("VEP_ensembl_Transcript_ID", 
-   "VEP_ensembl_Gene_ID")
    
 parse_to_file(source_file = "WGSA_chr_1.gz", 
- destination = "parsed_chr_1.csv", 
- desired_columns = target_columns, 
- to_split = columns_to_split, 
+ destination = "parsed_chr_1_snv.tsv",
+ dbnsfp_destination = "parsed_chr_1_dbnsfp.tsv",
  chunk_size = 1000)
 }
 
