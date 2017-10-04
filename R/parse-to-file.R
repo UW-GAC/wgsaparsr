@@ -1,40 +1,28 @@
 #' Parse the WGSA output file to tidy and select columns of interest
 #' 
-#' \href{https://sites.google.com/site/jpopgen/wgsa}{WGSA} output files can 
-#' contain thousands of fields, including fields with lists of entries. This 
-#' function reads a WGSA field in chunks, parses the chunks to select desired 
-#' fields and unnests specified list fields, and writes to an output file.
+#' \href{https://sites.google.com/site/jpopgen/wgsa}{WGSA} generates distinct 
+#' annotation output files for annotating indel or SNVs. These output files
+#' contain thousands of fields, including fields with lists of entries. 
+#' parse_to_file() reads a TOPMed Freeze 4 WGSA file in chunks, parses the
+#' chunks, writes to two output files - one for the snv or indel annotation,
+#' and another for the dbnsfp annotation. These tab-separated output files can
+#' then be imported to a database for aggregation, or used for obtaining
+#' variant annotation.
 #' 
-#' List fields are tidied by separating so that each entry in the field is its 
-#' own row in the output file (other fields are duplicated as necessary)
-#' 
-#' @param source_file Path to the WGSA output file to parse
-#' @param destination Path to the desired output file
-#' @param desired_columns a character vector with the names of fields to extract
-#'   from the WGSA output (names must match names in WGSA output file). For
-#'   indel annotation, unparsed columns will be retained in addition to parsed 
-#'   columns.
-#' @param to_split a character vector with the names of list-fields to be tidied
-#' @param WGSA_version The version of WGSA used to generate output
+#' @param source_file Path to the WGSA output file to parse (indel or SNV
+#'   annotation)
+#' @param destination Path to the desired indel or snv output file
+#' @param dbnsfp_destination Path to the desired dbnsfp output file
+#' @param freeze Which TOPMed freeze is being used (default 4)
 #' @param chunk_size Number of lines to parse each iteration (default 10,000)
-#' @param verbose more output to screen (default FALSE)
+#' @param verbose more output to screen (default TRUE)
 #'
 #' @examples 
 #' \dontrun{
-#'  target_columns <- c("#chr", 
-#'    "pos", 
-#'    "ref", 
-#'    "alt",
-#'    "VEP_ensembl_Transcript_ID", 
-#'    "VEP_ensembl_Gene_ID")
-#'    
-#'  columns_to_split <- c("VEP_ensembl_Transcript_ID", 
-#'    "VEP_ensembl_Gene_ID")
 #'    
 #' parse_to_file(source_file = "WGSA_chr_1.gz", 
-#'  destination = "parsed_chr_1.csv", 
-#'  desired_columns = target_columns, 
-#'  to_split = columns_to_split, 
+#'  destination = "parsed_chr_1_snv.tsv",
+#'  dbnsfp_destination = "parsed_chr_1_dbnsfp.tsv",
 #'  chunk_size = 1000)
 #' }
 #' 
@@ -42,45 +30,57 @@
 
 parse_to_file <- function(source_file,
                           destination,
-                          desired_columns,
-                          to_split,
-                          WGSA_version = "WGSA065",
+                          dbnsfp_destination,
+                          freeze = 4,
                           chunk_size = 10000,
                           verbose = TRUE) {
 
-  # check that desired_columns and to_split are possible
-  if (!.check_to_split(desired_columns, to_split)) {
-    stop("all to_split fields must be in desired_columns")
+
+  if (freeze != 4){
+    stop("This version of WGSAparsr only supports freeze 4.")
   }
-  if (!.check_desired(source_file, desired_columns)) {
-    stop("not all desired_columns are in source_file")
+
+  # read the sourcefile header line to set some variables.
+  readfile_con <- gzfile(source_file, "r")
+  first_line <- suppressWarnings(readLines(readfile_con, n = 1))
+  close(readfile_con)
+
+  if (!.has_header(first_line)){
+    stop("source_file doesn't have header line")
+  }
+
+  raw_header <- first_line
+  indel_flag <- .is_indel(first_line)
+
+  if (freeze == 4) {
+    WGSA_version <- "WGSA065"
+    if (indel_flag) {
+      desired_columns <- .get_list("fr_4_indel_desired")
+      to_split <- .get_list("fr_4_indel_to_split")
+    } else {
+      desired_columns <- .get_list("fr_4_snv_desired")
+      to_split <- .get_list("fr_4_snv_to_split")
+    }
   }
 
   # main loop - read file by chunk, process chunk, write chunk
   readfile_con <- gzfile(source_file, "r")
   index <- 0L
   while (TRUE) {
-    # read a raw chunk
+    # read chunk
     raw_chunk <- suppressWarnings(readLines(readfile_con, n = chunk_size))
 
-    # readLines() returns a zero length result at EOF
+    # readLines() returns a zero length result at EOF (which should end loop)
     if (length(raw_chunk) == 0) {
       break
     }
 
     # check for header line and read raw chunk to all_fields tibble
     if (.has_header(raw_chunk)) {
-      found_header <- TRUE
-      header_flag <- TRUE
-      raw_header <- .get_header(raw_chunk)
-      indel_flag <- .is_indel(raw_header)
+      header_flag <- TRUE # for .write_to_file()
       all_fields <- .get_fields_from_chunk(raw_chunk)
     } else {
-      # header line should have been read in a previous chunk
-      if (!found_header){
-        stop("Didn't find header line in source_file!")
-      }
-      header_flag <- FALSE
+      header_flag <- FALSE # for .write_to_file()
       modified_chunk <- c(raw_header, raw_chunk)
       all_fields <- .get_fields_from_chunk(modified_chunk)
     }
@@ -105,12 +105,18 @@ parse_to_file <- function(source_file,
                                        WGSA_version)
     }
 
-    # write tibble to tsv file
+    # write snv or indel tibble to tsv file
     .write_to_file(parsed_lines,
                    destination,
                    desired_columns,
                    header_flag,
                    indel_flag)
+
+    # parse the dbnsfp fields
+    # TODO
+
+    # write dbnsfp chunk to tsv file
+    # TODO
 
     # ready for the next chunk!
     index <- index + 1L
