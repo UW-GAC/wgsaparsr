@@ -2,6 +2,7 @@
 
 #' Check if the to_split columns are listed in desired_columns. Stop if not, and
 #' return a message of columns not in desired_columns
+#' @noRd
 .check_to_split <- function(desired_columns, to_split) {
   if (all(to_split %in% desired_columns)) {
     return(TRUE)
@@ -16,6 +17,7 @@
 
 #' Check if the desired columns exist in the source file. Stop if not, and
 #' return a message of columns not in source file
+#' @noRd
 .check_desired <- function(source_file, desired_columns) {
   all_fields <- get_fields(source_file)
   if (all(desired_columns %in% all_fields)) {
@@ -31,30 +33,35 @@
 
 #' Check if the current chunk includes a header row describing the fields
 #' @importFrom stringr str_detect
+#' @noRd
 .has_header <- function(raw_chunk){
   any(str_detect(raw_chunk, "^#?chr\\tpos\\tref\\talt")) #nolint
 }
 
 #' Get header row from raw chunk
 #' @importFrom stringr str_detect
+#' @noRd
 .get_header <- function(raw_chunk){
   raw_chunk[str_detect(raw_chunk, "^#?chr\\tpos\\tref\\talt")]
 }
 
 #' Check whether the source_file is WGSA indel annotation
 #' @importFrom stringr str_detect
+#' @noRd
 .is_indel <- function(header){
   any(str_detect(header, "indel_focal_length"))
 }
 
 #' use read_tsv to read fields from raw chunk of TSV from readLines()
 #' @importFrom readr read_tsv cols col_character
+#' @noRd
 .get_fields_from_chunk <- function(raw_chunk) {
   read_tsv(paste0(raw_chunk, collapse = "\n"),
            col_types = cols(.default = col_character()))
 }
 
 #' check whether field names include parseable fields
+#' @noRd
 .check_for_parseable <- function(field_names){
   any(.get_list("parseable_fields") %in% field_names)
 }
@@ -64,6 +71,7 @@
 #' @importFrom rlang sym
 #' @importFrom stringr str_replace_all
 #' @importFrom purrr map map_dbl
+#' @noRd
 .parse_max_columns <- function(selected_columns){
   columns_to_max <- .get_list("parse_max")[.get_list("parse_max") %in%
                                              names(selected_columns)]
@@ -100,6 +108,7 @@
 #' else if "Y" present then value="Y" ,
 #' else if only "." present value="."
 #' @importFrom stringr str_detect
+#' @noRd
 .check_default_no <- function(a_string) {
   if (str_detect(a_string, pattern = "N")) {
     return("N")
@@ -114,6 +123,7 @@
 #' present
 #' CAUTION - ASSUMES THAT THERE IS ONLY ONE DEFAULT NO COLUMN FOR NAMING
 #' @importFrom dplyr mutate_at rename_at rowwise ungroup vars
+#' @noRd
 .parse_no_columns <- function(selected_columns){
   columns_to_no <-
     .get_list("parse_string_no")[.get_list("parse_string_no") %in%
@@ -135,6 +145,7 @@
 #' else if "N" present then value="N" ,
 #' else if only "." present value="."
 #' @importFrom stringr str_detect
+#' @noRd
 .check_default_yes <- function(a_string) {
   if (str_detect(a_string, pattern = "Y")) {
     return("Y")
@@ -148,6 +159,7 @@
 #' parse columns from tibble for which we want to parse to Y if there is a Y 
 #' present
 #' @importFrom dplyr mutate_at rename_at ungroup rowwise vars ends_with
+#' @noRd
 .parse_yes_columns <- function(selected_columns){
   columns_to_yes <-
     .get_list("parse_string_yes")[.get_list("parse_string_yes") %in%
@@ -169,6 +181,7 @@
 #' @importFrom dplyr mutate select rename
 #' @importFrom purrr map map_dbl map2 map2_chr
 #' @importFrom rlang syms
+#' @noRd
 .parse_column_pairs <- function(selected_columns) {
   column_pairs <-
     .get_list("parse_pairs")
@@ -229,6 +242,7 @@
 #' @importFrom dplyr mutate select rename
 #' @importFrom purrr map map_dbl map2 map2_chr
 #' @importFrom rlang syms
+#' @noRd
 .parse_column_triples <- function(selected_columns) {
   column_triples <-
     .get_list("parse_triples")
@@ -299,6 +313,7 @@
 #' @importFrom dplyr select mutate mutate_at rename distinct one_of vars funs
 #' @importFrom tidyr separate_rows extract
 #' @importFrom stringr str_replace
+#' @noRd
 .parse_snv_chunk <- function(all_fields,
                              desired_columns,
                              to_split,
@@ -346,6 +361,7 @@
 #' @importFrom dplyr select mutate mutate_at rename distinct one_of vars funs
 #' @importFrom tidyr separate_rows extract
 #' @importFrom stringr str_replace
+#' @noRd
 .parse_indel_chunk <- function(all_fields,
                              desired_columns,
                              to_split,
@@ -407,12 +423,14 @@
 }
 
 #' check whether field names are the old style
+#' @noRd
 .check_names <- function(field_names){
   old_names <- .get_list("old_names")
   any(old_names %in% field_names)
 }
 
 #' change any old names to new style names
+#' @noRd
 .fix_names <- function(name_vector) {
   old_names <- .get_list("old_names")
   new_names <- .get_list("new_names")
@@ -426,6 +444,7 @@
 #' select columns to set order and write_tsv
 #' @importFrom readr write_tsv
 #' @importFrom dplyr select one_of
+#' @noRd
 .write_to_file <- function(parsed_lines,
                            destination,
                            desired_columns,

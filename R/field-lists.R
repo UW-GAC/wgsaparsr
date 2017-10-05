@@ -1,4 +1,5 @@
 #' define lists of fields in one place, and return based on argument
+#' @noRd
 .get_list <- function(which_list) {
   if (which_list == "fr_4_snv_desired"){
     fr_4_snv_desired <- c(
