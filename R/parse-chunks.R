@@ -132,7 +132,7 @@
   if (dim(filtered_selected_columns)[[1]] == 0) {
     return(filtered_selected_columns)
   }
-    
+
   # pivot the aaref, aaalt, and ensembl_geneid fields---------------------------
   filtered_selected_columns <-
     filtered_selected_columns %>%
@@ -155,6 +155,11 @@
     .parse_dbnsfp_mutation(
       filtered_selected_columns,
       mutation_pairs)
+
+  # add aachange column---------------------------------------------------------
+  filtered_selected_columns <-
+    filtered_selected_columns %>%
+    mutate(aachange = paste0(aaref, "/", aaalt))
 
   filtered_selected_columns <- distinct(filtered_selected_columns)
 }
