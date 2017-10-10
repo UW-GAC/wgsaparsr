@@ -67,7 +67,7 @@
 }
 
 #' parse columns from tibble for which we want to select maximum value
-#' @importFrom dplyr mutate select
+#' @importFrom dplyr mutate select "%>%"
 #' @importFrom rlang sym
 #' @importFrom stringr str_replace_all
 #' @importFrom purrr map map_dbl
@@ -122,7 +122,7 @@
 #' parse columns from tibble for which we want to parse to N if there is an N 
 #' present
 #' CAUTION - ASSUMES THAT THERE IS ONLY ONE DEFAULT NO COLUMN FOR NAMING
-#' @importFrom dplyr mutate_at rename_at rowwise ungroup vars
+#' @importFrom dplyr mutate_at rename_at rowwise ungroup vars "%>%"
 #' @noRd
 .parse_no_columns <- function(selected_columns){
   columns_to_no <-
@@ -158,7 +158,7 @@
 
 #' parse columns from tibble for which we want to parse to Y if there is a Y 
 #' present
-#' @importFrom dplyr mutate_at rename_at ungroup rowwise vars ends_with
+#' @importFrom dplyr mutate_at rename_at ungroup rowwise vars ends_with "%>%"
 #' @noRd
 .parse_yes_columns <- function(selected_columns){
   columns_to_yes <-
@@ -178,7 +178,7 @@
 
 #' parse column pairs from tibble for which we want to get logical mask from 
 #' first column and apply to second column
-#' @importFrom dplyr mutate select rename
+#' @importFrom dplyr mutate select rename "%>%"
 #' @importFrom purrr map map_dbl map2 map2_chr
 #' @importFrom rlang syms
 #' @noRd
@@ -239,7 +239,7 @@
 #' parse column triples from tibble for which we want to get logical mask from 
 #' first column and apply to second and third columns. Assumes 2nd column is 
 #' rankscore.
-#' @importFrom dplyr mutate select rename
+#' @importFrom dplyr mutate select rename "%>%"
 #' @importFrom purrr map map_dbl map2 map2_chr
 #' @importFrom rlang syms
 #' @noRd
@@ -308,120 +308,6 @@
   return(selected_columns)
 }
 
-#' Parse a chunk tibble from a SNV annotation file
-#' @importFrom magrittr %>%
-#' @importFrom dplyr select mutate mutate_at rename distinct one_of vars funs
-#' @importFrom tidyr separate_rows extract
-#' @importFrom stringr str_replace
-#' @noRd
-.parse_snv_chunk <- function(all_fields,
-                             desired_columns,
-                             to_split,
-                             WGSA_version) {
-
-  # pick out the desired columns for further operation
-  selected_columns <- all_fields %>%
-    select(one_of(desired_columns)) %>% # select fields of interest
-    mutate(wgsa_version = WGSA_version) # add wgsa version
-
-  # pivot the VEP_* fields
-  expanded <- selected_columns %>%
-    separate_rows(one_of(to_split), sep = "\\|")
-
-  # split the VEP_ensembl_Codon_Change_or_Distance field as follows:
-  # if number, put in VEP_ensembl_Distance field
-  # if string, put in VEP_ensembl_Codon_Change field
-  if ("VEP_ensembl_Codon_Change_or_Distance" %in% desired_columns) {
-    expanded <- expanded %>%
-      extract(
-        col = VEP_ensembl_Codon_Change_or_Distance, #nolint
-        into = c("VEP_ensembl_Distance", "VEP_ensembl_Codon_Change"),
-        regex = "(\\d*)(\\D*)"
-      ) %>%
-      mutate_at(vars(one_of(
-        c("VEP_ensembl_Distance",
-          "VEP_ensembl_Codon_Change")
-      )),
-      funs(str_replace(
-        ., pattern = "^$", replacement = "."
-      ))) # fill blanks with "."
-  }
-
-  # if it's an older version annotation file, rename columns from WGSA fields
-  # with weird characters to database column names
-  if (.check_names(names(expanded))) {
-    names(expanded) <- .fix_names(names(expanded))
-  }
-
-  expanded <- distinct(expanded)
-}
-
-#' Parse a chunk tibble from an indel annotation file
-#' @importFrom magrittr %>%
-#' @importFrom dplyr select mutate mutate_at rename distinct one_of vars funs
-#' @importFrom tidyr separate_rows extract
-#' @importFrom stringr str_replace
-#' @noRd
-.parse_indel_chunk <- function(all_fields,
-                             desired_columns,
-                             to_split,
-                             WGSA_version) {
-
-  # pick out the desired columns for further operation
-  selected_columns <- all_fields %>%
-    select(one_of(desired_columns)) %>% # select fields of interest
-    mutate(wgsa_version = WGSA_version) # add wgsa version
-
-  # check whether desired fields require parsing; parse if so
-  if (.check_for_parseable(desired_columns)){
-    # parse columns for which we want max value #SLOW
-    selected_columns <- .parse_max_columns(selected_columns)
-
-    # parse columns for which we want No string default
-    selected_columns <- .parse_no_columns(selected_columns)
-
-    # parse columns for which we want Yes string default
-    selected_columns <- .parse_yes_columns(selected_columns)
-
-    # parse pair-columns
-    selected_columns <- .parse_column_pairs(selected_columns)
-
-    # parse triple-columns
-    selected_columns <- .parse_column_triples(selected_columns)
-  }
-
-  # pivot the VEP_* fields
-  expanded <- selected_columns %>%
-    separate_rows(one_of(to_split), sep = "\\|")
-
-  # split the VEP_ensembl_Codon_Change_or_Distance field as follows:
-  # if number, put in VEP_ensembl_Distance field
-  # if string, put in VEP_ensembl_Codon_Change field
-  if ("VEP_ensembl_Codon_Change_or_Distance" %in% desired_columns) {
-    expanded <- expanded %>%
-      extract(
-        col = VEP_ensembl_Codon_Change_or_Distance, #nolint
-        into = c("VEP_ensembl_Distance", "VEP_ensembl_Codon_Change"),
-        regex = "(\\d*)(\\D*)"
-      ) %>%
-      mutate_at(vars(one_of(
-        c("VEP_ensembl_Distance",
-          "VEP_ensembl_Codon_Change")
-      )),
-      funs(str_replace(
-        ., pattern = "^$", replacement = "."
-      ))) # fill blanks with "."
-  }
-
-  # if it's an older version annotation file, rename columns from WGSA fields
-  # with weird characters to database column names
-  if (.check_names(names(expanded))) {
-    names(expanded) <- .fix_names(names(expanded))
-  }
-
-  expanded <- distinct(expanded)
-}
-
 #' check whether field names are the old style
 #' @noRd
 .check_names <- function(field_names){
@@ -443,7 +329,7 @@
 
 #' select columns to set order and write_tsv
 #' @importFrom readr write_tsv
-#' @importFrom dplyr select one_of
+#' @importFrom dplyr select one_of "%>%"
 #' @noRd
 .write_to_file <- function(parsed_lines,
                            destination,
@@ -476,4 +362,190 @@
       select(one_of(c(desired_columns, "wgsa_version"))) %>%
       write_tsv(path = destination, append = TRUE)
   }
+}
+
+#' parse db_nsfp_low_pairs - select low value from pair[[1]] and corresponding
+#' value from pair[[2]]
+#' @importFrom dplyr mutate select rename "%>%"
+#' @importFrom stringr str_split str_detect
+#' @importFrom purrr map map_dbl map2 map2_chr
+#' @importFrom rlang syms
+#' @noRd
+.parse_dbnsfp_low <- function(filtered_selected_columns, low_pairs) {
+  for (pair in low_pairs) {
+    current_pair <- syms(pair)
+    score_name <- pair[[1]]
+    pred_name <- pair[[2]]
+    unparsed_score_name <- paste0(score_name, "_unparsed")
+    unparsed_pred_name <- paste0(pred_name, "_unparsed")
+
+    expanded <-
+      suppressWarnings(
+        filtered_selected_columns %>%
+          mutate(
+            p_list = str_split(!!current_pair[[1]], ";"),
+            p_list = map(p_list, as.numeric),
+            p_min = map_dbl(p_list, min, na.rm = TRUE),
+            p_min = as.character(p_min),
+            p_min = ifelse( (p_min == "Inf"), ".", p_min),
+            match_mask = map2(p_list, p_min, str_detect),
+            # replace NA with false
+            match_mask = map(match_mask,
+                             function(x)
+                               replace(x, is.na(x), FALSE)),
+            # if all FALSE, change all to TRUE, then keep only first
+            match_mask = map(match_mask,
+                             function(x)
+                               if (all(x == FALSE))
+                                 ! x
+                             else
+                               x),
+            # if match_mask has more than one TRUE, keep only first TRUE
+            # -- thanks Adrienne!
+            match_mask = map(match_mask,
+                             function(x)
+                               x & !duplicated(x)),
+            r_list =  str_split(!!current_pair[[2]], ";"),
+            r_corresponding = map2_chr(match_mask, r_list,
+                                       function(logical, string)
+                                         subset(string, logical))
+          ) %>%
+          select(-p_list,
+                 -match_mask,
+                 -r_list) %>%
+          rename(
+            !!unparsed_score_name := !!current_pair[[1]],
+            !!current_pair[[1]] := p_min,
+            !!unparsed_pred_name := !!current_pair[[2]],
+            !!current_pair[[2]] := r_corresponding
+          )
+      )
+  }
+  return(expanded)
+}
+
+#' parse db_nsfp_high_pairs - select high value from pair[[1]] and corresponding
+#' value from pair[[2]]
+#' @importFrom dplyr mutate select rename "%>%"
+#' @importFrom stringr str_split str_detect
+#' @importFrom purrr map map_dbl map2 map2_chr
+#' @importFrom rlang syms
+#' @noRd
+.parse_dbnsfp_high <- function(filtered_selected_columns, high_pairs) {
+  for (pair in high_pairs) {
+    current_pair <- syms(pair)
+    score_name <- pair[[1]]
+    pred_name <- pair[[2]]
+    unparsed_score_name <- paste0(score_name, "_unparsed")
+    unparsed_pred_name <- paste0(pred_name, "_unparsed")
+
+    expanded <-
+      suppressWarnings(
+        expanded %>%
+          mutate(
+            p_list = str_split(!!current_pair[[1]], ";"),
+            p_list = map(p_list, as.numeric),
+            p_max = map_dbl(p_list, max, na.rm = TRUE),
+            p_max = as.character(p_max),
+            p_max = ifelse( (p_max == "-Inf"), ".", p_max),
+            match_mask = map2(p_list, p_max, str_detect),
+            # replace NA with false
+            match_mask = map(match_mask,
+                             function(x)
+                               replace(x, is.na(x), FALSE)),
+            # if all FALSE, change all to TRUE, then keep only first
+            match_mask = map(match_mask,
+                             function(x)
+                               if (all(x == FALSE))
+                                 ! x
+                             else
+                               x),
+            # if match_mask has more than one TRUE, keep only first TRUE
+            # -- thanks Adrienne!
+            match_mask = map(match_mask,
+                             function(x)
+                               x & !duplicated(x)),
+            r_list =  str_split(!!current_pair[[2]], ";"),
+            r_corresponding = map2_chr(match_mask, r_list,
+                                       function(logical, string)
+                                         subset(string, logical))
+          ) %>%
+          select(-p_list,
+                 -match_mask,
+                 -r_list) %>%
+          rename(
+            !!unparsed_score_name := !!current_pair[[1]],
+            !!current_pair[[1]] := p_max,
+            !!unparsed_pred_name := !!current_pair[[2]],
+            !!current_pair[[2]] := r_corresponding
+          )
+      )
+  }
+  return(expanded)
+}
+
+#' parse db_nsfp_mutation_pairs - select character from pair[[2]] and 
+#' corresponding value from pair[[1]]
+#' @importFrom dplyr mutate select rename "%>%"
+#' @importFrom stringr str_split str_detect
+#' @importFrom purrr map map_dbl map2 map2_chr
+#' @importFrom rlang syms
+#' @noRd
+#' 
+.parse_dbnsfp_mutation <- function(filtered_selected_columns,
+                                   mutation_pairs) {
+  for (pair in mutation_pairs) {
+    current_pair <- syms(pair)
+    score_name <- pair[[1]]
+    pred_name <- pair[[2]]
+    unparsed_score_name <- paste0(score_name, "_unparsed")
+    unparsed_pred_name <- paste0(pred_name, "_unparsed")
+
+    expanded <-
+      suppressWarnings(
+        expanded %>%
+          mutate(
+            # If A present keep A,
+            # else if D present keep D,
+            # else if P present keep P,
+            # else if N present keep N,
+            # else .
+            new_p = ifelse(
+              str_detect(!!current_pair[[2]], "A"),
+              "A",
+              ifelse(
+                str_detect(!!current_pair[[2]], "D"),
+                "D",
+                ifelse(
+                  str_detect(!!current_pair[[2]], "P"),
+                  "P",
+                  ifelse(str_detect(!!current_pair[[2]], "N"), "N",
+                         ".")
+                )
+              )
+            ),
+            p_list = str_split(!!current_pair[[2]], ";"),
+            match_mask = map2(p_list, new_p, str_detect),
+            # if match_mask has more than one TRUE, keep only first TRUE
+            # -- thanks Adrienne!
+            match_mask = map(match_mask,
+                             function(x)
+                               x & !duplicated(x)),
+            r_list =  str_split(!!current_pair[[1]], ";"),
+            r_corresponding = map2_chr(match_mask, r_list,
+                                       function(logical, string)
+                                         subset(string, logical))
+          ) %>%
+          select(-p_list,
+                 -match_mask,
+                 -r_list) %>%
+          rename(
+            !!unparsed_score_name := !!current_pair[[1]],
+            !!current_pair[[2]] := new_p,
+            !!unparsed_pred_name := !!current_pair[[2]],
+            !!current_pair[[1]] := r_corresponding
+          )
+      )
+  }
+  return(expanded)
 }
