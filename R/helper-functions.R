@@ -345,7 +345,8 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
                            destination,
                            desired_columns,
                            header_flag,
-                           indel_flag) {
+                           indel_flag,
+                           dbnsfp_flag = FALSE) {
   # desired_columns may have VEP_ensembl_Codon_Change_or_Distance. Fix.
   if ("VEP_ensembl_Codon_Change_or_Distance" %in% desired_columns) {
     desired_columns <- c(
@@ -363,14 +364,28 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
   }
 
   # use select statement to write column headers and make sure of column order.
-  if (header_flag) {
-    parsed_lines %>%
-      select(one_of(c(desired_columns, "wgsa_version"))) %>%
-      write_tsv(path = destination, append = FALSE)
+  if (dbnsfp_flag) {
+    # don't need wgsa_version for dbnsfp
+    if (header_flag) {
+      parsed_lines %>%
+        select(one_of(desired_columns)) %>%
+        write_tsv(path = destination, append = FALSE)
+    } else {
+      parsed_lines %>%
+        select(one_of(desired_columns)) %>%
+        write_tsv(path = destination, append = TRUE)
+    }
   } else {
-    parsed_lines %>%
-      select(one_of(c(desired_columns, "wgsa_version"))) %>%
-      write_tsv(path = destination, append = TRUE)
+    #  need wgsa_version for snvs and indels
+    if (header_flag) {
+      parsed_lines %>%
+        select(one_of(c(desired_columns, "wgsa_version"))) %>%
+        write_tsv(path = destination, append = FALSE)
+    } else {
+      parsed_lines %>%
+        select(one_of(c(desired_columns, "wgsa_version"))) %>%
+        write_tsv(path = destination, append = TRUE)
+    }
   }
 }
 

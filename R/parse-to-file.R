@@ -118,15 +118,23 @@ parse_to_file <- function(source_file,
                    header_flag,
                    indel_flag)
 
-    # parse the dbnsfp fields
-    parsed_lines_dbnsfp <-
-      .parse_chunk_dbnsfp(
-        all_fields,
-        freeze)
+    # parse the dbnsfp fields for snp file
+    if (indel_flag == FALSE) {
+      parsed_lines_dbnsfp <-
+        .parse_chunk_dbnsfp(all_fields,
+                            freeze)
 
-    # write dbnsfp chunk to tsv file
-    # TODO
-
+      # write dbnsfp chunk to tsv file
+      dbnsfp_columns <- .get_list("dbnsfp_desired_fr_4") # TO FIX
+      .write_to_file(
+        parsed_lines_dbnsfp,
+        dbnsfp_destination,
+        dbnsfp_columns,
+        header_flag,
+        indel_flag,
+        dbnsfp_flag = TRUE
+      )
+    }
     # ready for the next chunk!
     index <- index + 1L
 
