@@ -1,12 +1,12 @@
 # helper functions -------------------------------------------------------------
 
-#' do hack to pass devtools::check() https://stackoverflow.com/questions/9439256/
+#' hack to pass devtools::check() https://stackoverflow.com/questions/9439256/
 #' @importFrom utils globalVariables
 #' @noRd
 globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
                   "match_mask", "new_p", "p_clean", "p_list", "p_max", "p_min",
                   "r_clean", "r_corresponding", "r_list", "v_clean",
-                  "v_corresponding", "v_list", "wacky_no_column"))
+                  "v_corresponding", "v_list", "wacky_no_column", "aaalt"))
   
 
 
@@ -403,7 +403,7 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
     unparsed_score_name <- paste0(score_name, "_unparsed")
     unparsed_pred_name <- paste0(pred_name, "_unparsed")
 
-    expanded <-
+    filtered_selected_columns <-
       suppressWarnings(
         filtered_selected_columns %>%
           mutate(
@@ -445,7 +445,7 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
           )
       )
   }
-  return(expanded)
+  return(filtered_selected_columns)
 }
 
 #' parse db_nsfp_high_pairs - select high value from pair[[1]] and corresponding
@@ -463,7 +463,7 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
     unparsed_score_name <- paste0(score_name, "_unparsed")
     unparsed_pred_name <- paste0(pred_name, "_unparsed")
 
-    expanded <-
+    filtered_selected_columns <-
       suppressWarnings(
         filtered_selected_columns %>%
           mutate(
@@ -505,7 +505,7 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
           )
       )
   }
-  return(expanded)
+  return(filtered_selected_columns)
 }
 
 #' parse db_nsfp_mutation_pairs - select character from pair[[2]] and 
@@ -525,7 +525,7 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
     unparsed_score_name <- paste0(score_name, "_unparsed")
     unparsed_pred_name <- paste0(pred_name, "_unparsed")
 
-    expanded <-
+    filtered_selected_columns <-
       suppressWarnings(
         filtered_selected_columns %>%
           mutate(
@@ -571,5 +571,5 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
           )
       )
   }
-  return(expanded)
+  return(filtered_selected_columns)
 }
