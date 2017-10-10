@@ -128,6 +128,11 @@
     filter(aaref != ".") %>% # select rows with dbNSFP annotation
     distinct() # trim redundant rows before expanding
 
+    # IF NO ROWS, RETURN EMPTY TIBBLE
+  if (dim(filtered_selected_columns)[[1]] == 0) {
+    return(filtered_selected_columns)
+  }
+    
   # pivot the aaref, aaalt, and ensembl_geneid fields---------------------------
   filtered_selected_columns <-
     filtered_selected_columns %>%

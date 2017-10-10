@@ -125,15 +125,18 @@ parse_to_file <- function(source_file,
                             freeze)
 
       # write dbnsfp chunk to tsv file
-      dbnsfp_columns <- .get_list("dbnsfp_desired_fr_4") # TO FIX
-      .write_to_file(
-        parsed_lines_dbnsfp,
-        dbnsfp_destination,
-        dbnsfp_columns,
-        header_flag,
-        indel_flag,
-        dbnsfp_flag = TRUE
-      )
+      # IF parsed_lines_dbnsfp IS EMPTY, DON'T WRITE.
+      if (dim(parsed_lines_dbnsfp)[[1]] > 0) {
+        dbnsfp_columns <- .get_list("dbnsfp_desired_fr_4") # TO FIX
+        .write_to_file(
+          parsed_lines_dbnsfp,
+          dbnsfp_destination,
+          dbnsfp_columns,
+          header_flag,
+          indel_flag,
+          dbnsfp_flag = TRUE
+        )
+      }
     }
     # ready for the next chunk!
     index <- index + 1L

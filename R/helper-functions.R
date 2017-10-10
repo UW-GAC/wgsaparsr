@@ -466,7 +466,7 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
 
     expanded <-
       suppressWarnings(
-        expanded %>%
+        filtered_selected_columns %>%
           mutate(
             p_list = str_split(!!current_pair[[1]], ";"),
             p_list = map(p_list, as.numeric),
@@ -528,7 +528,7 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
 
     expanded <-
       suppressWarnings(
-        expanded %>%
+        filtered_selected_columns %>%
           mutate(
             # If A present keep A,
             # else if D present keep D,
