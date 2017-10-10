@@ -52,6 +52,7 @@ parse_to_file <- function(source_file,
   raw_header <- first_line
   indel_flag <- .is_indel(first_line)
 
+  #todo: move this to parse-chunks.R functions
   if (freeze == 4) {
     WGSA_version <- "WGSA065"
     if (indel_flag) {
@@ -93,6 +94,7 @@ parse_to_file <- function(source_file,
     }
 
     # parse the all_fields tibble for snv or indel annotation
+    # TODO: clean up so call more like .parse_chunk_dbnsfp
     if (indel_flag) {
       parsed_lines <-
         .parse_chunk_indel(

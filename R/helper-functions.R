@@ -1,5 +1,15 @@
 # helper functions -------------------------------------------------------------
 
+#' do hack to pass devtools::check() https://stackoverflow.com/questions/9439256/
+#' @importFrom utils globalVariables
+#' @noRd
+globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
+                  "match_mask", "new_p", "p_clean", "p_list", "p_max", "p_min",
+                  "r_clean", "r_corresponding", "r_list", "v_clean",
+                  "v_corresponding", "v_list", "wacky_no_column"))
+  
+
+
 #' Check if the to_split columns are listed in desired_columns. Stop if not, and
 #' return a message of columns not in desired_columns
 #' @noRd
