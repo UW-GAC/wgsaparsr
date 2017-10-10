@@ -1,6 +1,7 @@
 #' define lists of fields in one place, and return based on argument
 #' @noRd
 .get_list <- function(which_list) {
+  # fr_4_snv_desired------------------------------------------------------------
   if (which_list == "fr_4_snv_desired"){
     fr_4_snv_desired <- c(
       "chr",
@@ -141,6 +142,7 @@
     )
     return(fr_4_snv_desired)
   } else if (which_list == "fr_4_snv_to_split"){
+    # fr_4_snv_to_split---------------------------------------------------------
     fr_4_snv_to_split <- c(
       "VEP_ensembl_Consequence",
       "VEP_ensembl_Transcript_ID",
@@ -171,6 +173,7 @@
     )
     return(fr_4_snv_to_split)
   } else if (which_list == "fr_4_indel_desired"){
+    # fr_4_indel_desired--------------------------------------------------------
     fr_4_indel_desired <- c(
       "#chr",
       "pos",
@@ -318,6 +321,7 @@
     )
     return(fr_4_indel_desired)
   } else if (which_list == "fr_4_indel_to_split"){
+    # fr_4_indel_to_split-------------------------------------------------------
     fr_4_indel_to_split <- c(
       "VEP_ensembl_Consequence",
       "VEP_ensembl_Transcript_ID",
@@ -343,6 +347,7 @@
     )
     return(fr_4_indel_to_split)
   } else if (which_list == "old_names") {
+    # old_names-----------------------------------------------------------------
     old_names <- c(
       "#chr",
       "MAP20(+-149bp)",
@@ -398,6 +403,7 @@
     )
     return(old_names)
   } else if (which_list == "new_names") {
+    # new_names-----------------------------------------------------------------
     new_names <- c(
       "chr",
       "MAP20_149bp",
@@ -456,6 +462,7 @@
     )
     return(new_names)
   } else if (which_list == "parseable_fields") {
+    # parseable_fields----------------------------------------------------------
     parseable_fields <- c(
       "splicing_consensus_ada_score",
       "splicing_consensus_rf_score",
@@ -527,6 +534,7 @@
     )
     return(parseable_fields)
   } else if (which_list == "parse_max") {
+    # parse_max-----------------------------------------------------------------
     parse_max <- c(
       "splicing_consensus_ada_score",
       "splicing_consensus_rf_score",
@@ -541,7 +549,8 @@
       "ENCODE_Dnase_cells"
     )
     return(parse_max)
-  } else   if (which_list == "parse_triples") {
+  } else if (which_list == "parse_triples") {
+    # parse_triples-------------------------------------------------------------
     parse_triples <- list(
       c(
         "Eigen-raw",
@@ -551,6 +560,7 @@
     )
     return(parse_triples)
   } else if (which_list == "parse_pairs") {
+    # parse_pairs---------------------------------------------------------------
     parse_pairs <- list(
       c("phyloP46way_primate",
         "phyloP46way_primate_rankscore"),
@@ -611,6 +621,7 @@
     )
     return(parse_pairs)
   } else if (which_list == "parse_string_yes") {
+    # parse_string_yes----------------------------------------------------------
     parse_string_yes <- c(
       "EnhancerFinder_general_developmental_enhancer",
       "EnhancerFinder_brain_enhancer",
@@ -624,11 +635,13 @@
     )
     return(parse_string_yes)
   } else if (which_list == "parse_string_no") {
+    # parse_string_no-----------------------------------------------------------
     parse_string_no <- c(
       "1000G_strict_masked"
     )
     return(parse_string_no)
   } else if (which_list == "all_fields") {
+    # all_fields----------------------------------------------------------------
     # a list of all possible fields in both SNV and indel annotaiton files -
     # new names, including "_unparsed" string
     all_fields <- c(
@@ -835,6 +848,85 @@
       "FANTOM5_CAGE_peak_robust_unparsed"
     )
     return(all_fields)
+  } else if (which_list == "dbnsfp_desired_fr_4") {
+    dbnsfp_desired_fr_4 <- c(
+      "chr",
+      "pos",
+      "ref",
+      "alt",
+      "aaref",
+      "aaalt",
+      "Uniprot_acc",
+      "Uniprot_id",
+      "Uniprot_aapos",
+      "Interpro_domain",
+      "cds_strand",
+      "refcodon",
+      "SLR_test_statistic",
+      "codonpos",
+      "fold_degenerate",
+      "Ensembl_geneid",
+      "Ensembl_transcriptid",
+      "aapos",
+      "Polyphen2_HDIV_score",
+      "Polyphen2_HDIV_rankscore",
+      "Polyphen2_HDIV_pred",
+      "Polyphen2_HVAR_score",
+      "Polyphen2_HVAR_rankscore",
+      "Polyphen2_HVAR_pred",
+      "LRT_score",
+      "LRT_converted_rankscore",
+      "LRT_pred",
+      "MutationTaster_score",
+      "MutationTaster_converted_rankscore",
+      "MutationTaster_pred",
+      "MutationAssessor_score",
+      "MutationAssessor_rankscore",
+      "MutationAssessor_pred",
+      "FATHMM_score",
+      "FATHMM_rankscore",
+      "FATHMM_pred",
+      "MetaSVM_score",
+      "MetaSVM_rankscore",
+      "MetaSVM_pred",
+      "MetaLR_score",
+      "MetaLR_rankscore",
+      "MetaLR_pred",
+      "Reliability_index",
+      "VEST3_score",
+      "VEST3_rankscore",
+      "PROVEAN_score",
+      "PROVEAN_converted_rankscore",
+      "PROVEAN_pred"
+    )
+    return(dbnsfp_desired_fr_4)
+  } else if (which_list == "dbnsfp_to_split_fr_4") {
+    dbnsfp_to_split_fr_4 <- c(
+      "aaref",
+      "aaalt",
+      "Ensembl_geneid"
+    )
+    return(dbnsfp_to_split_fr_4)
+  } else if (which_list == "dbnsfp_low_pairs_fr_4") {
+    # dbnsfp_low_pairs_fr_4-----------------------------------------------------
+    # a list of all possible fields in both SNV and indel annotaiton files -
+    # new names, including "_unparsed" string
+    dbnsfp_low_pairs_fr_4 <- list(
+      c("PROVEAN_score", "PROVEAN_pred"),
+      c("FATHMM_score", "FATHMM_pred")
+      )
+    return(dbnsfp_low_pairs_fr_4)
+  } else if (which_list == "dbnsfp_high_pairs_fr_4") {
+    dbnsfp_high_pairs_fr_4 <- list(
+      c("Polyphen2_HDIV_score", "Polyphen2_HDIV_pred"),
+      c("Polyphen2_HVAR_score", "Polyphen2_HVAR_pred")
+    )
+    return(dbnsfp_high_pairs_fr_4)
+  } else if (which_list == "dbnsfp_mutation_pairs_fr_4") {
+    dbnsfp_mutation_pairs_fr_4 <- list(
+      c("MutationTaster_pred", "MutationTaster_score")
+    )
+    return(dbnsfp_mutation_pairs_fr_4)
   } else {
     stop("Unknown list.")
   }

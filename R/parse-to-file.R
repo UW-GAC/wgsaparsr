@@ -40,7 +40,7 @@ parse_to_file <- function(source_file,
     stop("This version of WGSAparsr only supports freeze 4.")
   }
 
-  # read the sourcefile header line to set some variables.
+  # set variables using first line of sourcefile--------------------------------
   readfile_con <- gzfile(source_file, "r")
   first_line <- suppressWarnings(readLines(readfile_con, n = 1))
   close(readfile_con)
@@ -52,6 +52,7 @@ parse_to_file <- function(source_file,
   raw_header <- first_line
   indel_flag <- .is_indel(first_line)
 
+  #todo: move this to parse-chunks.R functions
   if (freeze == 4) {
     WGSA_version <- "WGSA065"
     if (indel_flag) {
@@ -63,46 +64,51 @@ parse_to_file <- function(source_file,
     }
   }
 
-  # main loop - read file by chunk, process chunk, write chunk
+  # main loop - read file by chunk, process chunk, write chunk------------------
   readfile_con <- gzfile(source_file, "r")
   index <- 0L
   while (TRUE) {
     # read chunk
     raw_chunk <- suppressWarnings(readLines(readfile_con, n = chunk_size))
 
-    # readLines() returns a zero length result at EOF (which should end loop)
+    # readLines() returns a zero length result at EOF (which SHOULD end loop...)
     if (length(raw_chunk) == 0) {
       break
     }
 
-    # check for header line and read raw chunk to all_fields tibble
+    # check if header line in this chunk, read raw chunk to all_fields tibble
     if (.has_header(raw_chunk)) {
       header_flag <- TRUE # for .write_to_file()
       all_fields <- .get_fields_from_chunk(raw_chunk)
     } else {
       header_flag <- FALSE # for .write_to_file()
-      modified_chunk <- c(raw_header, raw_chunk)
+      modified_chunk <- c(raw_header, raw_chunk) # add the raw header
       all_fields <- .get_fields_from_chunk(modified_chunk)
     }
 
-    # end iteration if all_fields has 0 observations
+    # end current iteration if all_fields has 0 observations
     # (to avoid dplyr error arising from empty tibble)
     if (dim(all_fields)[1] == 0) {
       index <- index + 1L
       next
     }
 
-    # parse the all_fields tibble
+    # parse the all_fields tibble for snv or indel annotation
+    # TODO: clean up so call more like .parse_chunk_dbnsfp
     if (indel_flag) {
-      parsed_lines <- .parse_indel_chunk(all_fields,
-                                         desired_columns,
-                                         to_split,
-                                         WGSA_version)
+      parsed_lines <-
+        .parse_chunk_indel(
+          all_fields,
+          desired_columns,
+          to_split,
+          WGSA_version)
     } else {
-      parsed_lines <- .parse_snv_chunk(all_fields,
-                                       desired_columns,
-                                       to_split,
-                                       WGSA_version)
+      parsed_lines <-
+        .parse_chunk_snv(
+          all_fields,
+          desired_columns,
+          to_split,
+          WGSA_version)
     }
 
     # write snv or indel tibble to tsv file
@@ -113,7 +119,10 @@ parse_to_file <- function(source_file,
                    indel_flag)
 
     # parse the dbnsfp fields
-    # TODO
+    parsed_lines_dbnsfp <-
+      .parse_chunk_dbnsfp(
+        all_fields,
+        freeze)
 
     # write dbnsfp chunk to tsv file
     # TODO
