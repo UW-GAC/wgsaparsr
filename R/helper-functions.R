@@ -365,14 +365,13 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
 
   # use select statement to write column headers and make sure of column order.
   if (dbnsfp_flag) {
-    # don't need wgsa_version for dbnsfp
     if (header_flag) {
       parsed_lines %>%
-        select(one_of(c(desired_columns, "aachange"))) %>%
+        select(one_of(desired_columns)) %>%
         write_tsv(path = destination, append = FALSE)
     } else {
       parsed_lines %>%
-        select(one_of(c(desired_columns, "aachange"))) %>%
+        select(one_of(desired_columns)) %>%
         write_tsv(path = destination, append = TRUE)
     }
   } else {

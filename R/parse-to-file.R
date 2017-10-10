@@ -127,7 +127,7 @@ parse_to_file <- function(source_file,
       # write dbnsfp chunk to tsv file
       # IF parsed_lines_dbnsfp IS EMPTY, DON'T WRITE.
       if (dim(parsed_lines_dbnsfp)[[1]] > 0) {
-        dbnsfp_columns <- .get_list("dbnsfp_desired_fr_4") # TO FIX
+        dbnsfp_columns <- .get_list("dbnsfp_post_processing_fr_4") # TO FIX
         .write_to_file(
           parsed_lines_dbnsfp,
           dbnsfp_destination,

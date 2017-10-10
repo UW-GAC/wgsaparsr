@@ -927,7 +927,18 @@
       c("MutationTaster_pred", "MutationTaster_score")
     )
     return(dbnsfp_mutation_pairs_fr_4)
-  } else {
+  } else if (which_list == "dbnsfp_post_processing_fr_4") {
+    dbnsfp_mutation_pairs_fr_4 <- c(
+      .get_list("dbnsfp_desired_fr_4"),
+      "PROVEAN_score_unparsed", "PROVEAN_pred_unparsed",
+      "FATHMM_score_unparsed", "FATHMM_pred_unparsed",
+      "Polyphen2_HDIV_score_unparsed", "Polyphen2_HDIV_pred_unparsed",
+      "Polyphen2_HVAR_score_unparsed", "Polyphen2_HVAR_pred_unparsed",
+      "MutationTaster_pred_unparsed", "MutationTaster_score_unparsed",
+      "aachange"
+    )
+    return(dbnsfp_mutation_pairs_fr_4)
+  }else {
     stop("Unknown list.")
   }
 }
