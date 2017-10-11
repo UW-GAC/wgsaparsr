@@ -4,8 +4,8 @@
 \alias{parse_to_file}
 \title{Parse the WGSA output file to tidy and select columns of interest}
 \usage{
-parse_to_file(source_file, destination, dbnsfp_destination, freeze = 4,
-  chunk_size = 10000, verbose = TRUE)
+parse_to_file(source_file, destination, dbnsfp_destination,
+  has_old_names = FALSE, freeze = 4, chunk_size = 10000, verbose = TRUE)
 }
 \arguments{
 \item{source_file}{Path to the WGSA output file to parse (indel or SNV
@@ -14,6 +14,9 @@ annotation)}
 \item{destination}{Path to the desired indel or snv output file}
 
 \item{dbnsfp_destination}{Path to the desired dbnsfp output file}
+
+\item{has_old_names}{Does the source file have old-style field names (e.g.
+"MAP20(+-149bp)") (default FALSE)}
 
 \item{freeze}{Which TOPMed freeze is being used (default 4)}
 

@@ -13,6 +13,8 @@
 #'   annotation)
 #' @param destination Path to the desired indel or snv output file
 #' @param dbnsfp_destination Path to the desired dbnsfp output file
+#' @param has_old_names Does the source file have old-style field names (e.g.
+#'   "MAP20(+-149bp)") (default FALSE)
 #' @param freeze Which TOPMed freeze is being used (default 4)
 #' @param chunk_size Number of lines to parse each iteration (default 10,000)
 #' @param verbose more output to screen (default TRUE)
@@ -31,16 +33,15 @@
 parse_to_file <- function(source_file,
                           destination,
                           dbnsfp_destination,
+                          has_old_names = FALSE,
                           freeze = 4,
                           chunk_size = 10000,
                           verbose = TRUE) {
-
-
   if (freeze != 4){
     stop("This version of WGSAparsr only supports freeze 4.")
   }
 
-  # set variables using first line of sourcefile--------------------------------
+  # get header and check if indel file------------------------------------------
   readfile_con <- gzfile(source_file, "r")
   first_line <- suppressWarnings(readLines(readfile_con, n = 1))
   close(readfile_con)
@@ -52,19 +53,17 @@ parse_to_file <- function(source_file,
   raw_header <- first_line
   indel_flag <- .is_indel(first_line)
 
+  # main loop - read file by chunk, process chunk, write chunk------------------
+
   #todo: move this to parse-chunks.R functions
   if (freeze == 4) {
-    WGSA_version <- "WGSA065"
     if (indel_flag) {
+      WGSA_version <- "WGSA065"
       desired_columns <- .get_list("fr_4_indel_desired")
       to_split <- .get_list("fr_4_indel_to_split")
-    } else {
-      desired_columns <- .get_list("fr_4_snv_desired")
-      to_split <- .get_list("fr_4_snv_to_split")
     }
   }
 
-  # main loop - read file by chunk, process chunk, write chunk------------------
   readfile_con <- gzfile(source_file, "r")
   index <- 0L
   while (TRUE) {
@@ -77,11 +76,10 @@ parse_to_file <- function(source_file,
     }
 
     # check if header line in this chunk, read raw chunk to all_fields tibble
-    if (.has_header(raw_chunk)) {
-      header_flag <- TRUE # for .write_to_file()
+    header_flag <- .has_header(raw_chunk)
+    if (header_flag) {
       all_fields <- .get_fields_from_chunk(raw_chunk)
     } else {
-      header_flag <- FALSE # for .write_to_file()
       modified_chunk <- c(raw_header, raw_chunk) # add the raw header
       all_fields <- .get_fields_from_chunk(modified_chunk)
     }
@@ -95,49 +93,51 @@ parse_to_file <- function(source_file,
 
     # parse the all_fields tibble for snv or indel annotation
     # TODO: clean up so call more like .parse_chunk_dbnsfp
-    if (indel_flag) {
+    if (indel_flag == TRUE) {
+      # parse chunk of indel annotation
       parsed_lines <-
         .parse_chunk_indel(
           all_fields,
           desired_columns,
           to_split,
-          WGSA_version)
+          WGSA_version,
+          has_old_names)
     } else {
-      parsed_lines <-
-        .parse_chunk_snv(
-          all_fields,
-          desired_columns,
-          to_split,
-          WGSA_version)
+      #parse chunk of snv annotation
+      parsed_lines <- .parse_chunk_snv(all_fields, freeze)
+      parsed_fields <- .get_list("fr_4_snv_post_processing")
     }
 
-    # write snv or indel tibble to tsv file
-    .write_to_file(parsed_lines,
-                   destination,
-                   desired_columns,
-                   header_flag,
-                   indel_flag)
-
+    # write processed chunk to tsv file
+    # TODO: use write_to_file_cleaner...
+    if (indel_flag) {
+      .write_to_file(parsed_lines,
+                     destination,
+                     desired_columns,
+                     header_flag,
+                     indel_flag)
+    } else {
+      .write_to_file_cleaner(parsed_lines,
+                             destination,
+                             parsed_fields,
+                             header_flag)
+    }
     # parse the dbnsfp fields for snp file
     if (indel_flag == FALSE) {
-      parsed_lines_dbnsfp <-
-        .parse_chunk_dbnsfp(all_fields,
-                            freeze)
+      dbnsfp_parsed_lines <- .parse_chunk_dbnsfp(all_fields, freeze)
+      dbnsfp_parsed_fields <-
+        .get_list("fr_4_dbnsfp_post_processing")
 
       # write dbnsfp chunk to tsv file
       # IF parsed_lines_dbnsfp IS EMPTY, DON'T WRITE.
-      if (dim(parsed_lines_dbnsfp)[[1]] > 0) {
-        dbnsfp_columns <- .get_list("dbnsfp_post_processing_fr_4") # TO FIX
-        .write_to_file(
-          parsed_lines_dbnsfp,
-          dbnsfp_destination,
-          dbnsfp_columns,
-          header_flag,
-          indel_flag,
-          dbnsfp_flag = TRUE
-        )
+      if (dim(dbnsfp_parsed_lines)[[1]] > 0) {
+        .write_to_file_cleaner(dbnsfp_parsed_lines,
+                               dbnsfp_destination,
+                               dbnsfp_parsed_fields,
+                               header_flag)
       }
     }
+
     # ready for the next chunk!
     index <- index + 1L
 

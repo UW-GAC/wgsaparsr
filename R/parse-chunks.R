@@ -3,10 +3,13 @@
 #' @importFrom tidyr separate_rows extract
 #' @importFrom stringr str_replace
 #' @noRd
-.parse_chunk_snv <- function(all_fields,
-                             desired_columns,
-                             to_split,
-                             WGSA_version) {
+.parse_chunk_snv <- function(all_fields, freeze) {
+  # set variables by freeze-----------------------------------------------------
+  if (freeze == 4){
+    WGSA_version <- "WGSA065"
+    desired_columns <- .get_list("fr_4_snv_desired")
+    to_split <- .get_list("fr_4_snv_to_split")
+  }
 
   # pick desired columns--------------------------------------------------------
   selected_columns <- all_fields %>%
@@ -35,12 +38,6 @@
         ., pattern = "^$", replacement = "."
       ))) # fill blanks with "."
   }
-
-  #rename columns from old-version WGSA fields---------------------------------
-  if (.check_names(names(expanded))) {
-    names(expanded) <- .fix_names(names(expanded))
-  }
-
   expanded <- distinct(expanded)
 }
 
@@ -115,14 +112,14 @@
 .parse_chunk_dbnsfp <- function(all_fields, freeze) {
   # set variables by freeze-----------------------------------------------------
   if (freeze == 4){
-    desired_columns <- .get_list("dbnsfp_desired_fr_4")
-    to_split <- .get_list("dbnsfp_to_split_fr_4")
-    low_pairs <- .get_list("dbnsfp_low_pairs_fr_4")
-    high_pairs <- .get_list("dbnsfp_high_pairs_fr_4")
-    mutation_pairs <- .get_list("dbnsfp_mutation_pairs_fr_4")
+    desired_columns <- .get_list("fr_4_dbnsfp_desired")
+    to_split <- .get_list("fr_4_dbnsfp_to_split")
+    low_pairs <- .get_list("fr_4_dbnsfp_low_pairs")
+    high_pairs <- .get_list("fr_4_dbnsfp_high_pairs")
+    mutation_pairs <- .get_list("fr_4_dbnsfp_mutation_pairs")
   }
 
-  # pick out the desired columns for further operation--------------------------
+  # pick desired columns and rows-----------------------------------------------
   filtered_selected_columns <- all_fields %>%
     select(one_of(desired_columns)) %>% # select fields of interest
     filter(aaref != ".") %>% # select rows with dbNSFP annotation
