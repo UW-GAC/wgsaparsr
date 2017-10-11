@@ -13,8 +13,6 @@
 #'   annotation)
 #' @param destination Path to the desired indel or snv output file
 #' @param dbnsfp_destination Path to the desired dbnsfp output file
-#' @param has_old_names Does the source file have old-style field names (e.g.
-#'   "MAP20(+-149bp)") (default FALSE)
 #' @param freeze Which TOPMed freeze is being used (default 4)
 #' @param chunk_size Number of lines to parse each iteration (default 10,000)
 #' @param verbose more output to screen (default TRUE)
@@ -33,7 +31,6 @@
 parse_to_file <- function(source_file,
                           destination,
                           dbnsfp_destination,
-                          has_old_names = FALSE,
                           freeze = 4,
                           chunk_size = 10000,
                           verbose = TRUE) {

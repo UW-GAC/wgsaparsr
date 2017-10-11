@@ -46,38 +46,33 @@
 #' @importFrom tidyr separate_rows extract
 #' @importFrom stringr str_replace
 #' @noRd
-.parse_chunk_indel <- function(all_fields,
-                               desired_columns,
-                               to_split,
-                               WGSA_version) {
-
+.parse_chunk_indel <- function(all_fields, freeze) {
+                           #    desired_columns,
+                          #     to_split,
+                          #     WGSA_version) {
+  
+  # set variables by freeze-----------------------------------------------------
+  if (freeze == 4){
+    desired_columns <- .get_list("fr_4_indel_desired")
+    to_split <- .get_list("fr_4_indel_to_split")
+    WGSA_version <- "WGSA065"
+    
+    max_columns <- .get_list("fr_4_indel_max_columns")
+    no_columns <- .get_list("fr_4_indel_no_columns")
+    yes_colunns <- .get_list("fr_4_indel_yes_columns")
+    pair_columns <- .get_list("fr_4_indel_pair_columns")
+    triple_columns <- .get_list("fr_4_indel_triple_columns")
+  }
+  
   # pick desired columns--------------------------------------------------------
   selected_columns <- all_fields %>%
     select(one_of(desired_columns)) %>% # select fields of interest
     mutate(wgsa_version = WGSA_version) # add wgsa version
 
-  # check whether desired fields require parsing; parse if so
-  if (.check_for_parseable(desired_columns)){
-    # get max columns #SLOW-----------------------------------------------------
-    selected_columns <- .parse_max_columns(selected_columns)
-
-    # default No columns--------------------------------------------------------
-    selected_columns <- .parse_no_columns(selected_columns)
-
-    # default Yes columns-------------------------------------------------------
-    selected_columns <- .parse_yes_columns(selected_columns)
-
-    # pair-columns--------------------------------------------------------------
-    selected_columns <- .parse_column_pairs(selected_columns)
-
-    # triple-columns------------------------------------------------------------
-    selected_columns <- .parse_column_triples(selected_columns)
-  }
-
   # pivot the VEP_* fields------------------------------------------------------
   expanded <- selected_columns %>%
     separate_rows(one_of(to_split), sep = "\\|")
-
+  
   # split the VEP_ensembl_Codon_Change_or_Distance field------------------------
   # if number, put in VEP_ensembl_Distance field
   # if string, put in VEP_ensembl_Codon_Change field
@@ -96,8 +91,26 @@
         ., pattern = "^$", replacement = "."
       ))) # fill blanks with "."
   }
-
+  
+  # parse get max columns #SLOW-------------------------------------------------
+  expanded <- .parse_indel_max_columns(expanded, max_columns)
+  
+  # parse default No columns----------------------------------------------------
+  # TODO: refactor
+#  expanded <- .parse_indel_no_columns(expanded, no_columns)
+  
+  # parse default Yes columns---------------------------------------------------
+  #TODO: refactor
+#  expanded <- .parse_indel_yes_columns(expanded, yes_columns)
+  
+  # parse pair-columns----------------------------------------------------------
+  expanded <- .parse_indel_column_pairs(expanded, pair_columns)
+  
+  # parse triple-columns--------------------------------------------------------
+  expanded <- .parse_indel_column_triples(expanded, triple_columns)
+  
   # rename columns from old-version WGSA fields---------------------------------
+  # TODO: FIX
   if (.check_names(names(expanded))) {
     names(expanded) <- .fix_names(names(expanded))
   }

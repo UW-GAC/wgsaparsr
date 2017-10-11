@@ -7,39 +7,37 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
                   "match_mask", "new_p", "p_clean", "p_list", "p_max", "p_min",
                   "r_clean", "r_corresponding", "r_list", "v_clean",
                   "v_corresponding", "v_list", "wacky_no_column", "aaalt"))
-  
 
-
-#' Check if the to_split columns are listed in desired_columns. Stop if not, and
-#' return a message of columns not in desired_columns
-#' @noRd
-.check_to_split <- function(desired_columns, to_split) {
-  if (all(to_split %in% desired_columns)) {
-    return(TRUE)
-  } else {
-    msg <- paste0(
-      "to_split columns missing in desired_columns: ",
-      paste(to_split[!to_split %in% desired_columns], collapse = ", ")
-    )
-    stop(msg)
-  }
-}
-
-#' Check if the desired columns exist in the source file. Stop if not, and
-#' return a message of columns not in source file
-#' @noRd
-.check_desired <- function(source_file, desired_columns) {
-  all_fields <- get_fields(source_file)
-  if (all(desired_columns %in% all_fields)) {
-    return(TRUE)
-  } else {
-    msg <- paste0(
-      "Desired columns missing in source file: ",
-      paste(desired_columns[!desired_columns %in% all_fields], collapse = ", ")
-    )
-    stop(msg)
-  }
-}
+#' #' Check if the to_split columns are listed in desired_columns. Stop if not, and
+#' #' return a message of columns not in desired_columns
+#' #' @noRd
+#' .check_to_split <- function(desired_columns, to_split) {
+#'   if (all(to_split %in% desired_columns)) {
+#'     return(TRUE)
+#'   } else {
+#'     msg <- paste0(
+#'       "to_split columns missing in desired_columns: ",
+#'       paste(to_split[!to_split %in% desired_columns], collapse = ", ")
+#'     )
+#'     stop(msg)
+#'   }
+#' }
+#' 
+#' #' Check if the desired columns exist in the source file. Stop if not, and
+#' #' return a message of columns not in source file
+#' #' @noRd
+#' .check_desired <- function(source_file, desired_columns) {
+#'   all_fields <- get_fields(source_file)
+#'   if (all(desired_columns %in% all_fields)) {
+#'     return(TRUE)
+#'   } else {
+#'     msg <- paste0(
+#'       "Desired columns missing in source file: ",
+#'       paste(desired_columns[!desired_columns %in% all_fields], collapse = ", ")
+#'     )
+#'     stop(msg)
+#'   }
+#' }
 
 #' Check if the current chunk includes a header row describing the fields
 #' @importFrom stringr str_detect
@@ -70,23 +68,20 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
            col_types = cols(.default = col_character()))
 }
 
-#' check whether field names include parseable fields
-#' @noRd
-.check_for_parseable <- function(field_names){
-  any(.get_list("parseable_fields") %in% field_names)
-}
+#' #' check whether field names include parseable fields
+#' #' @noRd
+#' .check_for_parseable <- function(field_names){
+#'   any(.get_list("parseable_fields") %in% field_names)
+#' }
 
 #' parse columns from tibble for which we want to select maximum value
 #' @importFrom dplyr mutate select "%>%"
 #' @importFrom rlang sym
-#' @importFrom stringr str_replace_all
+#' @importFrom stringr str_replace_all str_split
 #' @importFrom purrr map map_dbl
 #' @noRd
-.parse_max_columns <- function(selected_columns){
-  columns_to_max <- .get_list("parse_max")[.get_list("parse_max") %in%
-                                             names(selected_columns)]
-
-  for (to_max in columns_to_max) {
+.parse_indel_max_columns <- function(selected_columns, max_columns){
+  for (to_max in max_columns) {
     col_name <- to_max
     unparsed_col_name <- paste0(col_name, "_unparsed")
 
@@ -113,6 +108,41 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
   return(selected_columns)
 }
 
+#' parse columns from tibble for which we want to parse to N if there is an N 
+#' present, then Y if Y present, else .
+#' @importFrom dplyr mutate select "%>%"
+#' @importFrom rlang sym
+#' @importFrom stringr str_replace_all str_split
+#' @importFrom purrr map map_dbl
+#' @noRd
+# TODO - see .parse_dbnsfp_mutation()
+.parse_indel_no_columns <- function(selected_columns, no_columns){
+  for (to_no in no_columns) {
+    col_name <- to_no
+    unparsed_col_name <- paste0(col_name, "_unparsed")
+    
+    selected_columns <-
+      suppressWarnings(
+        selected_columns %>%
+          mutate(
+            p_clean = str_replace_all(!!sym(col_name),
+                                      "(?:\\{.*?\\})|;", " "),
+            p_list = strsplit(p_clean, "\\s+"),
+            p_list = map(p_list, as.numeric),
+            p_max = map_dbl(p_list, max, na.rm = TRUE),
+            p_max = as.character(p_max),
+            p_max = ifelse( (p_max == "-Inf"), ".", p_max)
+          ) %>%
+          select(
+            -p_clean,
+            -p_list,
+            !!unparsed_col_name := !!col_name,
+            !!col_name := p_max
+          )
+      )
+  }
+  return(selected_columns)
+}
 #' check string for
 #' value="N" if there is aleast one "N",
 #' else if "Y" present then value="Y" ,
@@ -192,56 +222,52 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
 #' @importFrom purrr map map_dbl map2 map2_chr
 #' @importFrom rlang syms
 #' @noRd
-.parse_column_pairs <- function(selected_columns) {
+.parse_indel_column_pairs <- function(selected_columns, pair_columns) {
   column_pairs <-
-    .get_list("parse_pairs")
-
-  if (!all(unlist(column_pairs) %in% names(selected_columns))) {
-    stop("not all pair columns are in selected_columns")
-  }
-
-  for (pair in column_pairs) {
-    current_pair <- syms(pair)
-
-    score_name <- pair[[1]]
-    rankscore_name <- pair[[2]]
-    unparsed_score_name <- paste0(score_name, "_unparsed")
-    unparsed_rankscore_name <- paste0(rankscore_name, "_unparsed")
-
-    selected_columns <-
-      suppressWarnings(
-        selected_columns %>% ungroup() %>% # thanks James!
-          mutate(
-            p_clean = gsub("(?:\\{.*?\\})|;", " ", x = !!current_pair[[1]]),
-            p_list = strsplit(p_clean, "\\s+"),
-            p_list = map(p_list, as.numeric),
-            p_max = map_dbl(p_list, max, na.rm = TRUE),
-            p_max = as.character(p_max),
-            p_max = ifelse( (p_max == "-Inf"), ".", p_max),
-            match_mask = map2(p_list, p_max, str_detect),
-            match_mask = replace(match_mask, is.na(match_mask), TRUE),
-            match_mask = map(match_mask,
-                             function(x)
-                               x & !duplicated(x)), # thanks Adrienne!
-            r_clean = gsub("(?:\\{.*?\\})|;", " ", x = !!current_pair[[2]]),
-            r_list =  strsplit(r_clean, "\\s+"),
-            r_corresponding = map2_chr(match_mask, r_list,
-                                       function(logical, string)
-                                         subset(string, logical))
-          ) %>%
-          select(-p_clean,
-                 -p_list,
-                 -match_mask,
-                 -r_clean,
-                 -r_list) %>%
-          rename(
-            !!unparsed_score_name := !!current_pair[[1]],
-            !!current_pair[[1]] := p_max,
-            !!unparsed_rankscore_name := !!current_pair[[2]],
-            !!current_pair[[2]] := r_corresponding
-          )
-      )
-  }
+    for (pair in yes_columns) {
+      current_pair <- syms(pair)
+      
+      score_name <- pair[[1]]
+      rankscore_name <- pair[[2]]
+      unparsed_score_name <- paste0(score_name, "_unparsed")
+      unparsed_rankscore_name <- paste0(rankscore_name, "_unparsed")
+      
+      selected_columns <-
+        suppressWarnings(
+          selected_columns %>% ungroup() %>% # thanks James!
+            mutate(
+              p_clean = gsub("(?:\\{.*?\\})|;", " ", x = !!current_pair[[1]]),
+              p_list = strsplit(p_clean, "\\s+"),
+              p_list = map(p_list, as.numeric),
+              p_max = map_dbl(p_list, max, na.rm = TRUE),
+              p_max = as.character(p_max),
+              p_max = ifelse((p_max == "-Inf"), ".", p_max),
+              match_mask = map2(p_list, p_max, str_detect),
+              match_mask = replace(match_mask, is.na(match_mask), TRUE),
+              match_mask = map(match_mask,
+                               function(x)
+                                 x &
+                                 !duplicated(x)),
+              # thanks Adrienne!
+              r_clean = gsub("(?:\\{.*?\\})|;", " ", x = !!current_pair[[2]]),
+              r_list =  strsplit(r_clean, "\\s+"),
+              r_corresponding = map2_chr(match_mask, r_list,
+                                         function(logical, string)
+                                           subset(string, logical))
+            ) %>%
+            select(-p_clean,
+                   -p_list,
+                   -match_mask,
+                   -r_clean,
+                   -r_list) %>%
+            rename(
+              !!unparsed_score_name := !!current_pair[[1]],
+              !!current_pair[[1]] := p_max,
+              !!unparsed_rankscore_name := !!current_pair[[2]],
+              !!current_pair[[2]] := r_corresponding
+            )
+        )
+    }
   return(selected_columns)
 }
 
@@ -253,14 +279,7 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
 #' @importFrom purrr map map_dbl map2 map2_chr
 #' @importFrom rlang syms
 #' @noRd
-.parse_column_triples <- function(selected_columns) {
-  column_triples <-
-    .get_list("parse_triples")
-
-  if (!all(unlist(column_triples) %in% names(selected_columns))) {
-    stop("not all column triples are in selected_columns")
-  }
-
+.parse_indel_column_triples <- function(selected_columns, triple_columns) {
   for (triple in column_triples) {
     current_triple <- syms(triple)
 
@@ -318,12 +337,12 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
   return(selected_columns)
 }
 
-#' check whether field names are the old style
-#' @noRd
-.check_names <- function(field_names){
-  old_names <- .get_list("old_names")
-  any(old_names %in% field_names)
-}
+#' #' check whether field names are the old style
+#' #' @noRd
+#' .check_names <- function(field_names){
+#'   old_names <- .get_list("old_names")
+#'   any(old_names %in% field_names)
+#' }
 
 #' change any old names to new style names
 #' @noRd
