@@ -388,6 +388,25 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
   }
 }
 
+#' select columns to set order and write_tsv
+#' @importFrom readr write_tsv
+#' @importFrom dplyr select one_of "%>%"
+#' @noRd
+.write_to_file_cleaner <- function(parsed_lines,
+                                   destination,
+                                   processed_fields,
+                                   header_flag) {
+  if (header_flag) {
+    parsed_lines %>%
+      select(one_of(processed_fields)) %>% # ensure column order
+      write_tsv(path = destination, append = FALSE)
+  } else {
+    parsed_lines %>%
+      select(one_of(processed_fields)) %>%
+      write_tsv(path = destination, append = TRUE)
+  }
+}
+
 #' parse db_nsfp_low_pairs - select low value from pair[[1]] and corresponding
 #' value from pair[[2]]
 #' @importFrom dplyr mutate select rename "%>%"

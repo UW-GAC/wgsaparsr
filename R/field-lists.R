@@ -172,6 +172,17 @@
       "SIFT4G_pred"
     )
     return(fr_4_snv_to_split)
+  } else if (which_list == "fr_4_snv_post_processing") {
+    # fr_4_dbnsfp_post_processing-----------------------------------------------
+    # replace "VEP_ensembl_Codon_Change_or_Distance" with
+    # "VEP_ensembl_Distance" and "VEP_ensembl_Codon_Change"
+    unmodified <- .get_list("fr_4_snv_desired")
+    unmodified[unmodified == "VEP_ensembl_Codon_Change_or_Distance"] <-
+      "VEP_ensembl_Distance"
+    fr_4_snv_post_processing <- c(
+      unmodified,
+      "VEP_ensembl_Codon_Change")
+    return(fr_4_snv_post_processing)
   } else if (which_list == "fr_4_indel_desired"){
     # fr_4_indel_desired--------------------------------------------------------
     fr_4_indel_desired <- c(
@@ -848,7 +859,8 @@
       "FANTOM5_CAGE_peak_robust_unparsed"
     )
     return(all_fields)
-  } else if (which_list == "dbnsfp_desired_fr_4") {
+  } else if (which_list == "fr_4_dbnsfp_desired") {
+    # fr_4_dbnsfp_desired-------------------------------------------------------
     dbnsfp_desired_fr_4 <- c(
       "chr",
       "pos",
@@ -900,15 +912,16 @@
       "PROVEAN_pred"
     )
     return(dbnsfp_desired_fr_4)
-  } else if (which_list == "dbnsfp_to_split_fr_4") {
+  } else if (which_list == "fr_4_dbnsfp_to_split") {
+    # fr_4_dbnsfp_to_split------------------------------------------------------
     dbnsfp_to_split_fr_4 <- c(
       "aaref",
       "aaalt",
       "Ensembl_geneid"
     )
     return(dbnsfp_to_split_fr_4)
-  } else if (which_list == "dbnsfp_low_pairs_fr_4") {
-    # dbnsfp_low_pairs_fr_4-----------------------------------------------------
+  } else if (which_list == "fr_4_dbnsfp_low_pairs") {
+    # fr_4_dbnsfp_low_pairs-----------------------------------------------------
     # a list of all possible fields in both SNV and indel annotaiton files -
     # new names, including "_unparsed" string
     dbnsfp_low_pairs_fr_4 <- list(
@@ -916,20 +929,23 @@
       c("FATHMM_score", "FATHMM_pred")
       )
     return(dbnsfp_low_pairs_fr_4)
-  } else if (which_list == "dbnsfp_high_pairs_fr_4") {
+  } else if (which_list == "fr_4_dbnsfp_high_pairs") {
+    # fr_4_dbnsfp_high_pairs----------------------------------------------------
     dbnsfp_high_pairs_fr_4 <- list(
       c("Polyphen2_HDIV_score", "Polyphen2_HDIV_pred"),
       c("Polyphen2_HVAR_score", "Polyphen2_HVAR_pred")
     )
     return(dbnsfp_high_pairs_fr_4)
-  } else if (which_list == "dbnsfp_mutation_pairs_fr_4") {
+  } else if (which_list == "fr_4_dbnsfp_mutation_pairs") {
+    # fr_4_dbnsfp_mutation_pairs------------------------------------------------
     dbnsfp_mutation_pairs_fr_4 <- list(
       c("MutationTaster_pred", "MutationTaster_score")
     )
     return(dbnsfp_mutation_pairs_fr_4)
-  } else if (which_list == "dbnsfp_post_processing_fr_4") {
+  } else if (which_list == "fr_4_dbnsfp_post_processing") {
+    # fr_4_dbnsfp_post_processing-----------------------------------------------
     dbnsfp_mutation_pairs_fr_4 <- c(
-      .get_list("dbnsfp_desired_fr_4"),
+      .get_list("fr_4_dbnsfp_desired"),
       "PROVEAN_score_unparsed", "PROVEAN_pred_unparsed",
       "FATHMM_score_unparsed", "FATHMM_pred_unparsed",
       "Polyphen2_HDIV_score_unparsed", "Polyphen2_HDIV_pred_unparsed",
@@ -938,7 +954,7 @@
       "aachange"
     )
     return(dbnsfp_mutation_pairs_fr_4)
-  }else {
+  } else {
     stop("Unknown list.")
   }
 }
