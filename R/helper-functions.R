@@ -6,38 +6,40 @@
 globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
                   "match_mask", "new_p", "p_clean", "p_list", "p_max", "p_min",
                   "r_clean", "r_corresponding", "r_list", "v_clean",
-                  "v_corresponding", "v_list", "wacky_no_column", "aaalt"))
+                  "v_corresponding", "v_list", "wacky_no_column", "aaalt",
+                  "Eigen-PC-raw_unparsed", "Eigen-phred",
+                  "Eigen-phred_unparsed", "Eigen-raw",
+                  "Eigen-raw_rankscore", "Eigen-raw_rankscore_unparsed",
+                  "Eigen-raw_unparsed", "GMS_paired-end",
+                  "GMS_paired-end_unparsed", "GMS_single-end",
+                  "GMS_single-end_unparsed", "H1-hESC_fitCons_rankscore",
+                  "H1-hESC_fitCons_rankscore_unparsed", "H1-hESC_fitCons_score",
+                  "H1-hESC_fitCons_score_unparsed", "MAP20(+-149bp)",
+                  "MAP20(+-149bp)_unparsed", "MAP35(+-149bp)",
+                  "MAP35(+-149bp)_unparsed", "fathmm-MKL_coding_rankscore",
+                  "fathmm-MKL_coding_rankscore_unparsed",
+                  "fathmm-MKL_coding_score",
+                  "fathmm-MKL_coding_score_unparsed",
+                  "fathmm-MKL_non-coding_rankscore",
+                  "fathmm-MKL_non-coding_rankscore_unparsed",
+                  "fathmm-MKL_non-coding_score",
+                  "fathmm-MKL_non-coding_score_unparsed",
+                  "#chr", "1000G_strict_masked", "1000G_strict_masked_unparsed",
+                  "1000Gp3_AC", "1000Gp3_AF", "1000Gp3_AFR_AC",
+                  "1000Gp3_AFR_AF", "1000Gp3_AMR_AC", "1000Gp3_AMR_AF",
+                  "1000Gp3_EAS_AC", "1000Gp3_EAS_AF", "1000Gp3_EUR_AC",
+                  "1000Gp3_EUR_AF", "1000Gp3_SAS_AC", "1000Gp3_SAS_AF",
+                  "CADDphred", "CADDraw", "Eigen-PC-raw",
+                  "Eigen-PC-raw_rankscore", "Eigen-PC-raw_rankscore_unparsed"))
 
-#' #' Check if the to_split columns are listed in desired_columns. Stop if not, and
-#' #' return a message of columns not in desired_columns
-#' #' @noRd
-#' .check_to_split <- function(desired_columns, to_split) {
-#'   if (all(to_split %in% desired_columns)) {
-#'     return(TRUE)
-#'   } else {
-#'     msg <- paste0(
-#'       "to_split columns missing in desired_columns: ",
-#'       paste(to_split[!to_split %in% desired_columns], collapse = ", ")
-#'     )
-#'     stop(msg)
-#'   }
-#' }
-#' 
-#' #' Check if the desired columns exist in the source file. Stop if not, and
-#' #' return a message of columns not in source file
-#' #' @noRd
-#' .check_desired <- function(source_file, desired_columns) {
-#'   all_fields <- get_fields(source_file)
-#'   if (all(desired_columns %in% all_fields)) {
-#'     return(TRUE)
-#'   } else {
-#'     msg <- paste0(
-#'       "Desired columns missing in source file: ",
-#'       paste(desired_columns[!desired_columns %in% all_fields], collapse = ", ")
-#'     )
-#'     stop(msg)
-#'   }
-#' }
+#' Check if the current chunk includes a header row describing the fields
+#' @noRd
+.get_first_line <- function(source_file){
+  readfile_con <- gzfile(source_file, "r")
+  first_line <- suppressWarnings(readLines(readfile_con, n = 1))
+  close(readfile_con)
+  return(first_line)
+}
 
 #' Check if the current chunk includes a header row describing the fields
 #' @importFrom stringr str_detect
@@ -67,12 +69,6 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
   read_tsv(paste0(raw_chunk, collapse = "\n"),
            col_types = cols(.default = col_character()))
 }
-
-#' #' check whether field names include parseable fields
-#' #' @noRd
-#' .check_for_parseable <- function(field_names){
-#'   any(.get_list("parseable_fields") %in% field_names)
-#' }
 
 #' parse columns from tibble for which we want to select maximum value
 #' @importFrom dplyr mutate select "%>%"
@@ -110,110 +106,74 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
 
 #' parse columns from tibble for which we want to parse to N if there is an N 
 #' present, then Y if Y present, else .
-#' @importFrom dplyr mutate select "%>%"
-#' @importFrom rlang sym
-#' @importFrom stringr str_replace_all str_split
-#' @importFrom purrr map map_dbl
+#' @importFrom dplyr mutate "%>%" rename
+#' @importFrom rlang syms
+#' @importFrom stringr str_detect
 #' @noRd
-# TODO - see .parse_dbnsfp_mutation()
 .parse_indel_no_columns <- function(selected_columns, no_columns){
-  for (to_no in no_columns) {
-    col_name <- to_no
-    unparsed_col_name <- paste0(col_name, "_unparsed")
-    
+  for (parsing in no_columns) {
+    current <- syms(parsing)
+    original_name <- current[[1]]
+    unparsed_name <- paste0(original_name, "_unparsed")
+
     selected_columns <-
       suppressWarnings(
         selected_columns %>%
           mutate(
-            p_clean = str_replace_all(!!sym(col_name),
-                                      "(?:\\{.*?\\})|;", " "),
-            p_list = strsplit(p_clean, "\\s+"),
-            p_list = map(p_list, as.numeric),
-            p_max = map_dbl(p_list, max, na.rm = TRUE),
-            p_max = as.character(p_max),
-            p_max = ifelse( (p_max == "-Inf"), ".", p_max)
+            #  if N present, N
+            # else if Y present then Y
+            # else .
+            new_p = ifelse(
+              str_detect(!!current[[1]], "N"),
+              "N",
+              ifelse(
+                str_detect(!!current[[1]], "Y"),
+                "Y", ".")
+            )
           ) %>%
-          select(
-            -p_clean,
-            -p_list,
-            !!unparsed_col_name := !!col_name,
-            !!col_name := p_max
+          rename(
+            !!unparsed_name := !!current[[1]],
+            !!current[[1]] := new_p
           )
       )
   }
   return(selected_columns)
 }
-#' check string for
-#' value="N" if there is aleast one "N",
-#' else if "Y" present then value="Y" ,
-#' else if only "." present value="."
+
+#' parse columns from tibble for which we want to parse to Y if there is an Y 
+#' present, then N if N present, else .
+#' @importFrom dplyr mutate "%>%" rename
+#' @importFrom rlang syms
 #' @importFrom stringr str_detect
 #' @noRd
-.check_default_no <- function(a_string) {
-  if (str_detect(a_string, pattern = "N")) {
-    return("N")
-  } else if (str_detect(a_string, pattern = "Y")) {
-    return("Y")
-  } else {
-    return(".")
+.parse_indel_yes_columns <- function(selected_columns, yes_columns){
+  for (parsing in yes_columns) {
+    current <- syms(parsing)
+    original_name <- current[[1]]
+    unparsed_name <- paste0(original_name, "_unparsed")
+
+    selected_columns <-
+      suppressWarnings(
+        selected_columns %>%
+          mutate(
+            # if Y present, Y
+            # else if N present then N
+            # else .
+            new_p = ifelse(
+              str_detect(!!current[[1]], "Y"),
+              "Y",
+              ifelse(
+                str_detect(!!current[[1]], "N"),
+                "N", ".")
+            )
+          ) %>%
+          rename(
+            !!unparsed_name := !!current[[1]],
+            !!current[[1]] := new_p
+          )
+      )
   }
-}
-
-#' parse columns from tibble for which we want to parse to N if there is an N 
-#' present
-#' CAUTION - ASSUMES THAT THERE IS ONLY ONE DEFAULT NO COLUMN FOR NAMING
-#' @importFrom dplyr mutate_at rename_at rowwise ungroup vars "%>%"
-#' @noRd
-.parse_no_columns <- function(selected_columns){
-  columns_to_no <-
-    .get_list("parse_string_no")[.get_list("parse_string_no") %in%
-                                   names(selected_columns)]
-
-  selected_columns <- selected_columns %>%
-    rowwise() %>%
-    mutate_at(vars(columns_to_no),
-              .funs = funs(wacky_no_column = .check_default_no(.))) %>%
-    rename_at(vars(columns_to_no),
-              funs(paste(., "unparsed", sep = "_"))) %>%
-    rename_at(vars(wacky_no_column),
-              funs(paste(columns_to_no))) %>%
-    ungroup()
-}
-
-#' check string for
-#' value="Y" if there is aleast one "Y",
-#' else if "N" present then value="N" ,
-#' else if only "." present value="."
-#' @importFrom stringr str_detect
-#' @noRd
-.check_default_yes <- function(a_string) {
-  if (str_detect(a_string, pattern = "Y")) {
-    return("Y")
-  } else if (str_detect(a_string, pattern = "N")) {
-    return("N")
-  } else {
-    return(".")
-  }
-}
-
-#' parse columns from tibble for which we want to parse to Y if there is a Y 
-#' present
-#' @importFrom dplyr mutate_at rename_at ungroup rowwise vars ends_with "%>%"
-#' @noRd
-.parse_yes_columns <- function(selected_columns){
-  columns_to_yes <-
-    .get_list("parse_string_yes")[.get_list("parse_string_yes") %in%
-                                    names(selected_columns)]
-
-  selected_columns <- selected_columns %>%
-    rowwise() %>%
-    mutate_at(vars(columns_to_yes),
-              .funs = funs(test = .check_default_yes(.))) %>%
-    rename_at(vars(columns_to_yes),
-              funs(paste(., "unparsed", sep = "_"))) %>%
-    rename_at(vars(ends_with("_test")),
-              funs(gsub("_test", "", .))) %>%
-    ungroup()
+  return(selected_columns)
 }
 
 #' parse column pairs from tibble for which we want to get logical mask from 
@@ -224,24 +184,24 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
 #' @noRd
 .parse_indel_column_pairs <- function(selected_columns, pair_columns) {
   column_pairs <-
-    for (pair in yes_columns) {
+    for (pair in pair_columns) {
       current_pair <- syms(pair)
-      
+
       score_name <- pair[[1]]
       rankscore_name <- pair[[2]]
       unparsed_score_name <- paste0(score_name, "_unparsed")
       unparsed_rankscore_name <- paste0(rankscore_name, "_unparsed")
-      
+
       selected_columns <-
         suppressWarnings(
-          selected_columns %>% ungroup() %>% # thanks James!
+          selected_columns %>%
             mutate(
               p_clean = gsub("(?:\\{.*?\\})|;", " ", x = !!current_pair[[1]]),
               p_list = strsplit(p_clean, "\\s+"),
               p_list = map(p_list, as.numeric),
               p_max = map_dbl(p_list, max, na.rm = TRUE),
               p_max = as.character(p_max),
-              p_max = ifelse((p_max == "-Inf"), ".", p_max),
+              p_max = ifelse( (p_max == "-Inf"), ".", p_max),
               match_mask = map2(p_list, p_max, str_detect),
               match_mask = replace(match_mask, is.na(match_mask), TRUE),
               match_mask = map(match_mask,
@@ -280,7 +240,7 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
 #' @importFrom rlang syms
 #' @noRd
 .parse_indel_column_triples <- function(selected_columns, triple_columns) {
-  for (triple in column_triples) {
+  for (triple in triple_columns) {
     current_triple <- syms(triple)
 
     score_name <- triple[[1]]
@@ -292,7 +252,7 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
 
     selected_columns <-
       suppressWarnings(
-        selected_columns %>% ungroup() %>%
+        selected_columns %>%
           mutate(
             p_clean = gsub("(?:\\{.*?\\})|;", " ", x = !!current_triple[[1]]),
             p_list = strsplit(p_clean, "\\s+"),
@@ -337,23 +297,60 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
   return(selected_columns)
 }
 
-#' #' check whether field names are the old style
-#' #' @noRd
-#' .check_names <- function(field_names){
-#'   old_names <- .get_list("old_names")
-#'   any(old_names %in% field_names)
-#' }
-
-#' change any old names to new style names
+#' change any old names to new style names in fr_4 indel file
+#' @importFrom dplyr rename
 #' @noRd
-.fix_names <- function(name_vector) {
-  old_names <- .get_list("old_names")
-  new_names <- .get_list("new_names")
-
-  name_vector[name_vector %in% old_names] <-
-    new_names[old_names %in% name_vector]
-
-  return(name_vector)
+.fix_names <- function(indel_tibble) {
+  indel_tibble <- indel_tibble %>%
+    rename(
+      chr = `#chr`,
+      MAP20_149bp = `MAP20(+-149bp)`,
+      MAP35_149bp = `MAP35(+-149bp)`,
+      GMS_single_end = `GMS_single-end`,
+      GMS_paired_end = `GMS_paired-end`,
+      H1_hESC_fitCons_score = `H1-hESC_fitCons_score`, #nolint
+      H1_hESC_fitCons_rankscore = `H1-hESC_fitCons_rankscore`, #nolint
+      KGP_strict_masked = `1000G_strict_masked`,
+      KGP3_AC = `1000Gp3_AC`,
+      KGP3_AF = `1000Gp3_AF`,
+      KGP3_AFR_AC = `1000Gp3_AFR_AC`,
+      KGP3_AFR_AF = `1000Gp3_AFR_AF`,
+      KGP3_EUR_AC = `1000Gp3_EUR_AC`,
+      KGP3_EUR_AF = `1000Gp3_EUR_AF`,
+      KGP3_AMR_AC = `1000Gp3_AMR_AC`,
+      KGP3_AMR_AF = `1000Gp3_AMR_AF`,
+      KGP3_SAS_AC = `1000Gp3_SAS_AC`,
+      KGP3_SAS_AF = `1000Gp3_SAS_AF`,
+      KGP3_EAS_AC = `1000Gp3_EAS_AC`,
+      KGP3_EAS_AF = `1000Gp3_EAS_AF`,
+      fathmm_MKL_non_coding_score = `fathmm-MKL_non-coding_score`,
+      fathmm_MKL_non_coding_rankscore = `fathmm-MKL_non-coding_rankscore`, #nolint
+      fathmm_MKL_coding_score = `fathmm-MKL_coding_score`,
+      fathmm_MKL_coding_rankscore = `fathmm-MKL_coding_rankscore`,
+      Eigen_raw = `Eigen-raw`,
+      Eigen_phred = `Eigen-phred`,
+      Eigen_raw_rankscore = `Eigen-raw_rankscore`,
+      Eigen_PC_raw = `Eigen-PC-raw`,
+      Eigen_PC_raw_rankscore = `Eigen-PC-raw_rankscore`,
+      CADD_raw = `CADDraw`,
+      CADD_phred = `CADDphred`,
+      MAP20_149bp_unparsed = `MAP20(+-149bp)_unparsed`,
+      MAP35_149bp_unparsed = `MAP35(+-149bp)_unparsed`,
+      GMS_single_end_unparsed = `GMS_single-end_unparsed`,
+      GMS_paired_end_unparsed = `GMS_paired-end_unparsed`,
+      H1_hESC_fitCons_score_unparsed = `H1-hESC_fitCons_score_unparsed`, #nolint
+      H1_hESC_fitCons_rankscore_unparsed = `H1-hESC_fitCons_rankscore_unparsed`, #nolint
+      KGP_strict_masked_unparsed = `1000G_strict_masked_unparsed`,
+      fathmm_MKL_non_coding_score_unparsed = `fathmm-MKL_non-coding_score_unparsed`, #nolint
+      fathmm_MKL_non_coding_rankscore_unparsed = `fathmm-MKL_non-coding_rankscore_unparsed`, #nolint
+      fathmm_MKL_coding_score_unparsed = `fathmm-MKL_coding_score_unparsed`, #nolint
+      fathmm_MKL_coding_rankscore_unparsed = `fathmm-MKL_coding_rankscore_unparsed`, #nolint
+      Eigen_raw_unparsed = `Eigen-raw_unparsed`,
+      Eigen_phred_unparsed = `Eigen-phred_unparsed`,
+      Eigen_raw_rankscore_unparsed = `Eigen-raw_rankscore_unparsed`,
+      Eigen_PC_raw_unparsed = `Eigen-PC-raw_unparsed`,
+      Eigen_PC_raw_rankscore_unparsed = `Eigen-PC-raw_rankscore_unparsed` #nolint
+    )
 }
 
 #' select columns to set order and write_tsv
@@ -362,59 +359,8 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
 #' @noRd
 .write_to_file <- function(parsed_lines,
                            destination,
-                           desired_columns,
-                           header_flag,
-                           indel_flag,
-                           dbnsfp_flag = FALSE) {
-  # desired_columns may have VEP_ensembl_Codon_Change_or_Distance. Fix.
-  if ("VEP_ensembl_Codon_Change_or_Distance" %in% desired_columns) {
-    desired_columns <- c(
-      setdiff(desired_columns,
-              "VEP_ensembl_Codon_Change_or_Distance"),
-      "VEP_ensembl_Distance",
-      "VEP_ensembl_Codon_Change"
-    )
-  }
-
-  # add _unparsed columns to desired_columns for parsed indel chunk
-  if (indel_flag) {
-    desired_columns <- names(parsed_lines)[names(parsed_lines) %in%
-                                             .get_list("all_fields")]
-  }
-
-  # use select statement to write column headers and make sure of column order.
-  if (dbnsfp_flag) {
-    if (header_flag) {
-      parsed_lines %>%
-        select(one_of(desired_columns)) %>%
-        write_tsv(path = destination, append = FALSE)
-    } else {
-      parsed_lines %>%
-        select(one_of(desired_columns)) %>%
-        write_tsv(path = destination, append = TRUE)
-    }
-  } else {
-    #  need wgsa_version for snvs and indels
-    if (header_flag) {
-      parsed_lines %>%
-        select(one_of(c(desired_columns, "wgsa_version"))) %>%
-        write_tsv(path = destination, append = FALSE)
-    } else {
-      parsed_lines %>%
-        select(one_of(c(desired_columns, "wgsa_version"))) %>%
-        write_tsv(path = destination, append = TRUE)
-    }
-  }
-}
-
-#' select columns to set order and write_tsv
-#' @importFrom readr write_tsv
-#' @importFrom dplyr select one_of "%>%"
-#' @noRd
-.write_to_file_cleaner <- function(parsed_lines,
-                                   destination,
-                                   processed_fields,
-                                   header_flag) {
+                           processed_fields,
+                           header_flag) {
   if (header_flag) {
     parsed_lines %>%
       select(one_of(processed_fields)) %>% # ensure column order

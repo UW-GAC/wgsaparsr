@@ -47,23 +47,19 @@
 #' @importFrom stringr str_replace
 #' @noRd
 .parse_chunk_indel <- function(all_fields, freeze) {
-                           #    desired_columns,
-                          #     to_split,
-                          #     WGSA_version) {
-  
   # set variables by freeze-----------------------------------------------------
   if (freeze == 4){
     desired_columns <- .get_list("fr_4_indel_desired")
     to_split <- .get_list("fr_4_indel_to_split")
     WGSA_version <- "WGSA065"
-    
+
     max_columns <- .get_list("fr_4_indel_max_columns")
     no_columns <- .get_list("fr_4_indel_no_columns")
-    yes_colunns <- .get_list("fr_4_indel_yes_columns")
+    yes_columns <- .get_list("fr_4_indel_yes_columns")
     pair_columns <- .get_list("fr_4_indel_pair_columns")
     triple_columns <- .get_list("fr_4_indel_triple_columns")
   }
-  
+
   # pick desired columns--------------------------------------------------------
   selected_columns <- all_fields %>%
     select(one_of(desired_columns)) %>% # select fields of interest
@@ -72,7 +68,7 @@
   # pivot the VEP_* fields------------------------------------------------------
   expanded <- selected_columns %>%
     separate_rows(one_of(to_split), sep = "\\|")
-  
+
   # split the VEP_ensembl_Codon_Change_or_Distance field------------------------
   # if number, put in VEP_ensembl_Distance field
   # if string, put in VEP_ensembl_Codon_Change field
@@ -91,29 +87,27 @@
         ., pattern = "^$", replacement = "."
       ))) # fill blanks with "."
   }
-  
+
   # parse get max columns #SLOW-------------------------------------------------
   expanded <- .parse_indel_max_columns(expanded, max_columns)
-  
+
   # parse default No columns----------------------------------------------------
-  # TODO: refactor
-#  expanded <- .parse_indel_no_columns(expanded, no_columns)
-  
+  expanded <- .parse_indel_no_columns(expanded, no_columns)
+
   # parse default Yes columns---------------------------------------------------
-  #TODO: refactor
-#  expanded <- .parse_indel_yes_columns(expanded, yes_columns)
-  
+  expanded <- .parse_indel_yes_columns(expanded, yes_columns)
+
   # parse pair-columns----------------------------------------------------------
   expanded <- .parse_indel_column_pairs(expanded, pair_columns)
-  
+
   # parse triple-columns--------------------------------------------------------
   expanded <- .parse_indel_column_triples(expanded, triple_columns)
-  
-  # rename columns from old-version WGSA fields---------------------------------
-  # TODO: FIX
-  if (.check_names(names(expanded))) {
-    names(expanded) <- .fix_names(names(expanded))
+
+  # change column names from old-version WGSA fields----------------------------
+  if (freeze == 4){
+    expanded <- .fix_names(expanded)
   }
+
   expanded <- distinct(expanded)
 }
 
@@ -139,7 +133,7 @@
     distinct() # trim redundant rows before expanding
 
     # IF NO ROWS, RETURN EMPTY TIBBLE
-  if (dim(filtered_selected_columns)[[1]] == 0) {
+  if (nrow(filtered_selected_columns) == 0) {
     return(filtered_selected_columns)
   }
 
