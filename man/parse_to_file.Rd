@@ -4,8 +4,8 @@
 \alias{parse_to_file}
 \title{Parse the WGSA output file to tidy and select columns of interest}
 \usage{
-parse_to_file(source_file, destination, dbnsfp_destination,
-  has_old_names = FALSE, freeze = 4, chunk_size = 10000, verbose = TRUE)
+parse_to_file(source_file, destination, dbnsfp_destination, freeze = 4,
+  chunk_size = 10000, verbose = TRUE)
 }
 \arguments{
 \item{source_file}{Path to the WGSA output file to parse (indel or SNV
@@ -15,9 +15,6 @@ annotation)}
 
 \item{dbnsfp_destination}{Path to the desired dbnsfp output file}
 
-\item{has_old_names}{Does the source file have old-style field names (e.g.
-"MAP20(+-149bp)") (default FALSE)}
-
 \item{freeze}{Which TOPMed freeze is being used (default 4)}
 
 \item{chunk_size}{Number of lines to parse each iteration (default 10,000)}
@@ -25,9 +22,9 @@ annotation)}
 \item{verbose}{more output to screen (default TRUE)}
 }
 \description{
-\href{https://sites.google.com/site/jpopgen/wgsa}{WGSA} generates distinct 
+\href{https://sites.google.com/site/jpopgen/wgsa}{WGSA} generates distinct
 annotation output files for annotating indel or SNVs. These output files
-contain thousands of fields, including fields with lists of entries. 
+contain thousands of fields, including fields with lists of entries.
 parse_to_file() reads a TOPMed Freeze 4 WGSA file in chunks, parses the
 chunks, writes to two output files - one for the snv or indel annotation,
 and another for the dbnsfp annotation. These tab-separated output files can
@@ -36,8 +33,8 @@ variant annotation.
 }
 \examples{
 \dontrun{
-   
-parse_to_file(source_file = "WGSA_chr_1.gz", 
+
+parse_to_file(source_file = "WGSA_chr_1.gz",
  destination = "parsed_chr_1_snv.tsv",
  dbnsfp_destination = "parsed_chr_1_dbnsfp.tsv",
  chunk_size = 1000)
