@@ -13,8 +13,8 @@ test_that(
     expect_true(all(c(rlang::is_atomic(result),
                       rlang::is_vector(result),
                       rlang::is_character(result)
-                      )
-                    )
-                )
+    )
+    )
+    )
   }
 )
