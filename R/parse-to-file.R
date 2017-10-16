@@ -34,7 +34,11 @@ parse_to_file <- function(source_file,
                           freeze = 4,
                           chunk_size = 10000,
                           verbose = TRUE) {
-  if (freeze != 4) {
+  if (freeze == 4) {
+    indel_parsed_fields <- .get_list("fr_4_indel_post_processing")
+    snv_parsed_fields <- .get_list("fr_4_snv_post_processing")
+    dbnsfp_parsed_fields <- .get_list("fr_4_dbnsfp_post_processing")
+  } else {
     stop("This version of WGSAparsr only supports freeze 4.")
   }
 
@@ -53,8 +57,7 @@ parse_to_file <- function(source_file,
   index <- 0L
   while (TRUE) {
     # read chunk
-    raw_chunk <-
-      suppressWarnings(readLines(readfile_con, n = chunk_size))
+    raw_chunk <- suppressWarnings(readLines(readfile_con, n = chunk_size))
 
     # readLines() returns a zero length result at EOF (which SHOULD end loop...)
     if (length(raw_chunk) == 0) {
@@ -82,16 +85,14 @@ parse_to_file <- function(source_file,
     if (indel_flag == TRUE) {
       # parse chunk of indel annotation
       parsed_lines <- .parse_chunk_indel(all_fields, freeze)
-      parsed_fields <- .get_list("fr_4_indel_post_processing")
+      parsed_fields <- indel_parsed_fields
     } else {
       # parse chunk of snv annotation
       parsed_lines <- .parse_chunk_snv(all_fields, freeze)
-      parsed_fields <- .get_list("fr_4_snv_post_processing")
+      parsed_fields <- snv_parsed_fields
 
       # parse dbnsfp fields from snv chunk
       dbnsfp_parsed_lines <- .parse_chunk_dbnsfp(all_fields, freeze)
-      dbnsfp_parsed_fields <-
-        .get_list("fr_4_dbnsfp_post_processing")
 
       # if present, write dbnsfp data to tsv file
       if (nrow(dbnsfp_parsed_lines) > 0) {
