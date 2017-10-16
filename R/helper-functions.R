@@ -1,6 +1,7 @@
 # helper functions -------------------------------------------------------------
 
-#' hack to pass devtools::check() https://stackoverflow.com/questions/9439256/
+#' hack to pass devtools::check() 
+#' see: https://stackoverflow.com/questions/9439256/
 #' @importFrom utils globalVariables
 #' @noRd
 globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
