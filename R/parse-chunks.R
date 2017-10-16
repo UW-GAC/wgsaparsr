@@ -141,7 +141,7 @@
   filtered_selected_columns <-
     filtered_selected_columns %>%
     separate_rows(one_of(to_split), sep = "\\|") %>%
-    separate_rows(one_of(c("Ensembl_geneid")), sep = ";") %>% # freeze 5 ok? post-pivot ok?
+    separate_rows(one_of(c("Ensembl_geneid")), sep = ";") %>% # freeze 5 ok?
     distinct()
 
   # parse db_nsfp_low_pairs-----------------------------------------------------
