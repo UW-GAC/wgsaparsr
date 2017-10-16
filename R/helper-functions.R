@@ -504,8 +504,8 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
                                    mutation_pairs) {
   for (pair in mutation_pairs) {
     current_pair <- syms(pair)
-    score_name <- pair[[1]]
-    pred_name <- pair[[2]]
+    score_name <- pair[[2]]
+    pred_name <- pair[[1]]
     unparsed_score_name <- paste0(score_name, "_unparsed")
     unparsed_pred_name <- paste0(pred_name, "_unparsed")
 
@@ -519,27 +519,27 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
             # else if N present keep N,
             # else .
             new_p = ifelse(
-              str_detect(!!current_pair[[2]], "A"),
+              str_detect(!!current_pair[[1]], "A"),
               "A",
               ifelse(
-                str_detect(!!current_pair[[2]], "D"),
+                str_detect(!!current_pair[[1]], "D"),
                 "D",
                 ifelse(
-                  str_detect(!!current_pair[[2]], "P"),
+                  str_detect(!!current_pair[[1]], "P"),
                   "P",
-                  ifelse(str_detect(!!current_pair[[2]], "N"), "N",
+                  ifelse(str_detect(!!current_pair[[1]], "N"), "N",
                          ".")
                 )
               )
             ),
-            p_list = str_split(!!current_pair[[2]], ";"),
+            p_list = str_split(!!current_pair[[1]], ";"),
             match_mask = map2(p_list, new_p, str_detect),
             # if match_mask has more than one TRUE, keep only first TRUE
             # -- thanks Adrienne!
             match_mask = map(match_mask,
                              function(x)
                                x & !duplicated(x)),
-            r_list =  str_split(!!current_pair[[1]], ";"),
+            r_list =  str_split(!!current_pair[[2]], ";"),
             r_corresponding = map2_chr(match_mask, r_list,
                                        function(logical, string)
                                          subset(string, logical))
@@ -548,10 +548,10 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
                  -match_mask,
                  -r_list) %>%
           rename(
-            !!unparsed_score_name := !!current_pair[[1]],
-            !!current_pair[[2]] := new_p,
-            !!unparsed_pred_name := !!current_pair[[2]],
-            !!current_pair[[1]] := r_corresponding
+            !!unparsed_score_name := !!current_pair[[2]],
+            !!current_pair[[2]] := r_corresponding,
+            !!unparsed_pred_name := !!current_pair[[1]],
+            !!current_pair[[1]] := new_p
           )
       )
   }
