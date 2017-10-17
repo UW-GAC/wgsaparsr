@@ -1,0 +1,22 @@
+context("test_.get_fields_from_chunk - unit tests")
+
+test_that(
+  ".get_fields_from_chunk returns TRUE when it should", {
+    test_chunk <- c(paste("#chr", "pos", "ref", "alt", sep = "\t"),
+                    paste("1", "42", "A", "G", sep = "\t"),
+                    paste("2", "12", "C", "T", sep = "\t"))
+    expected_result <- dplyr::tibble("#chr" = c("1", "2"),
+                              "pos" = c("42", "12"),
+                              "ref" = c("A", "C"),
+                              "alt" = c("G", "T"))
+    attributes(expected_result)$spec <-
+      cols(
+          .default = col_character(),
+          `#chr` = col_character(),
+          pos = col_character(),
+          ref = col_character(),
+          alt = col_character()
+        )
+    expect_identical(.get_fields_from_chunk(test_chunk), expected_result)
+  }
+)
