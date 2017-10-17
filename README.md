@@ -1,3 +1,5 @@
+[![Travis-CI Build Status](https://travis-ci.org/UW-GAC/wgsaparsr.svg?branch=master)](https://travis-ci.org/UW-GAC/wgsaparsr)
+
 # wgsaparsr
 
 This package is the code the [TOPMED DCC](https://www.nhlbiwgs.org/group/dcc)
