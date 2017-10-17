@@ -1,0 +1,43 @@
+context("test_.parse_indel_column_pairs - unit tests")
+# need more tests - I'm not sure examples are good
+
+test_that(".parse_indel_column_pairs returns expected tibble", {
+  example <- dplyr::tibble(
+    "a_col" = c("1;2",
+                "42",
+                "37",
+                "waa"),
+    "col_1" = c("1;2",
+                "7{3}1",
+                "4",
+                "."),
+    "col_2" = c("Y;N",
+                "N;N",
+                "abc",
+                ".")
+  )
+  target <- dplyr::tibble(
+    "a_col" = c("1;2",
+                "42",
+                "37",
+                "waa"),
+    "col_1_unparsed" = c("1;2",
+                         "7{3}1",
+                         "4",
+                         "."),
+    "col_2_unparsed" = c("Y;N",
+                         "N;N",
+                         "abc",
+                         "."),
+    "col_1" = c("2",
+                "7",
+                "4",
+                "."),
+    "col_2" = c("N",
+                "N",
+                "abc",
+                ".")
+  )
+  result <- .parse_indel_column_pairs(example, list(c("col_1", "col_2")))
+  expect_identical(result, target)
+})
