@@ -178,6 +178,22 @@
     separate_rows(one_of(c("Ensembl_geneid")), sep = ";") %>% # freeze 5 ok?
     distinct()
 
+  # pivot the ENCODE_TFBS_* fields----------------------------------------------
+  expanded <- selected_columns %>%
+    separate_rows(one_of(to_split_TFBS), sep = ";")
+
+  # pivot the Ensembl_Regulatory_Build_Overviews field--------------------------
+  expanded <- selected_columns %>%
+    separate_rows(one_of("Ensembl_Regulatory_Build_Overviews"), sep = ";")
+
+  # pivot the Ensembl_Regulatory_Build_TFBS field-------------------------------
+  expanded <- selected_columns %>%
+    separate_rows(one_of("Ensembl_Regulatory_Build_TFBS"), sep = ";")
+
+  # pivot the GTEx_V6 fields----------------------------------------------------
+  expanded <- selected_columns %>%
+    separate_rows(one_of(to_split_GTEx_V6), sep = ";")
+
   # parse db_nsfp_low_pairs-----------------------------------------------------
   filtered_selected_columns <-
     .parse_dbnsfp_low(
