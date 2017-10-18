@@ -22,21 +22,21 @@
   expanded <- selected_columns %>%
     separate_rows(one_of(to_split_VEP), sep = "\\|")
 
-  # pivot the ENCODE_TFBS_* fields----------------------------------------------
-  expanded <- selected_columns %>%
-    separate_rows(one_of(to_split_TFBS), sep = ";")
-
-  # pivot the Ensembl_Regulatory_Build_Overviews field--------------------------
-  expanded <- selected_columns %>%
-    separate_rows(one_of("Ensembl_Regulatory_Build_Overviews"), sep = ";")
-
-  # pivot the Ensembl_Regulatory_Build_TFBS field-------------------------------
-  expanded <- selected_columns %>%
-    separate_rows(one_of("Ensembl_Regulatory_Build_TFBS"), sep = ";")
-
-  # pivot the GTEx_V6 fields----------------------------------------------------
-  expanded <- selected_columns %>%
-    separate_rows(one_of(to_split_GTEx_V6), sep = ";")
+  # # pivot the ENCODE_TFBS_* fields----------------------------------------------
+  # expanded <- selected_columns %>%
+  #   separate_rows(one_of(to_split_TFBS), sep = ";")
+  # 
+  # # pivot the Ensembl_Regulatory_Build_Overviews field--------------------------
+  # expanded <- selected_columns %>%
+  #   separate_rows(one_of("Ensembl_Regulatory_Build_Overviews"), sep = ";")
+  # 
+  # # pivot the Ensembl_Regulatory_Build_TFBS field-------------------------------
+  # expanded <- selected_columns %>%
+  #   separate_rows(one_of("Ensembl_Regulatory_Build_TFBS"), sep = ";")
+  # 
+  # # pivot the GTEx_V6 fields----------------------------------------------------
+  # expanded <- selected_columns %>%
+  #   separate_rows(one_of(to_split_GTEx_V6), sep = ";")
 
   # split the VEP_ensembl_Codon_Change_or_Distance field------------------------
   # if number, put in VEP_ensembl_Distance field
@@ -69,6 +69,9 @@
   if (freeze == 4){
     desired_columns <- .get_list("fr_4_indel_desired")
     to_split <- .get_list("fr_4_indel_to_split")
+    to_split_VEP <- .get_list("fr_4_snv_to_split_VEP")
+    to_split_TFBS <- .get_list("fr_4_snv_to_split_TFBS")
+    to_split_GTEx_V6 <- .get_list("fr_4_snv_to_split_GTEx_V6")
     WGSA_version <- "WGSA065"
 
     max_columns <- .get_list("fr_4_indel_max_columns")
@@ -91,18 +94,18 @@
   expanded <- selected_columns %>%
     separate_rows(one_of(to_split_TFBS), sep = ";")
 
-  # pivot the Ensembl_Regulatory_Build_Overviews field--------------------------
-  expanded <- selected_columns %>%
-    separate_rows(one_of("Ensembl_Regulatory_Build_Overviews"), sep = ";")
-
-  # pivot the Ensembl_Regulatory_Build_TFBS field-------------------------------
-  expanded <- selected_columns %>%
-    separate_rows(one_of("Ensembl_Regulatory_Build_TFBS"), sep = ";")
-
-  # pivot the GTEx_V6 fields----------------------------------------------------
-  expanded <- selected_columns %>%
-    separate_rows(one_of(to_split_GTEx_V6), sep = ";")
-
+  # # pivot the Ensembl_Regulatory_Build_Overviews field--------------------------
+  # expanded <- selected_columns %>%
+  #   separate_rows(one_of("Ensembl_Regulatory_Build_Overviews"), sep = ";")
+  # 
+  # # pivot the Ensembl_Regulatory_Build_TFBS field-------------------------------
+  # expanded <- selected_columns %>%
+  #   separate_rows(one_of("Ensembl_Regulatory_Build_TFBS"), sep = ";")
+  # 
+  # # pivot the GTEx_V6 fields----------------------------------------------------
+  # expanded <- selected_columns %>%
+  #   separate_rows(one_of(to_split_GTEx_V6), sep = ";")
+  # 
   # split the VEP_ensembl_Codon_Change_or_Distance field------------------------
   # if number, put in VEP_ensembl_Distance field
   # if string, put in VEP_ensembl_Codon_Change field
@@ -155,6 +158,9 @@
   if (freeze == 4){
     desired_columns <- .get_list("fr_4_dbnsfp_desired")
     to_split <- .get_list("fr_4_dbnsfp_to_split")
+    to_split_VEP <- .get_list("fr_4_snv_to_split_VEP")
+    to_split_TFBS <- .get_list("fr_4_snv_to_split_TFBS")
+    to_split_GTEx_V6 <- .get_list("fr_4_snv_to_split_GTEx_V6")
     low_pairs <- .get_list("fr_4_dbnsfp_low_pairs")
     high_pairs <- .get_list("fr_4_dbnsfp_high_pairs")
     mutation_pairs <- .get_list("fr_4_dbnsfp_mutation_pairs")
@@ -178,21 +184,25 @@
     separate_rows(one_of(c("Ensembl_geneid")), sep = ";") %>% # freeze 5 ok?
     distinct()
 
-  # pivot the ENCODE_TFBS_* fields----------------------------------------------
-  expanded <- selected_columns %>%
-    separate_rows(one_of(to_split_TFBS), sep = ";")
-
-  # pivot the Ensembl_Regulatory_Build_Overviews field--------------------------
-  expanded <- selected_columns %>%
-    separate_rows(one_of("Ensembl_Regulatory_Build_Overviews"), sep = ";")
-
-  # pivot the Ensembl_Regulatory_Build_TFBS field-------------------------------
-  expanded <- selected_columns %>%
-    separate_rows(one_of("Ensembl_Regulatory_Build_TFBS"), sep = ";")
-
-  # pivot the GTEx_V6 fields----------------------------------------------------
-  expanded <- selected_columns %>%
-    separate_rows(one_of(to_split_GTEx_V6), sep = ";")
+  # # pivot the ENCODE_TFBS_* fields----------------------------------------------
+  # filtered_selected_columns <-
+  #   filtered_selected_columns %>%
+  #   separate_rows(one_of(to_split_TFBS), sep = ";")
+  # 
+  # # pivot the Ensembl_Regulatory_Build_Overviews field--------------------------
+  # filtered_selected_columns <-
+  #   filtered_selected_columns %>%
+  #   separate_rows(one_of("Ensembl_Regulatory_Build_Overviews"), sep = ";")
+  # 
+  # # pivot the Ensembl_Regulatory_Build_TFBS field-------------------------------
+  # filtered_selected_columns <-
+  #   filtered_selected_columns %>%
+  #   separate_rows(one_of("Ensembl_Regulatory_Build_TFBS"), sep = ";")
+  # 
+  # # pivot the GTEx_V6 fields----------------------------------------------------
+  # filtered_selected_columns <-
+  #   filtered_selected_columns %>%
+  #   separate_rows(one_of(to_split_GTEx_V6), sep = ";")
 
   # parse db_nsfp_low_pairs-----------------------------------------------------
   filtered_selected_columns <-

@@ -83,6 +83,10 @@ parse_to_file <- function(source_file,
 
     # perhaps expand all_fields here to clean parsing code
 
+    if (index == 3){
+      browser()
+    }
+    
     # parse the all_fields tibble for snv or indel annotation
     if (indel_flag == TRUE) {
       # parse chunk of indel annotation
