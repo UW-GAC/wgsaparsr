@@ -81,6 +81,8 @@ parse_to_file <- function(source_file,
       next
     }
 
+    # perhaps expand all_fields here to clean parsing code
+
     # parse the all_fields tibble for snv or indel annotation
     if (indel_flag == TRUE) {
       # parse chunk of indel annotation
