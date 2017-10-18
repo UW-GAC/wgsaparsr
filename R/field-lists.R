@@ -142,9 +142,9 @@
     )
     return(fr_4_snv_desired)
 
-  } else if (which_list == "fr_4_snv_to_split"){
-    # fr_4_snv_to_split---------------------------------------------------------
-    fr_4_snv_to_split <- c(
+  } else if (which_list == "fr_4_snv_to_split_VEP"){
+    # fr_4_snv_to_split_VEP-----------------------------------------------------
+    fr_4_snv_to_split_VEP <- c(
       "VEP_ensembl_Consequence",
       "VEP_ensembl_Transcript_ID",
       "VEP_ensembl_Gene_Name",
@@ -172,7 +172,24 @@
       "SIFT4G_score", # for SNV file, to pivot
       "SIFT4G_pred"
     )
-    return(fr_4_snv_to_split)
+    return(fr_4_snv_to_split_VEP)
+
+  } else if (which_list == "fr_4_snv_to_split_TFBS"){
+    # fr_4_snv_to_split_TFBS----------------------------------------------------
+    fr_4_snv_to_split_TFBS <- c(
+      "ENCODE_TFBS",
+      "ENCODE_TFBS_score",
+      "ENCODE_TFBS_cells"
+    )
+    return(fr_4_snv_to_split_TFBS)
+
+  } else if (which_list == "fr_4_snv_to_split_GTEx_V6"){
+    # fr_4_snv_to_split_GTEx_V6-------------------------------------------------
+    fr_4_snv_to_split_GTEx_V6 <- c(
+      "GTEx_V6_gene",
+      "GTEx_V6_tissue"
+    )
+    return(fr_4_snv_to_split_GTEx_V6)
 
   } else if (which_list == "fr_4_snv_post_processing") {
     # fr_4_dbnsfp_post_processing-----------------------------------------------

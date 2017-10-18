@@ -8,7 +8,9 @@
   if (freeze == 4){
     WGSA_version <- "WGSA065"
     desired_columns <- .get_list("fr_4_snv_desired")
-    to_split <- .get_list("fr_4_snv_to_split")
+    to_split_VEP <- .get_list("fr_4_snv_to_split_VEP")
+    to_split_TFBS <- .get_list("fr_4_snv_to_split_TFBS")
+    to_split_GTEx_V6 <- .get_list("fr_4_snv_to_split_GTEx_V6")
   }
 
   # pick desired columns--------------------------------------------------------
@@ -18,7 +20,23 @@
 
   # pivot the VEP_* fields------------------------------------------------------
   expanded <- selected_columns %>%
-    separate_rows(one_of(to_split), sep = "\\|")
+    separate_rows(one_of(to_split_VEP), sep = "\\|")
+
+  # pivot the ENCODE_TFBS_* fields----------------------------------------------
+  expanded <- selected_columns %>%
+    separate_rows(one_of(to_split_TFBS), sep = ";")
+
+  # pivot the Ensembl_Regulatory_Build_Overviews field--------------------------
+  expanded <- selected_columns %>%
+    separate_rows(one_of("Ensembl_Regulatory_Build_Overviews"), sep = ";")
+
+  # pivot the Ensembl_Regulatory_Build_TFBS field-------------------------------
+  expanded <- selected_columns %>%
+    separate_rows(one_of("Ensembl_Regulatory_Build_TFBS"), sep = ";")
+
+  # pivot the GTEx_V6 fields----------------------------------------------------
+  expanded <- selected_columns %>%
+    separate_rows(one_of(to_split_GTEx_V6), sep = ";")
 
   # split the VEP_ensembl_Codon_Change_or_Distance field------------------------
   # if number, put in VEP_ensembl_Distance field
@@ -68,6 +86,22 @@
   # pivot the VEP_* fields------------------------------------------------------
   expanded <- selected_columns %>%
     separate_rows(one_of(to_split), sep = "\\|")
+
+  # pivot the ENCODE_TFBS_* fields----------------------------------------------
+  expanded <- selected_columns %>%
+    separate_rows(one_of(to_split_TFBS), sep = ";")
+
+  # pivot the Ensembl_Regulatory_Build_Overviews field--------------------------
+  expanded <- selected_columns %>%
+    separate_rows(one_of("Ensembl_Regulatory_Build_Overviews"), sep = ";")
+
+  # pivot the Ensembl_Regulatory_Build_TFBS field-------------------------------
+  expanded <- selected_columns %>%
+    separate_rows(one_of("Ensembl_Regulatory_Build_TFBS"), sep = ";")
+
+  # pivot the GTEx_V6 fields----------------------------------------------------
+  expanded <- selected_columns %>%
+    separate_rows(one_of(to_split_GTEx_V6), sep = ";")
 
   # split the VEP_ensembl_Codon_Change_or_Distance field------------------------
   # if number, put in VEP_ensembl_Distance field
