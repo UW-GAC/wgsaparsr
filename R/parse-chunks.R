@@ -78,7 +78,6 @@
   expanded <- distinct(expanded)
 }
 
-
 #' Parse a chunk tibble from a SNV annotation file for dbNSFP annotation
 #' @importFrom dplyr select one_of filter distinct "%>%" mutate
 #' @noRd
