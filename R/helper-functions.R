@@ -71,6 +71,86 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
            col_types = cols(.default = col_character()))
 }
 
+#' expand the selected annotation fields by separating list columns to rows:
+#' e.g. a field like value1|value2 becomes two rows, and other columns are 
+#' duplicated
+#' @importFrom dplyr distinct one_of "%>%"
+#' @importFrom tidyr separate_rows
+#' @noRd
+.expand_chunk <- function(selected_columns,
+                          freeze,
+                          indel_flag = FALSE,
+                          dbnsfp_flag = FALSE) {
+  # set variables by freeze-----------------------------------------------------
+  if (freeze == 4) {
+    if (dbnsfp_flag == TRUE) {
+      to_split <- .get_list("fr_4_dbnsfp_to_split")
+    }
+    if (indel_flag == TRUE) {
+      to_split_VEP <- .get_list("fr_4_indel_to_split")
+    } else {
+      to_split_VEP <- .get_list("fr_4_snv_to_split_VEP")
+    }
+#    to_split_TFBS <- .get_list("fr_4_snv_to_split_TFBS")
+    to_split_GTEx_V6 <- .get_list("fr_4_snv_to_split_GTEx_V6")
+  }
+
+  # pivot most fields by | for dbnsfp chunk-------------------------------------
+  if (dbnsfp_flag == TRUE) {
+    expanded <- selected_columns %>%
+      separate_rows(one_of(to_split), sep = "\\|") %>%
+      separate_rows(one_of(c("Ensembl_geneid")), sep = ";") %>%
+      distinct()
+  } else {
+    # pivot the VEP_* fields by | for snp and indel chunks----------------------
+    expanded <- selected_columns %>%
+      separate_rows(one_of(to_split_VEP), sep = "\\|")
+
+    # pivot the ENCODE_TFBS_* fields by ;---------------------------------------
+    #  expanded <- expanded %>%
+    #    separate_rows(one_of(to_split_TFBS), sep = ";")
+
+    # pivot the Ensembl_Regulatory_Build_Overviews field by ;-------------------
+    expanded <- expanded %>%
+      separate_rows(one_of("Ensembl_Regulatory_Build_Overviews"), sep = ";")
+
+    # pivot the Ensembl_Regulatory_Build_TFBS field by ;------------------------
+    expanded <- expanded %>%
+      separate_rows(one_of("Ensembl_Regulatory_Build_TFBS"), sep = ";")
+
+    # pivot the GTEx_V6 fields by ;---------------------------------------------
+    expanded <- expanded %>%
+      separate_rows(one_of(to_split_GTEx_V6), sep = ";")
+  }
+  # remove duplicate rows
+  expanded <- distinct(expanded)
+}
+
+#' split the VEP_ensembl_Codon_Change_or_Distance field - 
+#' if number, put in VEP_ensembl_Distance field
+#' if string, put in VEP_ensembl_Codon_Change field
+#' @importFrom dplyr "%>%" mutate_at funs
+#' @importFrom tidyr extract
+#' @importFrom stringr str_replace
+#' @noRd
+.split_VEP_codon <- function(expanded) {
+  expanded <- expanded %>%
+    extract(
+      col = VEP_ensembl_Codon_Change_or_Distance, #nolint
+      into = c("VEP_ensembl_Distance", "VEP_ensembl_Codon_Change"),
+      regex = "(\\d*)(\\D*)"
+    ) %>%
+    mutate_at(vars(one_of(
+      c("VEP_ensembl_Distance",
+        "VEP_ensembl_Codon_Change")
+    )),
+    funs(str_replace(
+      ., pattern = "^$", replacement = "."
+    ))) # fill blanks with "."
+
+  return(expanded)
+}
+
 #' parse columns from tibble for which we want to select maximum value
 #' @importFrom dplyr mutate select "%>%"
 #' @importFrom rlang sym

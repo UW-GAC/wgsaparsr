@@ -64,7 +64,7 @@ parse_to_file <- function(source_file,
       break
     }
 
-    # check if header line in this chunk, read raw chunk to all_fields tibble
+    # if header line in this chunk, read raw chunk to all_fields tibble
     header_flag <- .has_header(raw_chunk)
 
     if (header_flag) {
@@ -81,12 +81,6 @@ parse_to_file <- function(source_file,
       next
     }
 
-    # perhaps expand all_fields here to clean parsing code
-
-    if (index == 3){
-      browser()
-    }
-    
     # parse the all_fields tibble for snv or indel annotation
     if (indel_flag == TRUE) {
       # parse chunk of indel annotation

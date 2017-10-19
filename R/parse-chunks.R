@@ -8,9 +8,6 @@
   if (freeze == 4){
     WGSA_version <- "WGSA065"
     desired_columns <- .get_list("fr_4_snv_desired")
-    to_split_VEP <- .get_list("fr_4_snv_to_split_VEP")
-    to_split_TFBS <- .get_list("fr_4_snv_to_split_TFBS")
-    to_split_GTEx_V6 <- .get_list("fr_4_snv_to_split_GTEx_V6")
   }
 
   # pick desired columns--------------------------------------------------------
@@ -18,44 +15,13 @@
     select(one_of(desired_columns)) %>% # select fields of interest
     mutate(wgsa_version = WGSA_version) # add wgsa version
 
-  # pivot the VEP_* fields------------------------------------------------------
-  expanded <- selected_columns %>%
-    separate_rows(one_of(to_split_VEP), sep = "\\|")
-
-  # # pivot the ENCODE_TFBS_* fields----------------------------------------------
-  # expanded <- selected_columns %>%
-  #   separate_rows(one_of(to_split_TFBS), sep = ";")
-  # 
-  # # pivot the Ensembl_Regulatory_Build_Overviews field--------------------------
-  # expanded <- selected_columns %>%
-  #   separate_rows(one_of("Ensembl_Regulatory_Build_Overviews"), sep = ";")
-  # 
-  # # pivot the Ensembl_Regulatory_Build_TFBS field-------------------------------
-  # expanded <- selected_columns %>%
-  #   separate_rows(one_of("Ensembl_Regulatory_Build_TFBS"), sep = ";")
-  # 
-  # # pivot the GTEx_V6 fields----------------------------------------------------
-  # expanded <- selected_columns %>%
-  #   separate_rows(one_of(to_split_GTEx_V6), sep = ";")
+  # pivot columns---------------------------------------------------------------
+  expanded <- .expand_chunk(selected_columns, freeze)
 
   # split the VEP_ensembl_Codon_Change_or_Distance field------------------------
-  # if number, put in VEP_ensembl_Distance field
-  # if string, put in VEP_ensembl_Codon_Change field
-  if ("VEP_ensembl_Codon_Change_or_Distance" %in% desired_columns) {
-    expanded <- expanded %>%
-      extract(
-        col = VEP_ensembl_Codon_Change_or_Distance, #nolint
-        into = c("VEP_ensembl_Distance", "VEP_ensembl_Codon_Change"),
-        regex = "(\\d*)(\\D*)"
-      ) %>%
-      mutate_at(vars(one_of(
-        c("VEP_ensembl_Distance",
-          "VEP_ensembl_Codon_Change")
-      )),
-      funs(str_replace(
-        ., pattern = "^$", replacement = "."
-      ))) # fill blanks with "."
-  }
+  expanded <- .split_VEP_codon(expanded)
+
+  # remove redundant rows
   expanded <- distinct(expanded)
 }
 
@@ -68,10 +34,6 @@
   # set variables by freeze-----------------------------------------------------
   if (freeze == 4){
     desired_columns <- .get_list("fr_4_indel_desired")
-    to_split <- .get_list("fr_4_indel_to_split")
-    to_split_VEP <- .get_list("fr_4_snv_to_split_VEP")
-    to_split_TFBS <- .get_list("fr_4_snv_to_split_TFBS")
-    to_split_GTEx_V6 <- .get_list("fr_4_snv_to_split_GTEx_V6")
     WGSA_version <- "WGSA065"
 
     max_columns <- .get_list("fr_4_indel_max_columns")
@@ -86,44 +48,11 @@
     select(one_of(desired_columns)) %>% # select fields of interest
     mutate(wgsa_version = WGSA_version) # add wgsa version
 
-  # pivot the VEP_* fields------------------------------------------------------
-  expanded <- selected_columns %>%
-    separate_rows(one_of(to_split), sep = "\\|")
+  # pivot columns---------------------------------------------------------------
+  expanded <- .expand_chunk(selected_columns, freeze, indel_flag = TRUE)
 
-  # pivot the ENCODE_TFBS_* fields----------------------------------------------
-  expanded <- selected_columns %>%
-    separate_rows(one_of(to_split_TFBS), sep = ";")
-
-  # # pivot the Ensembl_Regulatory_Build_Overviews field--------------------------
-  # expanded <- selected_columns %>%
-  #   separate_rows(one_of("Ensembl_Regulatory_Build_Overviews"), sep = ";")
-  # 
-  # # pivot the Ensembl_Regulatory_Build_TFBS field-------------------------------
-  # expanded <- selected_columns %>%
-  #   separate_rows(one_of("Ensembl_Regulatory_Build_TFBS"), sep = ";")
-  # 
-  # # pivot the GTEx_V6 fields----------------------------------------------------
-  # expanded <- selected_columns %>%
-  #   separate_rows(one_of(to_split_GTEx_V6), sep = ";")
-  # 
   # split the VEP_ensembl_Codon_Change_or_Distance field------------------------
-  # if number, put in VEP_ensembl_Distance field
-  # if string, put in VEP_ensembl_Codon_Change field
-  if ("VEP_ensembl_Codon_Change_or_Distance" %in% desired_columns) {
-    expanded <- expanded %>%
-      extract(
-        col = VEP_ensembl_Codon_Change_or_Distance, #nolint
-        into = c("VEP_ensembl_Distance", "VEP_ensembl_Codon_Change"),
-        regex = "(\\d*)(\\D*)"
-      ) %>%
-      mutate_at(vars(one_of(
-        c("VEP_ensembl_Distance",
-          "VEP_ensembl_Codon_Change")
-      )),
-      funs(str_replace(
-        ., pattern = "^$", replacement = "."
-      ))) # fill blanks with "."
-  }
+  expanded <- .split_VEP_codon(expanded)
 
   # parse get max columns #SLOW-------------------------------------------------
   expanded <- .parse_indel_max_columns(expanded, max_columns)
@@ -145,22 +74,18 @@
     expanded <- .fix_names(expanded)
   }
 
+  # remove redundant rows
   expanded <- distinct(expanded)
 }
 
 
 #' Parse a chunk tibble from a SNV annotation file for dbNSFP annotation
-#' @importFrom dplyr select one_of filter distinct "%>%"
-#' @importFrom tidyr separate_rows
+#' @importFrom dplyr select one_of filter distinct "%>%" mutate
 #' @noRd
 .parse_chunk_dbnsfp <- function(all_fields, freeze) {
   # set variables by freeze-----------------------------------------------------
   if (freeze == 4){
     desired_columns <- .get_list("fr_4_dbnsfp_desired")
-    to_split <- .get_list("fr_4_dbnsfp_to_split")
-    to_split_VEP <- .get_list("fr_4_snv_to_split_VEP")
-    to_split_TFBS <- .get_list("fr_4_snv_to_split_TFBS")
-    to_split_GTEx_V6 <- .get_list("fr_4_snv_to_split_GTEx_V6")
     low_pairs <- .get_list("fr_4_dbnsfp_low_pairs")
     high_pairs <- .get_list("fr_4_dbnsfp_high_pairs")
     mutation_pairs <- .get_list("fr_4_dbnsfp_mutation_pairs")
@@ -177,50 +102,22 @@
     return(filtered_selected_columns)
   }
 
-  # pivot the aaref, aaalt, and ensembl_geneid fields (and most others)---------
-  filtered_selected_columns <-
-    filtered_selected_columns %>%
-    separate_rows(one_of(to_split), sep = "\\|") %>%
-    separate_rows(one_of(c("Ensembl_geneid")), sep = ";") %>% # freeze 5 ok?
-    distinct()
-
-  # # pivot the ENCODE_TFBS_* fields----------------------------------------------
-  # filtered_selected_columns <-
-  #   filtered_selected_columns %>%
-  #   separate_rows(one_of(to_split_TFBS), sep = ";")
-  # 
-  # # pivot the Ensembl_Regulatory_Build_Overviews field--------------------------
-  # filtered_selected_columns <-
-  #   filtered_selected_columns %>%
-  #   separate_rows(one_of("Ensembl_Regulatory_Build_Overviews"), sep = ";")
-  # 
-  # # pivot the Ensembl_Regulatory_Build_TFBS field-------------------------------
-  # filtered_selected_columns <-
-  #   filtered_selected_columns %>%
-  #   separate_rows(one_of("Ensembl_Regulatory_Build_TFBS"), sep = ";")
-  # 
-  # # pivot the GTEx_V6 fields----------------------------------------------------
-  # filtered_selected_columns <-
-  #   filtered_selected_columns %>%
-  #   separate_rows(one_of(to_split_GTEx_V6), sep = ";")
+  # pivot columns---------------------------------------------------------------
+  expanded <- .expand_chunk(filtered_selected_columns,
+                            freeze,
+                            dbnsfp_flag = TRUE)
 
   # parse db_nsfp_low_pairs-----------------------------------------------------
   filtered_selected_columns <-
-    .parse_dbnsfp_low(
-      filtered_selected_columns,
-      low_pairs)
+    .parse_dbnsfp_low(filtered_selected_columns, low_pairs)
 
   # parse db_nsfp_high_pairs----------------------------------------------------
   filtered_selected_columns <-
-    .parse_dbnsfp_high(
-      filtered_selected_columns,
-      high_pairs)
+    .parse_dbnsfp_high(filtered_selected_columns, high_pairs)
 
   # parse db_nsfp_mutation_pairs------------------------------------------------
   filtered_selected_columns <-
-    .parse_dbnsfp_mutation(
-      filtered_selected_columns,
-      mutation_pairs)
+    .parse_dbnsfp_mutation(filtered_selected_columns, mutation_pairs)
 
   # add aachange column---------------------------------------------------------
   filtered_selected_columns <-
