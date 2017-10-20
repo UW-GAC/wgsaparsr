@@ -118,9 +118,9 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
     expanded <- expanded %>%
       separate_rows(one_of("Ensembl_Regulatory_Build_TFBS"), sep = ";")
 
-    # pivot the GTEx_V6 fields by ;---------------------------------------------
+    # pivot the GTEx_V6 fields by |---------------------------------------------
     expanded <- expanded %>%
-      separate_rows(one_of(to_split_GTEx_V6), sep = ";")
+      separate_rows(one_of(to_split_GTEx_V6), sep = "\\|")
   }
   # remove duplicate rows
   expanded <- distinct(expanded)
