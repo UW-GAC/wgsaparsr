@@ -168,7 +168,7 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
           mutate(
             p_clean = str_replace_all(!!sym(col_name),
                                       "(?:\\{.*?\\})|;", " "),
-            p_list = strsplit(p_clean, "\\s+"),
+            p_list = str_split(p_clean, "\\s+"),
             p_list = map(p_list, as.numeric),
             p_max = map_dbl(p_list, max, na.rm = TRUE),
             p_max = as.character(p_max),
@@ -260,6 +260,7 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
 #' parse column pairs from tibble for which we want to get logical mask from 
 #' first column and apply to second column
 #' @importFrom dplyr mutate select rename "%>%"
+#' @importFrom stringr str_split
 #' @importFrom purrr map map_dbl map2 map2_chr
 #' @importFrom rlang syms
 #' @noRd
@@ -278,7 +279,7 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
           selected_columns %>%
             mutate(
               p_clean = gsub("(?:\\{.*?\\})|;", " ", x = !!current_pair[[1]]),
-              p_list = strsplit(p_clean, "\\s+"),
+              p_list = str_split(p_clean, "\\s+"),
               p_list = map(p_list, as.numeric),
               p_max = map_dbl(p_list, max, na.rm = TRUE),
               p_max = as.character(p_max),
@@ -291,7 +292,7 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
                                  !duplicated(x)),
               # thanks Adrienne!
               r_clean = gsub("(?:\\{.*?\\})|;", " ", x = !!current_pair[[2]]),
-              r_list =  strsplit(r_clean, "\\s+"),
+              r_list =  str_split(r_clean, "\\s+"),
               r_corresponding = map2_chr(match_mask, r_list,
                                          function(logical, string)
                                            subset(string, logical))
@@ -317,6 +318,7 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
 #' first column and apply to second and third columns. Assumes 2nd column is 
 #' rankscore.
 #' @importFrom dplyr mutate select rename "%>%"
+#' @importFrom stringr str_split
 #' @importFrom purrr map map_dbl map2 map2_chr
 #' @importFrom rlang syms
 #' @noRd
@@ -336,7 +338,7 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
         selected_columns %>%
           mutate(
             p_clean = gsub("(?:\\{.*?\\})|;", " ", x = !!current_triple[[1]]),
-            p_list = strsplit(p_clean, "\\s+"),
+            p_list = str_split(p_clean, "\\s+"),
             p_list = map(p_list, as.numeric),
             p_max = map_dbl(p_list, max, na.rm = TRUE),
             p_max = as.character(p_max),
@@ -347,12 +349,12 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
                              function(x)
                                x & !duplicated(x)), # thanks Adrienne!
             r_clean = gsub("(?:\\{.*?\\})|;", " ", x = !!current_triple[[2]]),
-            r_list =  strsplit(r_clean, "\\s+"),
+            r_list =  str_split(r_clean, "\\s+"),
             r_corresponding = map2_chr(match_mask, r_list,
                                        function(logical, string)
                                          subset(string, logical)),
             v_clean = gsub("(?:\\{.*?\\})|;", " ", x = !!current_triple[[3]]),
-            v_list =  strsplit(v_clean, "\\s+"),
+            v_list =  str_split(v_clean, "\\s+"),
             v_corresponding = map2_chr(match_mask, v_list,
                                        function(logical, string)
                                          subset(string, logical))
