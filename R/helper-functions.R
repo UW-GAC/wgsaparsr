@@ -91,7 +91,7 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
     } else {
       to_split_VEP <- .get_list("fr_4_snv_to_split_VEP")
     }
-#    to_split_TFBS <- .get_list("fr_4_snv_to_split_TFBS")
+#    to_split_TFBS <- .get_list("fr_4_snv_to_split_TFBS") #nolint
     to_split_GTEx_V6 <- .get_list("fr_4_snv_to_split_GTEx_V6")
   }
 
@@ -107,8 +107,8 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
       separate_rows(one_of(to_split_VEP), sep = "\\|")
 
     # pivot the ENCODE_TFBS_* fields by ;---------------------------------------
-    #  expanded <- expanded %>%
-    #    separate_rows(one_of(to_split_TFBS), sep = ";")
+    # expanded <- expanded %>% #nolint
+    #   separate_rows(one_of(to_split_TFBS), sep = ";") #nolint
 
     # pivot the Ensembl_Regulatory_Build_Overviews field by ;-------------------
     expanded <- expanded %>%
