@@ -29,8 +29,8 @@ test_that(".expand_chunk returns expected tibble - snp", {
     "SIFT4G_score" = c("a|b"), # for SNV file, to pivot
     "SIFT4G_pred" = c("a|b"),
 
-    "GTEx_V6_gene" = c("1;2"),
-    "GTEx_V6_tissue" = c("1;2"),
+    "GTEx_V6_gene" = c("1|2"),
+    "GTEx_V6_tissue" = c("1|2"),
 
     "Ensembl_Regulatory_Build_Overviews" = c("3;4"),
 
@@ -255,8 +255,8 @@ test_that(".expand_chunk returns expected tibble - indel", {
     "VEP_ensembl_LoF_flags" = c("a|b"),
     "VEP_ensembl_LoF_info" = c("a|b"),
 
-    "GTEx_V6_gene" = c("1;2"),
-    "GTEx_V6_tissue" = c("1;2"),
+    "GTEx_V6_gene" = c("1|2"),
+    "GTEx_V6_tissue" = c("1|2"),
 
     "Ensembl_Regulatory_Build_Overviews" = c("3;4"),
 
