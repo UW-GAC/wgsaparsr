@@ -278,7 +278,9 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
         suppressWarnings(
           selected_columns %>%
             mutate(
-              p_clean = gsub("(?:\\{.*?\\})|;", " ", x = !!current_pair[[1]]),
+              p_clean = str_replace_all(!!current_pair[[1]],
+                                        "(?:\\{.*?\\})|;", " "),
+              p_clean = str_replace(p_clean, "\\s+$", ""),
               p_list = str_split(p_clean, "\\s+"),
               p_list = map(p_list, as.numeric),
               p_max = map_dbl(p_list, max, na.rm = TRUE),
@@ -291,7 +293,9 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
                                  x &
                                  !duplicated(x)),
               # thanks Adrienne!
-              r_clean = gsub("(?:\\{.*?\\})|;", " ", x = !!current_pair[[2]]),
+              r_clean = str_replace_all(!!current_pair[[2]],
+                                        "(?:\\{.*?\\})|;", " "),
+              r_clean = str_replace(r_clean, "\\s+$", ""),
               r_list =  str_split(r_clean, "\\s+"),
               r_corresponding = map2_chr(match_mask, r_list,
                                          function(logical, string)
@@ -337,7 +341,9 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
       suppressWarnings(
         selected_columns %>%
           mutate(
-            p_clean = gsub("(?:\\{.*?\\})|;", " ", x = !!current_triple[[1]]),
+            p_clean = str_replace_all(!!current_triple[[1]],
+                                      "(?:\\{.*?\\})|;", " "),
+            p_clean = str_replace(p_clean, "\\s+$", ""),
             p_list = str_split(p_clean, "\\s+"),
             p_list = map(p_list, as.numeric),
             p_max = map_dbl(p_list, max, na.rm = TRUE),
@@ -348,12 +354,16 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
             match_mask = map(match_mask,
                              function(x)
                                x & !duplicated(x)), # thanks Adrienne!
-            r_clean = gsub("(?:\\{.*?\\})|;", " ", x = !!current_triple[[2]]),
+            r_clean = str_replace_all(!!current_triple[[2]],
+                                      "(?:\\{.*?\\})|;", " "),
+            r_clean = str_replace(r_clean, "\\s+$", ""),
             r_list =  str_split(r_clean, "\\s+"),
             r_corresponding = map2_chr(match_mask, r_list,
                                        function(logical, string)
                                          subset(string, logical)),
-            v_clean = gsub("(?:\\{.*?\\})|;", " ", x = !!current_triple[[3]]),
+            v_clean = str_replace_all(!!current_triple[[3]],
+                                      "(?:\\{.*?\\})|;", " "),
+            v_clean = str_replace(v_clean, "\\s+$", ""),
             v_list =  str_split(v_clean, "\\s+"),
             v_corresponding = map2_chr(match_mask, v_list,
                                        function(logical, string)
