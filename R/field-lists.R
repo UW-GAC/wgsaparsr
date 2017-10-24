@@ -200,7 +200,8 @@
       "VEP_ensembl_Distance"
     fr_4_snv_post_processing <- c(
       unmodified,
-      "VEP_ensembl_Codon_Change")
+      "VEP_ensembl_Codon_Change",
+      "wgsa_version")
     return(fr_4_snv_post_processing)
 
   } else if (which_list == "fr_4_indel_desired") {
