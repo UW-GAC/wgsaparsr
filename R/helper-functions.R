@@ -209,7 +209,7 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
 
 #' parse columns from tibble for which we want to parse to N if there is an N 
 #' present, then Y if Y present, else .
-#' @importFrom dplyr mutate_at "%>%" rename bind_cols funs
+#' @importFrom dplyr mutate_at "%>%" bind_cols funs
 #' @importFrom stringr str_detect
 #' @noRd
 .parse_indel_no_columns <- function(selected_columns, no_columns) {
@@ -236,37 +236,28 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
 
 #' parse columns from tibble for which we want to parse to Y if there is an Y 
 #' present, then N if N present, else .
-#' @importFrom dplyr mutate "%>%" rename
-#' @importFrom rlang syms
+#' @importFrom dplyr mutate_at "%>%" bind_cols funs
 #' @importFrom stringr str_detect
 #' @noRd
 .parse_indel_yes_columns <- function(selected_columns, yes_columns){
-  for (parsing in yes_columns) {
-    current <- syms(parsing)
-    original_name <- current[[1]]
-    unparsed_name <- paste0(original_name, "_unparsed")
-
-    selected_columns <-
-      suppressWarnings(
-        selected_columns %>%
-          mutate(
-            # if Y present, Y
-            # else if N present then N
-            # else .
-            new_p = ifelse(
-              str_detect(!!current[[1]], "Y"),
-              "Y",
-              ifelse(
-                str_detect(!!current[[1]], "N"),
-                "N", ".")
-            )
-          ) %>%
-          rename(
-            !!unparsed_name := !!current[[1]],
-            !!current[[1]] := new_p
-          )
-      )
-  }
+  selected_columns <-
+    suppressWarnings(
+      selected_columns %>%
+        # first copy unparsed columns to colum_name_unparsed
+        bind_cols(select_at(
+          .,
+          .vars = !!yes_columns,
+          .funs = funs(paste0(., "_unparsed"))
+        )) %>%
+        # then parse:  Y if Y present, else N if N present, else .
+        mutate_at(.vars = vars(!!yes_columns),
+                  .funs = funs(ifelse(
+                    str_detect(., "Y"),
+                    "Y",
+                    ifelse(str_detect(., "N"),
+                           "N", ".")
+                  )))
+    )
   return(selected_columns)
 }
 

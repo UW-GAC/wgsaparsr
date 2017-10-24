@@ -16,14 +16,14 @@ test_that(".parse_indel_yes_columns returns expected tibble", {
                 "42",
                 "37",
                 "waa"),
-    "col_to_yes_unparsed" = c("Y;N",
-                    "N;N",
-                    "abc",
-                    "."),
     "col_to_yes" = c("Y",
                     "N",
                     ".",
-                    ".")
+                    "."),
+    "col_to_yes_unparsed" = c("Y;N",
+                              "N;N",
+                              "abc",
+                              ".")
   )
   result <- .parse_indel_yes_columns(example, "col_to_yes")
   expect_identical(result, target)
