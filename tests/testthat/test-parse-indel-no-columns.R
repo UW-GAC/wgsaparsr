@@ -16,14 +16,14 @@ test_that(".parse_indel_no_columns returns expected tibble", {
                 "42",
                 "37",
                 "waa"),
-    "col_to_no_unparsed" = c("Y;N",
-                    "Y;Y",
-                    "abc",
-                    "."),
     "col_to_no" = c("N",
                     "Y",
                     ".",
-                    ".")
+                    "."),
+    "col_to_no_unparsed" = c("Y;N",
+                             "Y;Y",
+                             "abc",
+                             ".")
   )
   result <- .parse_indel_no_columns(example, "col_to_no")
   expect_identical(result, target)
