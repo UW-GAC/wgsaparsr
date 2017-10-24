@@ -31,7 +31,8 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
                   "1000Gp3_EAS_AC", "1000Gp3_EAS_AF", "1000Gp3_EUR_AC",
                   "1000Gp3_EUR_AF", "1000Gp3_SAS_AC", "1000Gp3_SAS_AF",
                   "CADDphred", "CADDraw", "Eigen-PC-raw",
-                  "Eigen-PC-raw_rankscore", "Eigen-PC-raw_rankscore_unparsed"))
+                  "Eigen-PC-raw_rankscore", "Eigen-PC-raw_rankscore_unparsed",
+                  "data", "data_copy"))
 
 #' Check if the current chunk includes a header row describing the fields
 #' @noRd
@@ -152,36 +153,59 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
 }
 
 #' parse columns from tibble for which we want to select maximum value
-#' @importFrom dplyr mutate select "%>%"
-#' @importFrom rlang sym
-#' @importFrom stringr str_replace_all str_split
+#' @importFrom dplyr mutate select "%>%" mutate_at rename_all funs vars
+#' @importFrom tidyr nest unnest
+#' @importFrom stringr str_replace_all str_replace str_split
 #' @importFrom purrr map map_dbl
 #' @noRd
-.parse_indel_max_columns <- function(selected_columns, max_columns){
-  for (to_max in max_columns) {
-    col_name <- to_max
-    unparsed_col_name <- paste0(col_name, "_unparsed")
-
-    selected_columns <-
-      suppressWarnings(
-        selected_columns %>%
-          mutate(
-            p_clean = str_replace_all(!!sym(col_name),
-                                      "(?:\\{.*?\\})|;", " "),
-            p_list = str_split(p_clean, "\\s+"),
-            p_list = map(p_list, as.numeric),
-            p_max = map_dbl(p_list, max, na.rm = TRUE),
-            p_max = as.character(p_max),
-            p_max = ifelse( (p_max == "-Inf"), ".", p_max)
-          ) %>%
-          select(
-            -p_clean,
-            -p_list,
-            !!unparsed_col_name := !!col_name,
-            !!col_name := p_max
-          )
-      )
-  }
+.parse_indel_max_columns <- function(selected_columns, max_columns) {
+  selected_columns <-
+    suppressWarnings(
+      selected_columns %>%
+        # first copy unparsed columns to colum_name_unparsed
+        nest(!!max_columns) %>%
+        mutate(data_copy = data) %>%
+        mutate(data_copy = map(data_copy,
+                               function(x)
+                                 rename_all(x,
+                                            funs(paste0(., "_unparsed"))))) %>%
+        unnest(data, data_copy) %>%
+        # next replace ; or {*} with a space
+        mutate_at(
+          .vars = vars(!!max_columns),
+          .funs = funs(str_replace_all(., "(?:\\{.*?\\})|;", " "))
+        ) %>%
+        # trim final space to be safe
+        mutate_at(
+          .vars = vars(!!max_columns),
+          .funs = funs(str_replace(., "\\s+$", ""))
+        ) %>%
+        # split the string at the space
+        mutate_at(
+          .vars = vars(!!max_columns),
+          .funs = funs(str_split(., "\\s+"))
+        ) %>%
+        # make values numeric
+        mutate_at(
+          .vars = vars(!!max_columns),
+          .funs = funs(map(., as.numeric))
+        ) %>%
+        # get the max values
+        mutate_at(
+          .vars = vars(!!max_columns),
+          .funs = funs(map_dbl(., max, na.rm = TRUE))
+        ) %>%
+        # change to character
+        mutate_at(
+          .vars = vars(!!max_columns),
+          .funs = funs(as.character)
+        ) %>%
+        # change "-Inf" to "."
+        mutate_at(
+          .vars = vars(!!max_columns),
+          .funs = funs(ifelse( (. == "-Inf"), ".", .))
+        )
+    )
   return(selected_columns)
 }
 
