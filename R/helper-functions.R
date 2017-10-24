@@ -163,13 +163,10 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
     suppressWarnings(
       selected_columns %>%
         # first copy unparsed columns to colum_name_unparsed
-        nest(!!max_columns) %>%
-        mutate(data_copy = data) %>%
-        mutate(data_copy = map(data_copy,
-                               function(x)
-                                 rename_all(x,
-                                            funs(paste0(., "_unparsed"))))) %>%
-        unnest(data, data_copy) %>%
+        bind_cols(
+          select_at(.,
+                    .vars = !!max_columns,
+                    .funs = funs(paste0(., "_unparsed")))) %>%
         # next replace ; or {*} with a space
         mutate_at(
           .vars = vars(!!max_columns),
