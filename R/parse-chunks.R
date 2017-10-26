@@ -107,21 +107,16 @@
                             dbnsfp_flag = TRUE)
 
   # parse db_nsfp_low_pairs-----------------------------------------------------
-  filtered_selected_columns <-
-    .parse_dbnsfp_low(filtered_selected_columns, low_pairs)
+  expanded <- .parse_dbnsfp_low(expanded, low_pairs)
 
   # parse db_nsfp_high_pairs----------------------------------------------------
-  filtered_selected_columns <-
-    .parse_dbnsfp_high(filtered_selected_columns, high_pairs)
+  expanded <- .parse_dbnsfp_high(expanded, high_pairs)
 
   # parse db_nsfp_mutation_pairs------------------------------------------------
-  filtered_selected_columns <-
-    .parse_dbnsfp_mutation(filtered_selected_columns, mutation_pairs)
+  expanded <- .parse_dbnsfp_mutation(expanded, mutation_pairs)
 
   # add aachange column---------------------------------------------------------
-  filtered_selected_columns <-
-    filtered_selected_columns %>%
-    mutate(aachange = paste0(aaref, "/", aaalt))
+  expanded <- expanded %>% mutate(aachange = paste0(aaref, "/", aaalt))
 
-  filtered_selected_columns <- distinct(filtered_selected_columns)
+  expanded <- distinct(expanded)
 }
