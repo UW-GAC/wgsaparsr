@@ -31,7 +31,8 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
                   "1000Gp3_EAS_AC", "1000Gp3_EAS_AF", "1000Gp3_EUR_AC",
                   "1000Gp3_EUR_AF", "1000Gp3_SAS_AC", "1000Gp3_SAS_AF",
                   "CADDphred", "CADDraw", "Eigen-PC-raw",
-                  "Eigen-PC-raw_rankscore", "Eigen-PC-raw_rankscore_unparsed"))
+                  "Eigen-PC-raw_rankscore", "Eigen-PC-raw_rankscore_unparsed",
+                  "data", "data_copy"))
 
 #' Check if the current chunk includes a header row describing the fields
 #' @noRd
@@ -71,115 +72,199 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
            col_types = cols(.default = col_character()))
 }
 
+#' expand the selected annotation fields by separating list columns to rows:
+#' e.g. a field like value1|value2 becomes two rows, and other columns are 
+#' duplicated
+#' @importFrom dplyr distinct one_of "%>%"
+#' @importFrom tidyr separate_rows
+#' @noRd
+.expand_chunk <- function(selected_columns,
+                          freeze,
+                          indel_flag = FALSE,
+                          dbnsfp_flag = FALSE) {
+  # set variables by freeze-----------------------------------------------------
+  if (freeze == 4) {
+    if (dbnsfp_flag == TRUE) {
+      to_split <- .get_list("fr_4_dbnsfp_to_split")
+    }
+    if (indel_flag == TRUE) {
+      to_split_VEP <- .get_list("fr_4_indel_to_split")
+    } else {
+      to_split_VEP <- .get_list("fr_4_snv_to_split_VEP")
+    }
+#    to_split_TFBS <- .get_list("fr_4_snv_to_split_TFBS") #nolint
+    to_split_GTEx_V6 <- .get_list("fr_4_snv_to_split_GTEx_V6")
+  }
+
+  # pivot most fields by | for dbnsfp chunk-------------------------------------
+  if (dbnsfp_flag == TRUE) {
+    expanded <- selected_columns %>%
+      separate_rows(one_of(to_split), sep = "\\|") %>%
+      separate_rows(one_of(c("Ensembl_geneid")), sep = ";") %>%
+      distinct()
+  } else {
+    # pivot the VEP_* fields by | for snp and indel chunks----------------------
+    expanded <- selected_columns %>%
+      separate_rows(one_of(to_split_VEP), sep = "\\|")
+
+    # pivot the ENCODE_TFBS_* fields by ;---------------------------------------
+    # expanded <- expanded %>% #nolint
+    #   separate_rows(one_of(to_split_TFBS), sep = ";") #nolint
+
+    # pivot the Ensembl_Regulatory_Build_Overviews field by ;-------------------
+    expanded <- expanded %>%
+      separate_rows(one_of("Ensembl_Regulatory_Build_Overviews"), sep = ";")
+
+    # pivot the Ensembl_Regulatory_Build_TFBS field by ;------------------------
+    expanded <- expanded %>%
+      separate_rows(one_of("Ensembl_Regulatory_Build_TFBS"), sep = ";")
+
+    # pivot the GTEx_V6 fields by |---------------------------------------------
+    expanded <- expanded %>%
+      separate_rows(one_of(to_split_GTEx_V6), sep = "\\|")
+  }
+  # remove duplicate rows
+  expanded <- distinct(expanded)
+}
+
+#' split the VEP_ensembl_Codon_Change_or_Distance field - 
+#' if number, put in VEP_ensembl_Distance field
+#' if string, put in VEP_ensembl_Codon_Change field
+#' @importFrom dplyr "%>%" mutate_at funs
+#' @importFrom tidyr extract
+#' @importFrom stringr str_replace
+#' @noRd
+.split_VEP_codon <- function(expanded) {
+  expanded <- expanded %>%
+    extract(
+      col = VEP_ensembl_Codon_Change_or_Distance, #nolint
+      into = c("VEP_ensembl_Distance", "VEP_ensembl_Codon_Change"),
+      regex = "(\\d*)(\\D*)"
+    ) %>%
+    mutate_at(vars(one_of(
+      c("VEP_ensembl_Distance",
+        "VEP_ensembl_Codon_Change")
+    )),
+    funs(str_replace(
+      ., pattern = "^$", replacement = "."
+    ))) # fill blanks with "."
+
+  return(expanded)
+}
+
 #' parse columns from tibble for which we want to select maximum value
-#' @importFrom dplyr mutate select "%>%"
-#' @importFrom rlang sym
-#' @importFrom stringr str_replace_all str_split
+#' @importFrom dplyr mutate select "%>%" mutate_at rename_all funs vars
+#' @importFrom dplyr bind_cols select_at
+#' @importFrom tidyr nest unnest
+#' @importFrom stringr str_replace_all str_replace str_split
 #' @importFrom purrr map map_dbl
 #' @noRd
-.parse_indel_max_columns <- function(selected_columns, max_columns){
-  for (to_max in max_columns) {
-    col_name <- to_max
-    unparsed_col_name <- paste0(col_name, "_unparsed")
-
-    selected_columns <-
-      suppressWarnings(
-        selected_columns %>%
-          mutate(
-            p_clean = str_replace_all(!!sym(col_name),
-                                      "(?:\\{.*?\\})|;", " "),
-            p_list = strsplit(p_clean, "\\s+"),
-            p_list = map(p_list, as.numeric),
-            p_max = map_dbl(p_list, max, na.rm = TRUE),
-            p_max = as.character(p_max),
-            p_max = ifelse( (p_max == "-Inf"), ".", p_max)
-          ) %>%
-          select(
-            -p_clean,
-            -p_list,
-            !!unparsed_col_name := !!col_name,
-            !!col_name := p_max
-          )
-      )
-  }
+.parse_indel_max_columns <- function(selected_columns, max_columns) {
+  selected_columns <-
+    suppressWarnings(
+      selected_columns %>%
+        # first copy unparsed columns to colum_name_unparsed
+        bind_cols(
+          select_at(.,
+                    .vars = !!max_columns,
+                    .funs = funs(paste0(., "_unparsed")))) %>%
+        # next replace ; or {*} with a space
+        mutate_at(
+          .vars = vars(!!max_columns),
+          .funs = funs(str_replace_all(., "(?:\\{.*?\\})|;", " "))
+        ) %>%
+        # trim final space to be safe
+        mutate_at(
+          .vars = vars(!!max_columns),
+          .funs = funs(str_replace(., "\\s+$", ""))
+        ) %>%
+        # split the string at the space
+        mutate_at(
+          .vars = vars(!!max_columns),
+          .funs = funs(str_split(., "\\s+"))
+        ) %>%
+        # make values numeric
+        mutate_at(
+          .vars = vars(!!max_columns),
+          .funs = funs(map(., as.numeric))
+        ) %>%
+        # get the max values
+        mutate_at(
+          .vars = vars(!!max_columns),
+          .funs = funs(map_dbl(., max, na.rm = TRUE))
+        ) %>%
+        # change to character
+        mutate_at(
+          .vars = vars(!!max_columns),
+          .funs = funs(as.character)
+        ) %>%
+        # change "-Inf" to "."
+        mutate_at(
+          .vars = vars(!!max_columns),
+          .funs = funs(ifelse( (. == "-Inf"), ".", .))
+        )
+    )
   return(selected_columns)
 }
 
 #' parse columns from tibble for which we want to parse to N if there is an N 
 #' present, then Y if Y present, else .
-#' @importFrom dplyr mutate "%>%" rename
-#' @importFrom rlang syms
+#' @importFrom dplyr mutate_at "%>%" bind_cols funs
 #' @importFrom stringr str_detect
 #' @noRd
-.parse_indel_no_columns <- function(selected_columns, no_columns){
-  for (parsing in no_columns) {
-    current <- syms(parsing)
-    original_name <- current[[1]]
-    unparsed_name <- paste0(original_name, "_unparsed")
-
-    selected_columns <-
-      suppressWarnings(
-        selected_columns %>%
-          mutate(
-            #  if N present, N
-            # else if Y present then Y
-            # else .
-            new_p = ifelse(
-              str_detect(!!current[[1]], "N"),
-              "N",
-              ifelse(
-                str_detect(!!current[[1]], "Y"),
-                "Y", ".")
-            )
-          ) %>%
-          rename(
-            !!unparsed_name := !!current[[1]],
-            !!current[[1]] := new_p
-          )
-      )
-  }
+.parse_indel_no_columns <- function(selected_columns, no_columns) {
+  selected_columns <-
+    suppressWarnings(
+      selected_columns %>%
+        # first copy unparsed columns to colum_name_unparsed
+        bind_cols(select_at(
+          .,
+          .vars = !!no_columns,
+          .funs = funs(paste0(., "_unparsed"))
+        )) %>%
+        # then parse:  N if N present, else Y if Y present, else .
+        mutate_at(.vars = vars(!!no_columns),
+                  .funs = funs(ifelse(
+                    str_detect(., "N"),
+                    "N",
+                    ifelse(str_detect(., "Y"),
+                           "Y", ".")
+                  )))
+    )
   return(selected_columns)
 }
 
 #' parse columns from tibble for which we want to parse to Y if there is an Y 
 #' present, then N if N present, else .
-#' @importFrom dplyr mutate "%>%" rename
-#' @importFrom rlang syms
+#' @importFrom dplyr mutate_at "%>%" bind_cols funs
 #' @importFrom stringr str_detect
 #' @noRd
 .parse_indel_yes_columns <- function(selected_columns, yes_columns){
-  for (parsing in yes_columns) {
-    current <- syms(parsing)
-    original_name <- current[[1]]
-    unparsed_name <- paste0(original_name, "_unparsed")
-
-    selected_columns <-
-      suppressWarnings(
-        selected_columns %>%
-          mutate(
-            # if Y present, Y
-            # else if N present then N
-            # else .
-            new_p = ifelse(
-              str_detect(!!current[[1]], "Y"),
-              "Y",
-              ifelse(
-                str_detect(!!current[[1]], "N"),
-                "N", ".")
-            )
-          ) %>%
-          rename(
-            !!unparsed_name := !!current[[1]],
-            !!current[[1]] := new_p
-          )
-      )
-  }
+  selected_columns <-
+    suppressWarnings(
+      selected_columns %>%
+        # first copy unparsed columns to colum_name_unparsed
+        bind_cols(select_at(
+          .,
+          .vars = !!yes_columns,
+          .funs = funs(paste0(., "_unparsed"))
+        )) %>%
+        # then parse:  Y if Y present, else N if N present, else .
+        mutate_at(.vars = vars(!!yes_columns),
+                  .funs = funs(ifelse(
+                    str_detect(., "Y"),
+                    "Y",
+                    ifelse(str_detect(., "N"),
+                           "N", ".")
+                  )))
+    )
   return(selected_columns)
 }
 
 #' parse column pairs from tibble for which we want to get logical mask from 
 #' first column and apply to second column
 #' @importFrom dplyr mutate select rename "%>%"
+#' @importFrom stringr str_split
 #' @importFrom purrr map map_dbl map2 map2_chr
 #' @importFrom rlang syms
 #' @noRd
@@ -197,8 +282,10 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
         suppressWarnings(
           selected_columns %>%
             mutate(
-              p_clean = gsub("(?:\\{.*?\\})|;", " ", x = !!current_pair[[1]]),
-              p_list = strsplit(p_clean, "\\s+"),
+              p_clean = str_replace_all(!!current_pair[[1]],
+                                        "(?:\\{.*?\\})|;", " "),
+              p_clean = str_replace(p_clean, "\\s+$", ""),
+              p_list = str_split(p_clean, "\\s+"),
               p_list = map(p_list, as.numeric),
               p_max = map_dbl(p_list, max, na.rm = TRUE),
               p_max = as.character(p_max),
@@ -210,8 +297,10 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
                                  x &
                                  !duplicated(x)),
               # thanks Adrienne!
-              r_clean = gsub("(?:\\{.*?\\})|;", " ", x = !!current_pair[[2]]),
-              r_list =  strsplit(r_clean, "\\s+"),
+              r_clean = str_replace_all(!!current_pair[[2]],
+                                        "(?:\\{.*?\\})|;", " "),
+              r_clean = str_replace(r_clean, "\\s+$", ""),
+              r_list =  str_split(r_clean, "\\s+"),
               r_corresponding = map2_chr(match_mask, r_list,
                                          function(logical, string)
                                            subset(string, logical))
@@ -237,6 +326,7 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
 #' first column and apply to second and third columns. Assumes 2nd column is 
 #' rankscore.
 #' @importFrom dplyr mutate select rename "%>%"
+#' @importFrom stringr str_split
 #' @importFrom purrr map map_dbl map2 map2_chr
 #' @importFrom rlang syms
 #' @noRd
@@ -255,8 +345,10 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
       suppressWarnings(
         selected_columns %>%
           mutate(
-            p_clean = gsub("(?:\\{.*?\\})|;", " ", x = !!current_triple[[1]]),
-            p_list = strsplit(p_clean, "\\s+"),
+            p_clean = str_replace_all(!!current_triple[[1]],
+                                      "(?:\\{.*?\\})|;", " "),
+            p_clean = str_replace(p_clean, "\\s+$", ""),
+            p_list = str_split(p_clean, "\\s+"),
             p_list = map(p_list, as.numeric),
             p_max = map_dbl(p_list, max, na.rm = TRUE),
             p_max = as.character(p_max),
@@ -266,13 +358,17 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
             match_mask = map(match_mask,
                              function(x)
                                x & !duplicated(x)), # thanks Adrienne!
-            r_clean = gsub("(?:\\{.*?\\})|;", " ", x = !!current_triple[[2]]),
-            r_list =  strsplit(r_clean, "\\s+"),
+            r_clean = str_replace_all(!!current_triple[[2]],
+                                      "(?:\\{.*?\\})|;", " "),
+            r_clean = str_replace(r_clean, "\\s+$", ""),
+            r_list =  str_split(r_clean, "\\s+"),
             r_corresponding = map2_chr(match_mask, r_list,
                                        function(logical, string)
                                          subset(string, logical)),
-            v_clean = gsub("(?:\\{.*?\\})|;", " ", x = !!current_triple[[3]]),
-            v_list =  strsplit(v_clean, "\\s+"),
+            v_clean = str_replace_all(!!current_triple[[3]],
+                                      "(?:\\{.*?\\})|;", " "),
+            v_clean = str_replace(v_clean, "\\s+$", ""),
+            v_list =  str_split(v_clean, "\\s+"),
             v_corresponding = map2_chr(match_mask, v_list,
                                        function(logical, string)
                                          subset(string, logical))

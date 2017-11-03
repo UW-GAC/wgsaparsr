@@ -20,6 +20,7 @@
 
 # RStudio files
 .Rproj.user/
+annotparsr.Rproj 
 
 # produced vignettes
 vignettes/*.html

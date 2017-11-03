@@ -64,7 +64,7 @@ parse_to_file <- function(source_file,
       break
     }
 
-    # check if header line in this chunk, read raw chunk to all_fields tibble
+    # if header line in this chunk, read raw chunk to all_fields tibble
     header_flag <- .has_header(raw_chunk)
 
     if (header_flag) {
