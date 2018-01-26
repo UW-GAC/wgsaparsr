@@ -38,7 +38,7 @@
 #' but will not be validated or imported with this function. The configuration
 #' file may include comments beginning with #.
 #'
-#' @param configPath Path to the WGSAParsr configuration file to load and
+#' @param config_path Path to the WGSAParsr configuration file to load and
 #' validate
 #'
 #' @return a tibble that can be used for building field lists for parsing
@@ -46,12 +46,13 @@
 #' @examples
 #' \dontrun{
 #' local_config <- load_config("config.tsv")
+#'}
 #'
 #' freeze_5_config <- load_config(system.file("extdata",
 #'                                            path = "fr_5_config.tsv",
 #'                                            package = "wgsaparsr",
 #'                                            mustWork = TRUE))
-#' }
+#'
 #' @importFrom readr read_tsv
 #' @importFrom tidyr replace_na
 #' @noRd
@@ -100,10 +101,37 @@
   return(cleaned_config)
 }
 
-#' extract the appropriate fields from a configuration tibble (such as
-#' produced by .load_config())
+
+#' extract the appropriate fields from a configuration tibble (such as produced
+#' by .load_config())
+#'
+#' @param config_df Tibble containing configuration parameters. Required columns
+#'   include "field", "SNV", "indel", "dbnsfp", "sourceGroup", "pivotGroup",
+#'   "pivotChar", "parseGroup", "transformation"
+#'
+#' @param which_list A string describing list to extract. Values may include
+#'   "desired", "max", "min", "pick_y", "pick_n", "pick_a", "clean", "distinct",
+#'   "pivots", or "groups"
+#'
+#' @param type "SNV", "indel", or "dbnsfp"
+#'
+#' @return list (or tibble for "pivots" or "groups") containing fields matching
+#'   desired which_list and type
+#'
+#' @examples
+#' \dontrun{
+#' local_config <- load_config("config.tsv")
+#'
+#' freeze_5_config <- load_config(system.file("extdata",
+#'                                            path = "fr_5_config.tsv",
+#'                                            package = "wgsaparsr",
+#'                                            mustWork = TRUE))
+#'
+#' snv_parse_max <- .get_list_from_config(freeze_5_config, "max", "SNV")
+#' }
 #' @noRd
-.get_list_from_config <- function(config_df, which_list){
+.get_list_from_config <- function(config_df, which_list, type){
+  # check arguments
   required_columns <-
     c(
       "field",
@@ -116,43 +144,102 @@
       "parseGroup",
       "transformation"
     )
-
   if (!(all(required_columns %in% colnames(config_df)))) {
     stop("Required columns are not in config_df")
   }
+  if (!any(which_list == c("desired", "max", "min", "pick_Y", "pick_N",
+                           "pick_A", "clean", "distinct", "pivots", "groups"))
+      ) {
+    msg = paste0('which_list must be one of: "desired", "max", "min", ',
+                 '"pick_Y", "pick_N", "pick_A", "clean", "distinct", ','
+                 "pivots", or "groups"')
+    stop(msg)
+  }
+  if (!any(type == c("SNV", "indel", "dbnsfp"))) {
+    stop('type must be one of: "SNV", "indel", or "dbnsfp"')
+  }
 
-  if (which_list == "snv_desired"){
-    return(config_df$field[config_df$SNV])
-  } else if (which_list == "snv_to_split_VEP"){
-
-  } else if (which_list == "snv_to_split_TFBS"){
-
-  } else if (which_list == "snv_to_split_GTEx_V6"){
-
-  } else if (which_list == "snv_post_processing"){
-
-  } else if (which_list == "indel_desired"){
-    return(config_df$field[config_df$indel])
-  } else if (which_list == "indel_to_split"){
-
-  } else if (which_list == "indel_max_columns"){
-
-  } else if (which_list == "indel_yes_columns"){
-
-  } else if (which_list == "indel_no_columns"){
-
-  } else if (which_list == "indel_post_processing"){
-
-  } else if (which_list == "dbnsfp_desired"){
-    return(config_df$field[config_df$dbnsfp])
-  } else if (which_list == "dbnsfp_to_split"){
-
-  } else if (which_list == "dbnsfp_low_pairs"){
-
-  } else if (which_list == "dbnsfp_high_pairs"){
-
-  } else if (which_list == "dbnsfp_post_processing"){
-
+  type <- as.name(type)
+  if (which_list == "desired"){ # returns list
+    desired_fields <- config_df %>%
+      dplyr::filter(!!type) %>%
+      select(field) %>%
+      purrr::flatten()
+    return(desired_fields)
+  } else if (which_list == "max"){ #returns list
+    max_fields <- config_df %>%
+      dplyr::filter(.data$transformation == "max" &
+                      is.na(.data$parseGroup) &
+                      !!type) %>%
+      dplyr::select(.data$field) %>%
+      purrr::flatten()
+    return(max_fields)
+  } else if (which_list == "min"){ #returns list
+    min_fields <- config_df %>%
+      dplyr::filter(.data$transformation == "min" &
+                      is.na(.data$parseGroup) &
+                      !!type) %>%
+      dplyr::select(.data$field) %>%
+      purrr::flatten()
+    return(min_fields)
+  } else if (which_list == "pick_Y"){ #returns list
+    y_fields <- config_df %>%
+      dplyr::filter(.data$transformation == "pick_Y" &
+                      is.na(.data$parseGroup) &
+                      !!type) %>%
+      dplyr::select(.data$field) %>%
+      purrr::flatten()
+    return(y_fields)
+  } else if (which_list == "pick_N"){ #returns named (?) list
+    n_fields <- config_df %>%
+      dplyr::filter(.data$transformation == "pick_N" &
+                      is.na(.data$parseGroup) &
+                      !!type) %>%
+      dplyr::select(.data$field) %>%
+      purrr::flatten()
+    return(n_fields)
+  } else if (which_list == "pick_A"){ #returns list
+    a_fields <- config_df %>%
+      dplyr::filter(.data$transformation == "pick_A" &
+                      is.na(.data$parseGroup) &
+                      !!type) %>%
+      dplyr::select(.data$field) %>%
+      purrr::flatten()
+    return(a_fields)
+  } else if (which_list == "clean"){ #returns list
+    clean_fields <- config_df %>%
+      dplyr::filter(.data$transformation == "clean" &
+                      is.na(.data$parseGroup) &
+                      !!type) %>%
+      dplyr::select(.data$field) %>%
+      purrr::flatten()
+    return(clean_fields)
+  } else if (which_list == "distinct"){ #returns list
+    distinct_fields <- config_df %>%
+      dplyr::filter(.data$transformation == "distinct" &
+                      is.na(.data$parseGroup) &
+                      !!type) %>%
+      dplyr::select(.data$field) %>%
+      purrr::flatten()
+    return(distinct_fields)
+  } else if (which_list == "groups"){ # returns tibble # TEST THIS ONE OUT CAREFULLY!
+    parse_groups <- config_df %>%
+      dplyr::filter(!is.na(.data$parseGroup) & !!type) %>%
+      dplyr::select(.data$field,
+                    .data$parseGroup,
+                    .data$transformation,
+                    !!type) %>% # do I need this?
+      dplyr::arrange(.data$parseGroup, .data$transformation)
+    return(parse_groups)
+  } else if (which_list == "pivots"){ # returns tibble # TEST THIS ONE OUT CAREFULLY!
+    pivot_groups <- config_df %>%
+      dplyr::filter(!is.na(.data$pivotGroup) & !!type) %>%
+      dplyr::select(.data$field,
+                    .data$pivotGroup,
+                    .data$pivotChar) %>%
+      dplyr::arrange(.data$pivotGroup, .data$pivotChar)
+#    pivot_groups <- split(pivot_groups, pivot_groups$pivotGroup) # would make list of tibbles
+    return(pivot_groups)
   } else {
     stop("Unknown list.")
   }
