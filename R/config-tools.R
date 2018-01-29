@@ -1,4 +1,5 @@
 # functions for working with configuration files--------------------------------
+# TODO:  lowerCamelCase for functions and snake_case for variables
 
 #' Load and validate configuration file
 #'
@@ -45,10 +46,10 @@
 #'
 #' @examples
 #' \dontrun{
-#' local_config <- load_config("config.tsv")
+#' local_config <- loadConfig("config.tsv")
 #'}
 #'
-#' freeze_5_config <- load_config(system.file("extdata",
+#' freeze_5_config <- loadConfig(system.file("extdata",
 #'                                            path = "fr_5_config.tsv",
 #'                                            package = "wgsaparsr",
 #'                                            mustWork = TRUE))
@@ -57,7 +58,19 @@
 #' @importFrom tidyr replace_na
 #' @noRd
 
-.load_config <- function(config_path) {
+loadConfig <- function(config_path) {
+  raw_config <- readr::read_tsv(
+    config_path,
+    col_names = TRUE,
+    comment = "#",
+    col_types = cols()
+  )
+  .validateConfig(raw_config)
+  config <- .cleanConfig(raw_config)
+}
+
+#' @noRd
+.validateConfig <- function(config_tibble) {
   required_columns <-
     c(
       "field",
@@ -71,39 +84,33 @@
       "transformation"
     )
 
-  raw_config <- read_tsv(
-    config_path,
-    col_names = TRUE,
-    comment = "#",
-    col_types = cols()
-  )
-
-  if (!(all(required_columns %in% colnames(raw_config)))) {
-    stop("Required columns are not in config file")
+  if (!(all(required_columns %in% colnames(config_tibble)))) {
+    stop("Required columns are not in config tibble")
   }
+}
 
-  # some clean-up:
-
+#' @noRd
+.cleanConfig <- function(config_tibble) {
   # remove rows with field == NA, select required cols, and order output
-  cleaned_config <- raw_config %>%
-    filter(!(is.na(.data$field))) %>%
-    select(field, SNV, indel, dbnsfp, sourceGroup, pivotGroup, #nolint
+  cleaned_config <- config_tibble %>%
+    dplyr::filter(!(is.na(.data$field))) %>%
+    dplyr::select(field, SNV, indel, dbnsfp, sourceGroup, pivotGroup, #nolint
            pivotChar, parseGroup, transformation) #nolint
 
   # replace NA values with FALSE for some columns
   cleaned_config <- cleaned_config %>%
-    replace_na(list(SNV = FALSE, indel = FALSE, dbnsfp = FALSE))
+    tidyr::replace_na(list(SNV = FALSE, indel = FALSE, dbnsfp = FALSE))
 
   # drop rows that don't have at a TRUE for SNV, indel, or dbnsfp
   cleaned_config <- cleaned_config %>%
-    filter(.data$SNV | .data$indel | .data$dbnsfp)
+    dplyr::filter(.data$SNV | .data$indel | .data$dbnsfp)
 
   return(cleaned_config)
 }
 
 
 #' extract the appropriate fields from a configuration tibble (such as produced
-#' by .load_config())
+#' by loadConfig())
 #'
 #' @param config_df Tibble containing configuration parameters. Required columns
 #'   include "field", "SNV", "indel", "dbnsfp", "sourceGroup", "pivotGroup",
@@ -120,17 +127,17 @@
 #'
 #' @examples
 #' \dontrun{
-#' local_config <- load_config("config.tsv")
+#' local_config <- loadConfig("config.tsv")
 #'
-#' freeze_5_config <- load_config(system.file("extdata",
+#' freeze_5_config <- loadConfig(system.file("extdata",
 #'                                            path = "fr_5_config.tsv",
 #'                                            package = "wgsaparsr",
 #'                                            mustWork = TRUE))
 #'
-#' snv_parse_max <- .get_list_from_config(freeze_5_config, "max", "SNV")
+#' snv_parse_max <- .getListFromConfig(freeze_5_config, "max", "SNV")
 #' }
 #' @noRd
-.get_list_from_config <- function(config_df, which_list, type){
+.getListFromConfig <- function(config_df, which_list, type){
   # check arguments
   required_columns <-
     c(
