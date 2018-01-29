@@ -1,5 +1,4 @@
 # functions for working with configuration files--------------------------------
-# TODO:  lowerCamelCase for functions and snake_case for variables
 
 #' Load and validate configuration file
 #'
@@ -46,10 +45,10 @@
 #'
 #' @examples
 #' \dontrun{
-#' local_config <- loadConfig("config.tsv")
+#' local_config <- load_config("config.tsv")
 #'}
 #'
-#' freeze_5_config <- loadConfig(system.file("extdata",
+#' freeze_5_config <- load_config(system.file("extdata",
 #'                                            path = "fr_5_config.tsv",
 #'                                            package = "wgsaparsr",
 #'                                            mustWork = TRUE))
@@ -58,19 +57,20 @@
 #' @importFrom tidyr replace_na
 #' @noRd
 
-loadConfig <- function(config_path) {
+load_config <- function(config_path) {
   raw_config <- readr::read_tsv(
     config_path,
     col_names = TRUE,
     comment = "#",
     col_types = cols()
   )
-  .validateConfig(raw_config)
-  config <- .cleanConfig(raw_config)
+  .validate_config(raw_config) #nolint
+  config <- .clean_config(raw_config) #nolint
+  return(config)
 }
 
 #' @noRd
-.validateConfig <- function(config_tibble) {
+.validate_config <- function(config_tibble) {
   required_columns <-
     c(
       "field",
@@ -90,7 +90,7 @@ loadConfig <- function(config_path) {
 }
 
 #' @noRd
-.cleanConfig <- function(config_tibble) {
+.clean_config <- function(config_tibble) {
   # remove rows with field == NA, select required cols, and order output
   cleaned_config <- config_tibble %>%
     dplyr::filter(!(is.na(.data$field))) %>%
@@ -137,7 +137,7 @@ loadConfig <- function(config_path) {
 #' snv_parse_max <- .getListFromConfig(freeze_5_config, "max", "SNV")
 #' }
 #' @noRd
-.getListFromConfig <- function(config_df, which_list, type){
+.get_list_from_config <- function(config_df, which_list, type){
   # check arguments
   required_columns <-
     c(
@@ -157,9 +157,9 @@ loadConfig <- function(config_path) {
   if (!any(which_list == c("desired", "max", "min", "pick_Y", "pick_N",
                            "pick_A", "clean", "distinct", "pivots", "groups"))
       ) {
-    msg = paste0('which_list must be one of: "desired", "max", "min", ',
-                 '"pick_Y", "pick_N", "pick_A", "clean", "distinct", ','
-                 "pivots", or "groups"')
+    msg <- paste0('which_list must be one of: "desired", "max", "min", ',
+                 '"pick_Y", "pick_N", "pick_A", "clean", "distinct", ',
+                 '"pivots", or "groups"')
     stop(msg)
   }
   if (!any(type == c("SNV", "indel", "dbnsfp"))) {
@@ -167,85 +167,95 @@ loadConfig <- function(config_path) {
   }
 
   type <- as.name(type)
-  if (which_list == "desired"){ # returns list
+  if (which_list == "desired"){
+    # returns list
     desired_fields <- config_df %>%
       dplyr::filter(!!type) %>%
       select(field) %>%
       purrr::flatten()
     return(desired_fields)
-  } else if (which_list == "max"){ #returns list
+  } else if (which_list == "max"){
+    # returns list
     max_fields <- config_df %>%
       dplyr::filter(.data$transformation == "max" &
-                      is.na(.data$parseGroup) &
+                      is.na(.data$parseGroup) & #nolint
                       !!type) %>%
       dplyr::select(.data$field) %>%
       purrr::flatten()
     return(max_fields)
-  } else if (which_list == "min"){ #returns list
+  } else if (which_list == "min"){
+    # returns list
     min_fields <- config_df %>%
       dplyr::filter(.data$transformation == "min" &
-                      is.na(.data$parseGroup) &
+                      is.na(.data$parseGroup) & #nolint
                       !!type) %>%
       dplyr::select(.data$field) %>%
       purrr::flatten()
     return(min_fields)
-  } else if (which_list == "pick_Y"){ #returns list
+  } else if (which_list == "pick_Y"){
+    #returns list
     y_fields <- config_df %>%
       dplyr::filter(.data$transformation == "pick_Y" &
-                      is.na(.data$parseGroup) &
+                      is.na(.data$parseGroup) & #nolint
                       !!type) %>%
       dplyr::select(.data$field) %>%
       purrr::flatten()
     return(y_fields)
-  } else if (which_list == "pick_N"){ #returns named (?) list
+  } else if (which_list == "pick_N"){
+    #returns named (?) list
     n_fields <- config_df %>%
       dplyr::filter(.data$transformation == "pick_N" &
-                      is.na(.data$parseGroup) &
+                      is.na(.data$parseGroup) & #nolint
                       !!type) %>%
       dplyr::select(.data$field) %>%
       purrr::flatten()
     return(n_fields)
-  } else if (which_list == "pick_A"){ #returns list
+  } else if (which_list == "pick_A"){
+    #returns list
     a_fields <- config_df %>%
       dplyr::filter(.data$transformation == "pick_A" &
-                      is.na(.data$parseGroup) &
+                      is.na(.data$parseGroup) & #nolint
                       !!type) %>%
       dplyr::select(.data$field) %>%
       purrr::flatten()
     return(a_fields)
-  } else if (which_list == "clean"){ #returns list
+  } else if (which_list == "clean"){
+    #returns list
     clean_fields <- config_df %>%
       dplyr::filter(.data$transformation == "clean" &
-                      is.na(.data$parseGroup) &
+                      is.na(.data$parseGroup) & #nolint
                       !!type) %>%
       dplyr::select(.data$field) %>%
       purrr::flatten()
     return(clean_fields)
-  } else if (which_list == "distinct"){ #returns list
+  } else if (which_list == "distinct"){
+    #returns list
     distinct_fields <- config_df %>%
       dplyr::filter(.data$transformation == "distinct" &
-                      is.na(.data$parseGroup) &
+                      is.na(.data$parseGroup) & #nolint
                       !!type) %>%
       dplyr::select(.data$field) %>%
       purrr::flatten()
     return(distinct_fields)
-  } else if (which_list == "groups"){ # returns tibble # TEST THIS ONE OUT CAREFULLY!
+  } else if (which_list == "groups"){
+    # returns tibble # TEST THIS ONE OUT CAREFULLY!
     parse_groups <- config_df %>%
-      dplyr::filter(!is.na(.data$parseGroup) & !!type) %>%
+      dplyr::filter(!is.na(.data$parseGroup) & !!type) %>% #nolint
       dplyr::select(.data$field,
-                    .data$parseGroup,
+                    .data$parseGroup, #nolint
                     .data$transformation,
                     !!type) %>% # do I need this?
-      dplyr::arrange(.data$parseGroup, .data$transformation)
+      dplyr::arrange(.data$parseGroup, .data$transformation) #nolint
     return(parse_groups)
-  } else if (which_list == "pivots"){ # returns tibble # TEST THIS ONE OUT CAREFULLY!
+  } else if (which_list == "pivots"){
+    # returns tibble # TEST THIS ONE OUT CAREFULLY!
     pivot_groups <- config_df %>%
-      dplyr::filter(!is.na(.data$pivotGroup) & !!type) %>%
+      dplyr::filter(!is.na(.data$pivotGroup) & !!type) %>% #nolint
       dplyr::select(.data$field,
-                    .data$pivotGroup,
-                    .data$pivotChar) %>%
-      dplyr::arrange(.data$pivotGroup, .data$pivotChar)
-#    pivot_groups <- split(pivot_groups, pivot_groups$pivotGroup) # would make list of tibbles
+                    .data$pivotGroup, #nolint
+                    .data$pivotChar) %>% #nolint
+      dplyr::arrange(.data$pivotGroup, .data$pivotChar) #nolint
+    # could split(pivot_groups, pivot_groups$pivotGroup) to make list of tibbles
     return(pivot_groups)
   } else {
     stop("Unknown list.")
