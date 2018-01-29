@@ -1,16 +1,16 @@
-context("test_.load_config - unit tests")
+context("test_loadConfig - unit tests")
 
 test_that(
-  ".load_config returns an error if required columns aren't present", {
-    expect_error(.load_config("bad_config.tsv"),
-                 "Required columns are not in config file")
+  "loadConfig() returns an error if required columns aren't present", {
+    expect_error(loadConfig("bad_config.tsv"),
+                 "Required columns are not in config tibble")
   }
 )
 
 test_that(
-  ".load_config returns a tibble", {
+  "loadConfig() returns a tibble", {
     expect_true(tibble::is.tibble(
-      .load_config(system.file("extdata",
+      loadConfig(system.file("extdata",
                               path = "fr_5_config.tsv",
                               package = "wgsaparsr",
                               mustWork = TRUE))))
@@ -18,11 +18,11 @@ test_that(
 )
 
 test_that(
-  ".load_config returns a tibble of expected size", {
-    config <- .load_config(system.file("extdata",
+  "loadConfig() returns a tibble of expected size", {
+    config <- loadConfig(system.file("extdata",
                                       path = "fr_5_config.tsv",
                                       package = "wgsaparsr",
                                       mustWork = TRUE))
-    expect_true(all(dim(config) == c(288, 9)))
+    expect_true(all(dim(config) == c(289, 9)))
   }
 )
