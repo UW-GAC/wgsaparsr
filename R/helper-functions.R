@@ -1,4 +1,4 @@
-# helper functions -------------------------------------------------------------
+# internal helper functions ----------------------------------------------------
 
 #' hack to pass devtools::check() 
 #' see: https://stackoverflow.com/questions/9439256/

@@ -1,3 +1,5 @@
+# freeze 4 field lists (freeze 5 uses config file - see config-tools.R)---------
+
 #' define lists of fields in one place, and return based on argument
 #' @noRd
 .get_list <- function(which_list) {
