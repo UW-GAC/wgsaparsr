@@ -2,6 +2,7 @@
 
 export(get_fields)
 export(parse_to_file)
+import(dplyr)
 importFrom(dplyr,"%>%")
 importFrom(dplyr,bind_cols)
 importFrom(dplyr,distinct)

@@ -1,38 +1,57 @@
-#' remove spurious {*} strings from fields
+#' add column_name_unparsed column to tibble prior to parsing (for debugging, mostly)
+#' @import dplyr
 #' @noRd
-# add column_name_unparsed even if bypass? maybe if not already there -
-# consider .parse_max_columns(), etc.
-.parse_clean <- function(selected_columns, clean_columns){
-  if (length(clean_columns) == 0){
+.preserve_raw <- function(selected_columns, to_parse) {
+  selected_columns <- selected_columns %>%
+    # first copy unparsed columns to colum_name_unparsed
+    bind_cols(select_at(
+      .,
+      .vars = !!to_parse,
+      .funs = funs(paste0(., "_unparsed"))
+    ))
+  return(selected_columns)
+}
+
+#' remove spurious {*} strings from fields:
+#' .{n} -> .
+#' .{n}; -> .;
+#' .{n}. -> .,. (or .{n}. -> . ?)
+#' 
+#' import dplyr
+#' @noRd
+.parse_clean <- function(selected_columns, to_clean){
+  if (length(to_clean) == 0){
     return(selected_columns)
   }
 
   # if no {*}, no parsing needed.
   if (!any(
     selected_columns %>%
-    dplyr::select(clean_columns) %>%
-    stringr::str_detect("(?:\\{.*?\\})"))){
+    dplyr::select(to_clean) %>%
+    stringr::str_detect("\\{[^\\}]+\\}"))){
     return(selected_columns)
   }
 
   selected_columns <-
-    suppressWarnings(
-      selected_columns %>%
-        # first copy unparsed columns to colum_name_unparsed
-        dplyr::bind_cols(select_at(
-          .,
-          .vars = !!clean_columns,
-          .funs = funs(paste0(., "_unparsed"))
-        )) %>%
-        # then parse: replace the {*}s with a space
-        # (using a noncapturing group in Regex) - do I need it?
-        dplyr::mutate_at(.vars = vars(!!clean_columns),
-                  .funs = funs(str_replace_all(., "(?:\\{.*?\\})", " "))
-        ) %>%
-        dplyr::mutate_at(.vars = vars(!!clean_columns),
-                  .funs = funs(str_trim(., side = "right"))
-        )
-    )
+    selected_columns %>%
+    #.{n} -> .
+    dplyr::mutate_at(.vars = to_clean,
+                     .funs = dplyr::funs(
+                       stringr::str_replace_all(., "\\{[^\\}]+\\}$", "")
+                       )
+                     ) %>%
+    # .{n}; -> .;
+    dplyr::mutate_at(.vars = to_clean,
+                     .funs = dplyr::funs(
+                       stringr::str_replace_all(., "\\{[^\\}]+\\};", ";")
+                       )
+                     ) %>%
+    # .{n}. -> .,. (or should it be .{n}. -> . ?)
+    dplyr::mutate_at(.vars = to_clean,
+                     .funs = dplyr::funs(
+                       stringr::str_replace_all(., "\\.\\{[^\\}]+\\}(?!;)", ".,")
+                       )
+                     )
   return(selected_columns)
 }
 
