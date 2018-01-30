@@ -64,8 +64,8 @@ load_config <- function(config_path) {
     comment = "#",
     col_types = cols()
   )
-  .validate_config(raw_config) #nolint
-  config <- .clean_config(raw_config) #nolint
+  .validate_config(raw_config)
+  config <- .clean_config(raw_config)
   return(config)
 }
 
