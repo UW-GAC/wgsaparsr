@@ -69,6 +69,7 @@ load_config <- function(config_path) {
 
 #' @noRd
 .validate_config <- function(config_tibble) {
+  # check required columns are there
   required_columns <-
     c(
       "field",
@@ -85,6 +86,35 @@ load_config <- function(config_path) {
   if (!(all(required_columns %in% colnames(config_tibble)))) {
     stop("Required columns are not in config tibble")
   }
+  
+  # check SNV field has allowed values
+  if (!all(levels(as.factor(config_tibble$SNV)) %in% c(TRUE, FALSE))) {
+    stop("SNV field has values other than TRUE, FALSE, or NA")
+  }
+  
+  # check indel field is logical
+  if (!all(levels(as.factor(config_tibble$indel)) %in% c(TRUE, FALSE))) {
+    stop("indel field has values other than TRUE, FALSE, or NA")
+  }
+  
+  # check dbnsfp field is logical
+  if (!all(levels(as.factor(config_tibble$dbnsfp)) %in% c(TRUE, FALSE))) {
+    stop("dbnsfp field has values other than TRUE, FALSE, or NA")
+  }
+  
+  # check transformation field for allowed values
+  if (!all(levels(as.factor(config_tibble$transformation)) %in% 
+           c("max", "min", "pick_Y", "pick_N", "pick_A", "clean",
+             "distinct"))) {
+    stop("transformation field has unrecognized values")
+  }
+  
+  # other validation possibilities:
+  # values in config_tibble$field match column headings in WGSA file
+  # sourceGroup numerical values
+  # pivotGroup numerical values
+  # pivotChar single character
+  # parseGroup numerical values
 }
 
 #' @noRd
