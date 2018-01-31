@@ -1,4 +1,5 @@
-#' add column_name_unparsed column to tibble prior to parsing (for debugging, mostly)
+#' add column_name_unparsed column to tibble prior to parsing (for debugging, 
+#' mostly)
 #' @import dplyr
 #' @noRd
 .preserve_raw <- function(selected_columns, to_parse) {
@@ -49,70 +50,75 @@
     # .{n}. -> .,. (or should it be .{n}. -> . ? or .{n}. -> .;. ?)
     dplyr::mutate_at(.vars = to_clean,
                      .funs = dplyr::funs(
-                       stringr::str_replace_all(., "\\.\\{[^\\}]+\\}(?!;)", ".,")
+                       stringr::str_replace_all(.,
+                        "\\.\\{[^\\}]+\\}(?!;)", ".,")
                        )
                      )
   return(selected_columns)
 }
 
 #' pick maximum value from compound entry in column
+#' importFrom magrittr "%>%"
 #' @noRd
+
 .parse_max_columns <- function(selected_columns, max_columns) {
   if (length(max_columns) == 0){
     return(selected_columns)
   }
 
-  # if no ;, only single values, so call parseClean and return
-  # NOT SUFFICIENT!
+  # if no ; or {*}, only single values, so call return original
   if (!any(
     selected_columns %>%
     dplyr::select(max_columns) %>%
-    stringr::str_detect(";"))){
-    return(.parse_clean(selected_columns, max_columns))
+    stringr::str_detect("\\{[^\\}]+\\}|;"))){
+    return(selected_columns)
   }
 
+  # if ; or {*}, replace with a space, split on whitespace, and return max
+  # value
   selected_columns <-
     suppressWarnings(
       selected_columns %>%
-        # first copy unparsed columns to colum_name_unparsed
-        dplyr::bind_cols(
-          dplyr::select_at(.,
-                    .vars = !!max_columns,
-                    .funs = funs(paste0(., "_unparsed")))) %>%
-        # next replace ; or {*} with a space
+        # replace ; or {*} with a space
         dplyr::mutate_at(
-          .vars = vars(!!max_columns),
-          .funs = funs(str_replace_all(., "(?:\\{.*?\\})|;", " "))
+          .vars = max_columns,
+          .funs = dplyr::funs(
+            stringr::str_replace_all(., "(?:\\{.*?\\})|;", " "))
         ) %>%
-        # trim final space to be safe
+        # trim white space padding to be safe
         dplyr::mutate_at(
-          .vars = vars(!!max_columns),
-          .funs = funs(str_replace(., "\\s+$", ""))
+          .vars = max_columns,
+          .funs = dplyr::funs(stringr::str_trim(., side = "both"))
+        ) %>%
+        # also trim multiple spaces to be safe
+        dplyr::mutate_at(
+          .vars = max_columns,
+          .funs = dplyr::funs(stringr::str_replace(., "\\s{2,}", " ")) #nolint
         ) %>%
         # split the string at the space
         dplyr::mutate_at(
-          .vars = vars(!!max_columns),
-          .funs = funs(str_split(., "\\s+"))
+          .vars = max_columns,
+          .funs = dplyr::funs(stringr::str_split(., "\\s+"))
         ) %>%
         # make values numeric
         dplyr::mutate_at(
-          .vars = vars(!!max_columns),
-          .funs = funs(map(., as.numeric))
+          .vars = max_columns,
+          .funs = dplyr::funs(purrr::map(., as.numeric))
         ) %>%
         # get the max values
         dplyr::mutate_at(
-          .vars = vars(!!max_columns),
-          .funs = funs(map_dbl(., max, na.rm = TRUE))
+          .vars = max_columns,
+          .funs = dplyr::funs(purrr::map_dbl(., max, na.rm = TRUE))
         ) %>%
         # change to character
         dplyr::mutate_at(
-          .vars = vars(!!max_columns),
-          .funs = funs(as.character)
+          .vars = max_columns,
+          .funs = dplyr::funs(as.character)
         ) %>%
         # change "-Inf" to "."
         dplyr::mutate_at(
-          .vars = vars(!!max_columns),
-          .funs = funs(ifelse((. == "-Inf"), ".", .)) #nolint
+          .vars = max_columns,
+          .funs = dplyr::funs(ifelse((. == "-Inf"), ".", .)) #nolint
         )
     )
   return(selected_columns)

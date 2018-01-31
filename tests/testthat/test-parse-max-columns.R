@@ -48,7 +48,9 @@ test_that(".parse_max_columns() returns expected tibble when parsing indel", {
     ),
     fathmm_MKL_coding_score = c(".", "0.87811", "0.90605", "0.90734", ".",
                                 "0.90912", "0.90863", "0.90863"),
-    MAP20_149bp = c("0.0", "0.004166664", "0.015773803", "0.01666666",
+    # note: first value of parsed MAP20_149bp is "0", not "0.0". I think that's 
+    # okay
+    MAP20_149bp = c("0", "0.004166664", "0.015773803", "0.01666666",
                     "0.09910714", "0.12767857", "0.20535715", "0.20535715")
   )
   result <- .parse_max_columns(example,
