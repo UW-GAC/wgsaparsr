@@ -53,8 +53,6 @@
 #'                                            package = "wgsaparsr",
 #'                                            mustWork = TRUE))
 #'
-#' @importFrom readr read_tsv
-#' @importFrom tidyr replace_na
 #' @noRd
 
 load_config <- function(config_path) {
@@ -62,10 +60,10 @@ load_config <- function(config_path) {
     config_path,
     col_names = TRUE,
     comment = "#",
-    col_types = cols()
+    col_types = readr::cols()
   )
-  .validate_config(raw_config) #nolint
-  config <- .clean_config(raw_config) #nolint
+  .validate_config(raw_config)
+  config <- .clean_config(raw_config)
   return(config)
 }
 
@@ -139,21 +137,7 @@ load_config <- function(config_path) {
 #' @noRd
 .get_list_from_config <- function(config_df, which_list, type){
   # check arguments
-  required_columns <-
-    c(
-      "field",
-      "SNV",
-      "indel",
-      "dbnsfp",
-      "sourceGroup",
-      "pivotGroup",
-      "pivotChar",
-      "parseGroup",
-      "transformation"
-    )
-  if (!(all(required_columns %in% colnames(config_df)))) {
-    stop("Required columns are not in config_df")
-  }
+  .validate_config(config_df)
   if (!any(which_list == c("desired", "max", "min", "pick_Y", "pick_N",
                            "pick_A", "clean", "distinct", "pivots", "groups"))
       ) {
@@ -166,11 +150,11 @@ load_config <- function(config_path) {
     stop('type must be one of: "SNV", "indel", or "dbnsfp"')
   }
 
-  type <- as.name(type)
+  type <- as.name(type) # needed?
   if (which_list == "desired"){
     # returns list
     desired_fields <- config_df %>%
-      dplyr::filter(!!type) %>%
+      dplyr::filter(!!type) %>% # or just filter(type) if not as.name()?
       select(field) %>%
       purrr::flatten()
     return(desired_fields)
