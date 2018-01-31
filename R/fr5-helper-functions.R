@@ -46,7 +46,7 @@
                        stringr::str_replace_all(., "\\{[^\\}]+\\};", ";")
                        )
                      ) %>%
-    # .{n}. -> .,. (or should it be .{n}. -> . ?)
+    # .{n}. -> .,. (or should it be .{n}. -> . ? or .{n}. -> .;. ?)
     dplyr::mutate_at(.vars = to_clean,
                      .funs = dplyr::funs(
                        stringr::str_replace_all(., "\\.\\{[^\\}]+\\}(?!;)", ".,")
@@ -63,6 +63,7 @@
   }
 
   # if no ;, only single values, so call parseClean and return
+  # NOT SUFFICIENT!
   if (!any(
     selected_columns %>%
     dplyr::select(max_columns) %>%
