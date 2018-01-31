@@ -13,7 +13,7 @@ test_that(".clean_config() returns expected tibble", {
     pivotChar = c("|", NA, ";", NA),
     notes = c("a note", "another", "foo", "bar")
   )
-  
+
   target <- dplyr::tibble(
     field = c("Header 1", "Header 3"),
     SNV = c(TRUE, FALSE),
