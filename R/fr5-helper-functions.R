@@ -123,3 +123,7 @@
     )
   return(selected_columns)
 }
+
+.last <- function() {
+  message("You're a rock star!")
+}
