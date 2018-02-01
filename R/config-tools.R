@@ -48,10 +48,7 @@
 #' local_config <- load_config("config.tsv")
 #'}
 #'
-#' freeze_5_config <- load_config(system.file("extdata",
-#'                                            path = "fr_5_config.tsv",
-#'                                            package = "wgsaparsr",
-#'                                            mustWork = TRUE))
+#' freeze_5_config <- load_config(wgsa_parsr_example("fr_5_config.tsv"))
 #'
 #' @noRd
 

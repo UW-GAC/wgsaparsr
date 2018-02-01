@@ -7,7 +7,8 @@
     # first copy unparsed columns to colum_name_unparsed
     bind_cols(select_at(
       .,
-      .vars = !!to_parse,
+#      .vars = !!to_parse,
+      .vars = to_parse,
       .funs = funs(paste0(., "_unparsed"))
     ))
   return(selected_columns)
@@ -66,7 +67,7 @@
     return(selected_columns)
   }
 
-  # if no ; or {*}, only single values, so call return original
+  # if no ; or {*}, only single values, so no parsing needed
   if (!any(
     selected_columns %>%
     dplyr::select(max_columns) %>%
@@ -124,6 +125,77 @@
   return(selected_columns)
 }
 
+#' pick minimmum value from compound entry in column
+#' importFrom magrittr "%>%"
+#' @noRd
+
+.parse_min_columns <- function(selected_columns, min_columns) {
+  if (length(min_columns) == 0){
+    return(selected_columns)
+  }
+
+  # if no ; or {*}, only single values, so no parsing needed
+  if (!any(
+    selected_columns %>%
+    dplyr::select(min_columns) %>%
+    stringr::str_detect("\\{[^\\}]+\\}|;"))){
+    return(selected_columns)
+  }
+
+  # if ; or {*}, replace with a space, split on whitespace, and return min
+  # value
+  selected_columns <-
+    suppressWarnings(
+      selected_columns %>%
+        # replace ; or {*} with a space
+        dplyr::mutate_at(
+          .vars = min_columns,
+          .funs = dplyr::funs(
+            stringr::str_replace_all(., "(?:\\{.*?\\})|;", " "))
+        ) %>%
+        # trim white space padding to be safe
+        dplyr::mutate_at(
+          .vars = min_columns,
+          .funs = dplyr::funs(stringr::str_trim(., side = "both"))
+        ) %>%
+        # also trim multiple spaces to be safe
+        dplyr::mutate_at(
+          .vars = min_columns,
+          .funs = dplyr::funs(stringr::str_replace(., "\\s{2,}", " ")) #nolint
+        ) %>%
+        # split the string at the space
+        dplyr::mutate_at(
+          .vars = min_columns,
+          .funs = dplyr::funs(stringr::str_split(., "\\s+"))
+        ) %>%
+        # make values numeric
+        dplyr::mutate_at(
+          .vars = min_columns,
+          .funs = dplyr::funs(purrr::map(., as.numeric))
+        ) %>%
+        # get the min values
+        dplyr::mutate_at(
+          .vars = min_columns,
+          .funs = dplyr::funs(purrr::map_dbl(., min, na.rm = TRUE))
+        ) %>%
+        # change to character
+        dplyr::mutate_at(
+          .vars = min_columns,
+          .funs = dplyr::funs(as.character)
+        ) %>%
+        # change "Inf" to "."
+        dplyr::mutate_at(
+          .vars = min_columns,
+          .funs = dplyr::funs(ifelse((. == "Inf"), ".", .)) #nolint
+        )
+    )
+  return(selected_columns)
+}
+
 .last <- function() {
   message("You're a rock star!")
+}
+
+wgsa_parsr_example <- function(path) {
+  system.file("extdata", path, package = "wgsaparsr", mustWork = TRUE)
 }
