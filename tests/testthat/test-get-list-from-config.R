@@ -265,7 +265,7 @@ test_that(".get_list_from_config() returns expected 'pivots' list for SNV", {
     transformation = c("clean", "min", "max")
   )
 
-  target <- tibble(field = "Header 1",
+  target <- dplyr::tibble(field = "Header 1",
                    pivotGroup = c("1"),
                    pivotChar = c("|"))
   result <- .get_list_from_config(test_config, "pivots", "SNV")
@@ -285,7 +285,7 @@ test_that(".get_list_from_config() returns expected 'pivots' list for SNV", {
     transformation = c("clean", "min", "max")
   )
 
-  target <- tibble(field = c("Header 1", "Header 2"),
+  target <- dplyr::tibble(field = c("Header 1", "Header 2"),
                    pivotGroup = c("1", "1"),
                    pivotChar = c("|", "|"))
   result <- .get_list_from_config(test_config, "pivots", "SNV")
@@ -323,7 +323,7 @@ test_that(".get_list_from_config() returns expected 'groups' list for SNV", {
     transformation = c("clean", "clean", "max")
   )
 
-  target <- tibble(field = c("Header 1", "Header 2"),
+  target <- dplyr::tibble(field = c("Header 1", "Header 2"),
                    parseGroup = c("1", "1"),
                    transformation = c("clean", "clean"))
   result <- .get_list_from_config(test_config, "groups", "SNV")
