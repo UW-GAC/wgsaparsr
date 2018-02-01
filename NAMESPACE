@@ -2,7 +2,7 @@
 
 export(get_fields)
 export(parse_to_file)
-export(wgsa_parsr_example)
+export(wgsaparsr_example)
 importFrom(dplyr,"%>%")
 importFrom(dplyr,bind_cols)
 importFrom(dplyr,distinct)

@@ -229,9 +229,9 @@
 #' @param path Name of file
 #'
 #' @examples
-#' wgsaparsr_example(soure = "fr_5_config.tsv")
+#' wgsaparsr_example(path = "fr_5_config.tsv")
 #' 
 #' @export
-wgsa_parsr_example <- function(path) {
+wgsaparsr_example <- function(path) {
   system.file("extdata", path, package = "wgsaparsr", mustWork = TRUE)
 }
