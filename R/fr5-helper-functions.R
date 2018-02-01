@@ -1,15 +1,16 @@
+# new internal helper functions for freeze 5 refactoring -----------------------
+
 #' add column_name_unparsed column to tibble prior to parsing (for debugging, 
 #' mostly)
-#' @import dplyr
+#' @importFrom magrittr "%>%"
 #' @noRd
 .preserve_raw <- function(selected_columns, to_parse) {
   selected_columns <- selected_columns %>%
     # first copy unparsed columns to colum_name_unparsed
-    bind_cols(select_at(
+    dplyr::bind_cols(dplyr::select_at(
       .,
-#      .vars = !!to_parse,
       .vars = to_parse,
-      .funs = funs(paste0(., "_unparsed"))
+      .funs = dplyr::funs(paste0(., "_unparsed"))
     ))
   return(selected_columns)
 }
@@ -19,7 +20,7 @@
 #' .{n}; -> .;
 #' .{n}. -> .,. (or .{n}. -> . ?)
 #' 
-#' import dplyr
+#' @importFrom magrittr "%>%"
 #' @noRd
 .parse_clean <- function(selected_columns, to_clean){
   if (length(to_clean) == 0){
@@ -59,7 +60,7 @@
 }
 
 #' pick maximum value from compound entry in column
-#' importFrom magrittr "%>%"
+#' @importFrom magrittr "%>%"
 #' @noRd
 
 .parse_max_columns <- function(selected_columns, max_columns) {
@@ -126,7 +127,7 @@
 }
 
 #' pick minimmum value from compound entry in column
-#' importFrom magrittr "%>%"
+#' @importFrom magrittr "%>%"
 #' @noRd
 
 .parse_min_columns <- function(selected_columns, min_columns) {
@@ -192,10 +193,45 @@
   return(selected_columns)
 }
 
+# TODO: is there a way to short-circuit parsing on trivial case?
+#' @importFrom magrittr "%>%"
+#' @noRd
+.parse_yes_columns <- function(selected_columns, yes_columns){
+  if (length(yes_columns) == 0){
+    return(selected_columns)
+  }
+  selected_columns <-
+    suppressWarnings(
+      selected_columns %>%
+        # parse:  Y if Y present, else N if N present, else .
+        dplyr::mutate_at(.vars = yes_columns,
+                         .funs = dplyr::funs(ifelse(
+                           stringr::str_detect(., "Y"),
+                           "Y",
+                           ifelse(stringr::str_detect(., "N"),
+                                  "N", ".")
+                         )))
+    )
+  return(selected_columns)
+}
+
+#' @noRd
 .last <- function() {
   message("You're a rock star!")
 }
 
-wgsa_parsr_example <- function(path) {
+#' Get path to load wgsaparsr example
+#' 
+#' \code{wgsaparsr} comes bundled with sample files in its \code{inst/extdata}
+#' diretory. This function makes them easier to access. Based on
+#' \code{readr::readr_example()}
+#' 
+#' @param path Name of file
+#'
+#' @examples
+#' wgsaparsr_example(path = "fr_5_config.tsv")
+#' 
+#' @export
+wgsaparsr_example <- function(path) {
   system.file("extdata", path, package = "wgsaparsr", mustWork = TRUE)
 }
