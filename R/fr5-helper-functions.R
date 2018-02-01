@@ -127,3 +127,7 @@
 .last <- function() {
   message("You're a rock star!")
 }
+
+wgsa_parsr_example <- function(path) {
+  system.file("extdata", path, package = "wgsaparsr", mustWork = TRUE)
+}
