@@ -11,7 +11,7 @@ test_that(".get_list_from_config() gives error for bad which_list argument", {
     dbnsfp = c(FALSE, FALSE, TRUE),
     sourceGroup = c("1", "2", "3"),
     pivotGroup = c("1", "1", "1"),
-    pivotChar = c("|", ";", "|"),
+    pivotChar = c("|", "|", "|"),
     parseGroup = c("1", "2", "1"),
     transformation = c(NA, "min", "max")
   )
@@ -28,7 +28,7 @@ test_that(".get_list_from_config() gives error for bad type argument", {
     dbnsfp = c(FALSE, FALSE, TRUE),
     sourceGroup = c("1", "2", "3"),
     pivotGroup = c("1", "1", "1"),
-    pivotChar = c("|", ";", "|"),
+    pivotChar = c("|", "|", "|"),
     parseGroup = c("1", "2", "1"),
     transformation = c(NA, "min", "max")
   )
@@ -44,7 +44,7 @@ test_that(".get_list_from_config() returns expected 'desired' list for all", {
     dbnsfp = c(FALSE, FALSE, TRUE),
     sourceGroup = c("1", "2", "3"),
     pivotGroup = c("1", "1", "1"),
-    pivotChar = c("|", ";", "|"),
+    pivotChar = c("|", "|", "|"),
     parseGroup = c("1", "2", "1"),
     transformation = c(NA, "min", "max")
   )
@@ -62,7 +62,7 @@ test_that(".get_list_from_config() returns expected 'desired' list for SNV", {
     dbnsfp = c(FALSE, FALSE, TRUE, TRUE),
     sourceGroup = c("1", "2", "3", "4"),
     pivotGroup = c("1", "1", "1", "1"),
-    pivotChar = c("|", ";", "|", "|"),
+    pivotChar = c("|", "|", "|", "|"),
     parseGroup = c(NA, "2", "1", "1"),
     transformation = c(NA, "min", "max", NA)
   )
@@ -80,7 +80,7 @@ test_that(".get_list_from_config() returns expected 'desired' list for indel", {
     dbnsfp = c(FALSE, FALSE, TRUE),
     sourceGroup = c("1", "2", "3"),
     pivotGroup = c("1", "1", "1"),
-    pivotChar = c("|", ";", "|"),
+    pivotChar = c("|", "|", "|"),
     parseGroup = c("1", "2", "1"),
     transformation = c(NA, "min", "max")
   )
@@ -98,7 +98,7 @@ test_that(".get_list_from_config() returns expected 'desired' dbnsfp list", {
     dbnsfp = c(FALSE, FALSE, TRUE),
     sourceGroup = c("1", "2", "3"),
     pivotGroup = c("1", "1", "1"),
-    pivotChar = c("|", ";", "|"),
+    pivotChar = c("|", "|", "|"),
     parseGroup = c("1", "2", "1"),
     transformation = c(NA, "min", "max")
   )
@@ -116,7 +116,7 @@ test_that(".get_list_from_config() returns expected 'max' list for SNV", {
     dbnsfp = c(FALSE, FALSE, TRUE),
     sourceGroup = c("1", "2", "3"),
     pivotGroup = c("1", "1", "1"),
-    pivotChar = c("|", ";", "|"),
+    pivotChar = c("|", "|", "|"),
     parseGroup = c(NA, "2", NA),
     transformation = c(NA, "min", "max")
   )
@@ -134,7 +134,7 @@ test_that(".get_list_from_config() returns expected 'min' list for SNV", {
     dbnsfp = c(FALSE, FALSE, TRUE),
     sourceGroup = c("1", "2", "3"),
     pivotGroup = c("1", "1", "1"),
-    pivotChar = c("|", ";", "|"),
+    pivotChar = c("|", "|", "|"),
     parseGroup = c(NA, "2", "1"),
     transformation = c(NA, "min", "max")
   )
@@ -152,7 +152,7 @@ test_that(".get_list_from_config() returns expected 'min' list for indel", {
     dbnsfp = c(FALSE, FALSE, TRUE),
     sourceGroup = c("1", "2", "3"),
     pivotGroup = c("1", "1", "1"),
-    pivotChar = c("|", ";", "|"),
+    pivotChar = c("|", "|", "|"),
     parseGroup = c("1", NA, "1"),
     transformation = c(NA, "min", "max")
   )
@@ -170,7 +170,7 @@ test_that(".get_list_from_config() returns expected 'pick_Y' list for SNV", {
     dbnsfp = c(FALSE, FALSE, TRUE),
     sourceGroup = c("1", "2", "3"),
     pivotGroup = c("1", "1", "1"),
-    pivotChar = c("|", ";", "|"),
+    pivotChar = c("|", "|", "|"),
     parseGroup = c(NA, NA, "1"),
     transformation = c("pick_Y", "min", "max")
   )
@@ -188,7 +188,7 @@ test_that(".get_list_from_config() returns expected 'pick_N' list for SNV", {
     dbnsfp = c(FALSE, FALSE, TRUE),
     sourceGroup = c("1", "2", "3"),
     pivotGroup = c("1", "1", "1"),
-    pivotChar = c("|", ";", "|"),
+    pivotChar = c("|", "|", "|"),
     parseGroup = c(NA, NA, "1"),
     transformation = c("pick_N", "min", "max")
   )
@@ -206,7 +206,7 @@ test_that(".get_list_from_config() returns expected 'pick_A' list for SNV", {
     dbnsfp = c(FALSE, FALSE, TRUE),
     sourceGroup = c("1", "2", "3"),
     pivotGroup = c("1", "1", "1"),
-    pivotChar = c("|", ";", "|"),
+    pivotChar = c("|", "|", "|"),
     parseGroup = c(NA, NA, "1"),
     transformation = c("pick_A", "min", "max")
   )
@@ -224,7 +224,7 @@ test_that(".get_list_from_config() returns expected 'clean' list for SNV", {
     dbnsfp = c(FALSE, FALSE, TRUE),
     sourceGroup = c("1", "2", "3"),
     pivotGroup = c("1", "1", "1"),
-    pivotChar = c("|", ";", "|"),
+    pivotChar = c("|", "|", "|"),
     parseGroup = c(NA, NA, "1"),
     transformation = c("clean", "min", "max")
   )
@@ -242,7 +242,7 @@ test_that(".get_list_from_config() returns expected 'distinct' list for SNV", {
     dbnsfp = c(FALSE, FALSE, TRUE),
     sourceGroup = c("1", "2", "3"),
     pivotGroup = c("1", "1", "1"),
-    pivotChar = c("|", ";", "|"),
+    pivotChar = c("|", "|", "|"),
     parseGroup = c(NA, NA, "1"),
     transformation = c("distinct", "min", "max")
   )
@@ -260,9 +260,9 @@ test_that(".get_list_from_config() returns expected 'pivots' list for SNV", {
     dbnsfp = c(FALSE, FALSE, TRUE),
     sourceGroup = c("1", "2", "3"),
     pivotGroup = c("1", "1", "1"),
-    pivotChar = c("|", ";", "|"),
+    pivotChar = c("|", "|", "|"),
     parseGroup = c("1", NA, "1"),
-    transformation = c("clean", "min", "max")
+    transformation = c(NA, "min", "max")
   )
 
   target <- dplyr::tibble(field = "Header 1",
@@ -282,7 +282,7 @@ test_that(".get_list_from_config() returns expected 'pivots' list for SNV", {
     pivotGroup = c("1", "1", "1"),
     pivotChar = c("|", "|", "|"),
     parseGroup = c("1", NA, "1"),
-    transformation = c("clean", "min", "max")
+    transformation = c("clean", "min", NA)
   )
 
   target <- dplyr::tibble(field = c("Header 1", "Header 2"),
@@ -290,24 +290,6 @@ test_that(".get_list_from_config() returns expected 'pivots' list for SNV", {
                    pivotChar = c("|", "|"))
   result <- .get_list_from_config(test_config, "pivots", "SNV")
   expect_identical(result, target)
-})
-
-test_that(".get_list_from_config() returns error for inconsistent pivotChars", {
-  test_config <- dplyr::tibble(
-    field = c("Header 1", "Header 2", "Header 3"),
-    SNV = c(TRUE, TRUE, FALSE),
-    indel = c(FALSE, TRUE, FALSE),
-    dbnsfp = c(FALSE, FALSE, TRUE),
-    sourceGroup = c("1", "2", "3"),
-    pivotGroup = c("1", "1", "1"),
-    pivotChar = c("|", ";", "|"),
-    parseGroup = c("1", NA, "1"),
-    transformation = c("clean", "min", "max")
-  )
-
-  msg <- "pivotChar not consistent within pivotGroup"
-
-  expect_error(.get_list_from_config(test_config, "pivots", "SNV"), msg)
 })
 
 test_that(".get_list_from_config() returns expected 'groups' list for SNV", {
@@ -319,31 +301,13 @@ test_that(".get_list_from_config() returns expected 'groups' list for SNV", {
     sourceGroup = c("1", "2", "3"),
     pivotGroup = c("1", "1", "1"),
     pivotChar = c("|", "|", "|"),
-    parseGroup = c("1", "1", "1"),
-    transformation = c("clean", "clean", "max")
+    parseGroup = c("1", "1", "2"),
+    transformation = c(NA, "clean", "max")
   )
 
-  target <- dplyr::tibble(field = c("Header 1", "Header 2"),
+  target <- dplyr::tibble(field = c("Header 2", "Header 1"),
                    parseGroup = c("1", "1"),
-                   transformation = c("clean", "clean"))
+                   transformation = c("clean", NA))
   result <- .get_list_from_config(test_config, "groups", "SNV")
   expect_identical(result, target)
-})
-
-test_that(".get_list_from_config() returns error for inconsistent pivotChars", {
-  test_config <- dplyr::tibble(
-    field = c("Header 1", "Header 2", "Header 3"),
-    SNV = c(TRUE, TRUE, FALSE),
-    indel = c(FALSE, TRUE, FALSE),
-    dbnsfp = c(FALSE, FALSE, TRUE),
-    sourceGroup = c("1", "2", "3"),
-    pivotGroup = c("1", "1", "1"),
-    pivotChar = c("|", ";", "|"),
-    parseGroup = c("1", "1", "1"),
-    transformation = c("clean", "min", "max")
-  )
-
-  msg <- "transformation not consistent within parseGroup"
-
-  expect_error(.get_list_from_config(test_config, "groups", "SNV"), msg)
 })

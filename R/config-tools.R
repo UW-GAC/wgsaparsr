@@ -48,9 +48,8 @@
 #' local_config <- load_config("config.tsv")
 #'}
 #'
-#' freeze_5_config <- load_config(wgsa_parsr_example("fr_5_config.tsv"))
+#' freeze_5_config <- load_config(wgsaparsr_example("fr_5_config.tsv"))
 #'
-#' @noRd
 
 load_config <- function(config_path) {
   raw_config <- readr::read_tsv(
@@ -64,6 +63,7 @@ load_config <- function(config_path) {
   return(config)
 }
 
+#' @importFrom magrittr "%>%"
 #' @noRd
 .validate_config <- function(config_tibble) {
   # check required columns are there
@@ -106,6 +106,42 @@ load_config <- function(config_path) {
     stop("transformation field has unrecognized values")
   }
 
+  # pivotChar is the same within pivotGroup
+  char_count <- config_tibble %>%
+    dplyr::filter(!is.na(.$pivotGroup)) %>% #nolint
+    dplyr::group_by(pivotGroup) %>% #nolint
+    dplyr::summarize_at(
+      .funs = dplyr::funs(dplyr::n_distinct(levels(as.factor(.)))),
+      .vars = "pivotChar")
+
+    if (any(char_count$pivotChar != 1)) { #nolint
+      stop("all pivotChar values must be the same withinin a pivotGroup")
+    }
+
+  # transformation is the same within parseGroup
+
+  # first, define a summary function to check whether any transformation
+  # fields are not in the same as the first one in that group or NA
+  # for example, a pair, transformation may be c("max", NA), but cannot
+  # be c("max", "min")
+  check_too_many <- function(character) {
+    !all(character %in% c(character[[1]], NA))
+  }
+
+  # now group the transformations by parseGroup and summarize
+  # with check_too_many()
+  trans_count <- config_tibble %>%
+    dplyr::filter(!is.na(.$parseGroup)) %>% #nolint
+    dplyr::group_by(parseGroup) %>% #nolint
+    dplyr::arrange(transformation, .by_group = TRUE) %>%
+    dplyr::summarize_at(
+      .funs = dplyr::funs(check_too_many(.)),
+      .vars = "transformation")
+
+  if (any(trans_count$transformation)) {
+    stop("all transformation values must be the same withinin a parseGroup")
+  }
+
   # other validation possibilities:
   # values in config_tibble$field match column headings in WGSA file
   # sourceGroup numerical values
@@ -114,6 +150,7 @@ load_config <- function(config_path) {
   # parseGroup numerical values
 }
 
+#' @importFrom magrittr "%>%"
 #' @noRd
 .clean_config <- function(config_tibble) {
   # remove rows with field == NA, select required cols, and order output
@@ -161,7 +198,10 @@ load_config <- function(config_path) {
 #'
 #' snv_parse_max <- .getListFromConfig(freeze_5_config, "max", "SNV")
 #' }
+#' 
+#' @importFrom magrittr "%>%"
 #' @noRd
+
 .get_list_from_config <- function(config_df, which_list, list_type){
   # check arguments
   .validate_config(config_df)
@@ -182,13 +222,13 @@ load_config <- function(config_path) {
     fields_by_list_type <- config_df
   } else {
     list_type <- rlang::sym(list_type) # I confess I don't understand this well
-    fields_by_list_type <- config_df %>% filter(!!list_type)
+    fields_by_list_type <- config_df %>% dplyr::filter(!!list_type)
   }
 
   if (which_list == "desired") {
     # returns list
     desired_fields <- fields_by_list_type %>%
-      select(field) %>%
+      dplyr::select(field) %>%
       purrr::flatten()
     return(desired_fields)
   } else if (which_list == "max") {
@@ -216,7 +256,7 @@ load_config <- function(config_path) {
       purrr::flatten()
     return(y_fields)
   } else if (which_list == "pick_N") {
-    #returns named (?) list
+    #returns list
     n_fields <- fields_by_list_type %>%
       dplyr::filter(.data$transformation == "pick_N" &
                       is.na(.data$parseGroup)) %>% #nolint
@@ -255,11 +295,6 @@ load_config <- function(config_path) {
                     .data$parseGroup, #nolint
                     .data$transformation) %>%
       dplyr::arrange(.data$parseGroup, .data$transformation) #nolint
-    # error if transformation values not all same
-    if (!all(parse_groups$transformation %in%
-             parse_groups$transformation[[1]])) {
-      stop("transformation not consistent within parseGroup")
-    }
     return(parse_groups)
   } else if (which_list == "pivots") {
     # returns tibble # TEST THIS ONE OUT CAREFULLY!
@@ -270,11 +305,6 @@ load_config <- function(config_path) {
                     .data$pivotChar) %>% #nolint
       dplyr::arrange(.data$pivotGroup, .data$pivotChar) #nolint
     # could split(pivot_groups, pivot_groups$pivotGroup) to make list of tibbles
-    # error if pivotChar values not all same
-    if (!all(pivot_groups$pivotChar %in% #nolint
-             pivot_groups$pivotChar[[1]])) { #nolint
-      stop("pivotChar not consistent within pivotGroup")
-    }
     return(pivot_groups)
   } else {
     stop("Unknown list.")

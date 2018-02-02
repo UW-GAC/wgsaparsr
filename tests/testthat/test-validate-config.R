@@ -64,7 +64,7 @@ test_that(".validate_config() gives error when dbnsfp has bad value", {
                "dbnsfp field has values other than TRUE, FALSE, or NA")
 })
 
-test_that(".validate_config() gives error when dbnsfp has bad value", {
+test_that(".validate_config() gives error when transformation has bad value", {
   example <- dplyr::tibble(
     field = "a",
     SNV = "TRUE",
@@ -78,4 +78,37 @@ test_that(".validate_config() gives error when dbnsfp has bad value", {
   )
   expect_error(.validate_config(example),
                "transformation field has unrecognized values")
+})
+
+test_that(".validate_config() gives error when pivot char wrong", {
+  example <- dplyr::tibble(
+    field = c("a", "b"),
+    SNV = c("TRUE", "TRUE"),
+    indel = c("TRUE", "TRUE"),
+    dbnsfp = c("TRUE", "TRUE"),
+    sourceGroup = c("1", "1"),
+    pivotGroup = c("1", "1"),
+    pivotChar = c(";", "|"),
+    parseGroup = c("1", "1"),
+    transformation = c("max", "max")
+  )
+  expect_error(.validate_config(example),
+               "all pivotChar values must be the same withinin a pivotGroup")
+})
+
+test_that(".validate_config() gives error when transformation groups wrong", {
+  example <- dplyr::tibble(
+    field = c("a", "b"),
+    SNV = c("TRUE", "TRUE"),
+    indel = c("TRUE", "TRUE"),
+    dbnsfp = c("TRUE", "TRUE"),
+    sourceGroup = c("1", "1"),
+    pivotGroup = c("1", "1"),
+    pivotChar = c(";", ";"),
+    parseGroup = c("1", "1"),
+    transformation = c("max", "min")
+  )
+  msg <- paste0("all transformation values must be the same withinin a ",
+               "parseGroup")
+  expect_error(.validate_config(example), msg)
 })

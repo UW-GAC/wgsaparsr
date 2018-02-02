@@ -1,4 +1,4 @@
-# new internal helper functions for freeze 5 refactoring -----------------------
+# new internal helper functions from freeze 5 refactoring ----------------------
 
 #' add column_name_unparsed column to tibble prior to parsing (for debugging, 
 #' mostly)
@@ -6,7 +6,6 @@
 #' @noRd
 .preserve_raw <- function(selected_columns, to_parse) {
   selected_columns <- selected_columns %>%
-    # first copy unparsed columns to colum_name_unparsed
     dplyr::bind_cols(dplyr::select_at(
       .,
       .vars = to_parse,
@@ -274,8 +273,8 @@
 }
 
 # helper for .parseDistinct()
-# NOTE: .;abc;def becomes ;abc;def instead of .;abc;def problem?
-# I think no, because .parse_distinct() fixes that case
+# takes complicated string and simplifies to a ;-separated string, then
+# calls .collapse_unique() to return a string of |-separated unique values
 
 #' @importFrom magrittr "%>%"
 #' @noRd
@@ -338,6 +337,134 @@
   return(selected_columns)
   # NOTE: selected_columns still needs to be pivoted on the distinct field(s)
   # after this function call
+}
+
+#' @importFrom magrittr "%>%"
+#' @noRd
+.parse_pairs_max <- function(selected_columns, pair_columns) {
+  if (typeof(pair_columns) != "list") {
+    stop("pair_columns must be a list")
+  }
+  if (length(pair_columns) == 1){
+    return(.parse_max_columns(selected_columns, unlist(pair_columns)))
+  }
+  if (length(pair_columns) != 2){
+    stop("pair columns not length 1 or 2")
+  }
+  stop("a stub for now")
+
+  # here's some old code to work with when we need to implement parse_pairs_max
+  current_pair <- rlang::syms(pair_columns)
+
+  score_name <- pair_columns[[1]]
+  rankscore_name <- pair_columns[[2]]
+  unparsed_score_name <- paste0(score_name, "_unparsed")
+  unparsed_rankscore_name <- paste0(rankscore_name, "_unparsed")
+
+  selected_columns <-
+    suppressWarnings(
+      selected_columns %>%
+        mutate(
+          p_clean = str_replace_all(!!current_pair[[1]],
+                                    "(?:\\{.*?\\})|;", " "),
+          p_clean = str_replace(p_clean, "\\s+$", ""),
+          p_list = str_split(p_clean, "\\s+"),
+          p_list = map(p_list, as.numeric),
+          p_max = map_dbl(p_list, max, na.rm = TRUE),
+          p_max = as.character(p_max),
+          p_max = ifelse( (p_max == "-Inf"), ".", p_max),
+          match_mask = map2(p_list, p_max, str_detect),
+          match_mask = replace(match_mask, is.na(match_mask), TRUE),
+          match_mask = map(match_mask,
+                           function(x)
+                             x &
+                             !duplicated(x)),
+          # thanks Adrienne!
+          r_clean = str_replace_all(!!current_pair[[2]],
+                                    "(?:\\{.*?\\})|;", " "),
+          r_clean = str_replace(r_clean, "\\s+$", ""),
+          r_list =  str_split(r_clean, "\\s+"),
+          r_corresponding = map2_chr(match_mask, r_list,
+                                     function(logical, string)
+                                       subset(string, logical))
+        ) %>%
+        select(-p_clean,
+               -p_list,
+               -match_mask,
+               -r_clean,
+               -r_list) %>%
+        rename(
+          !!unparsed_score_name := !!current_pair[[1]],
+          !!current_pair[[1]] := p_max,
+          !!unparsed_rankscore_name := !!current_pair[[2]],
+          !!current_pair[[2]] := r_corresponding
+        )
+    )
+  return(selected_columns)
+}
+
+#' @importFrom magrittr "%>%"
+#' @noRd
+.parse_pairs_min <- function(selected_columns, pair_columns) {
+  if (typeof(pair_columns) != "list") {
+    stop("pair_columns must be a list")
+  }
+  if (length(pair_columns) == 1){
+    return(.parse_min_columns(selected_columns, unlist(pair_columns)))
+  }
+  if (length(pair_columns) != 2){
+    stop("pair columns not length 1 or 2")
+  }
+  stop("a stub for now")
+
+  # here's some old code to work with when we need to implement parse_pairs_min
+  current_pair <- rlang::syms(pair_columns)
+
+  score_name <- pair_columns[[1]]
+  rankscore_name <- pair_columns[[2]]
+  unparsed_score_name <- paste0(score_name, "_unparsed")
+  unparsed_rankscore_name <- paste0(rankscore_name, "_unparsed")
+
+  selected_columns <-
+    suppressWarnings(
+      selected_columns %>%
+        mutate(
+          p_clean = str_replace_all(!!current_pair[[1]],
+                                    "(?:\\{.*?\\})|;", " "),
+          p_clean = str_replace(p_clean, "\\s+$", ""),
+          p_list = str_split(p_clean, "\\s+"),
+          p_list = map(p_list, as.numeric),
+          p_min = map_dbl(p_list, min, na.rm = TRUE),
+          p_min = as.character(p_min),
+          p_min = ifelse( (p_min == "Inf"), ".", p_min),
+          match_mask = map2(p_list, p_min, str_detect),
+          match_mask = replace(match_mask, is.na(match_mask), TRUE),
+          match_mask = map(match_mask,
+                           function(x)
+                             x &
+                             !duplicated(x)),
+          # thanks Adrienne!
+          r_clean = str_replace_all(!!current_pair[[2]],
+                                    "(?:\\{.*?\\})|;", " "),
+          r_clean = str_replace(r_clean, "\\s+$", ""),
+          r_list =  str_split(r_clean, "\\s+"),
+          r_corresponding = map2_chr(match_mask, r_list,
+                                     function(logical, string)
+                                       subset(string, logical))
+        ) %>%
+        select(-p_clean,
+               -p_list,
+               -match_mask,
+               -r_clean,
+               -r_list) %>%
+        rename(
+          !!unparsed_score_name := !!current_pair[[1]],
+          !!current_pair[[1]] := p_min,
+          !!unparsed_rankscore_name := !!current_pair[[2]],
+          !!current_pair[[2]] := r_corresponding
+        )
+    )
+  return(selected_columns)
 }
 
 #' @noRd
