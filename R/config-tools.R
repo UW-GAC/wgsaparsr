@@ -50,6 +50,7 @@
 #'
 #' freeze_5_config <- load_config(wgsaparsr_example("fr_5_config.tsv"))
 #'
+#' @export
 
 load_config <- function(config_path) {
   raw_config <- readr::read_tsv(
