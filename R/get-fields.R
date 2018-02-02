@@ -11,14 +11,13 @@
 #' \dontrun{
 #' all_fields <- get_fields(soure = "WGSA_chr_1.gz")
 #' }
-#' @importFrom stringr str_split
 #' @export
 
 get_fields <- function(source) {
   readfile_con <- gzfile(source, "r")
   header <- suppressWarnings(readLines(readfile_con, n = 1))
   close(readfile_con)
-  fields <- str_split(header, "\t", simplify = TRUE)
+  fields <- stringr::str_split(header, "\t", simplify = TRUE)
   if (!any(fields[[1]] == "#chr" | fields[[1]] == "chr")) {
     stop("First line of source doesn't look like a WGSA header")
   }

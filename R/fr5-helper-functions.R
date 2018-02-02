@@ -340,6 +340,70 @@
   # after this function call
 }
 
+#' @importFrom magrittr "%>%"
+#' @noRd
+.parse_pairs_max <- function(selected_columns, pair_columns) {
+  if (typeof(pair_columns) != "list") {
+    stop("pair_columns must be a list")
+  }
+  if (length(pair_columns) == 1){
+    return(.parse_max_columns(selected_columns, unlist(pair_columns)))
+  }
+  if (length(pair_columns) != 2){
+    stop("pair columns not length 1 or 2")
+  }
+  stop("a stub for now")
+
+  # here's some old code to work with when we need to implement parse_pairs_max
+  current_pair <- rlang::syms(pair_columns)
+
+  score_name <- pair_columns[[1]]
+  rankscore_name <- pair_columns[[2]]
+  unparsed_score_name <- paste0(score_name, "_unparsed")
+  unparsed_rankscore_name <- paste0(rankscore_name, "_unparsed")
+
+  selected_columns <-
+    suppressWarnings(
+      selected_columns %>%
+        mutate(
+          p_clean = str_replace_all(!!current_pair[[1]],
+                                    "(?:\\{.*?\\})|;", " "),
+          p_clean = str_replace(p_clean, "\\s+$", ""),
+          p_list = str_split(p_clean, "\\s+"),
+          p_list = map(p_list, as.numeric),
+          p_max = map_dbl(p_list, max, na.rm = TRUE),
+          p_max = as.character(p_max),
+          p_max = ifelse( (p_max == "-Inf"), ".", p_max),
+          match_mask = map2(p_list, p_max, str_detect),
+          match_mask = replace(match_mask, is.na(match_mask), TRUE),
+          match_mask = map(match_mask,
+                           function(x)
+                             x &
+                             !duplicated(x)),
+          # thanks Adrienne!
+          r_clean = str_replace_all(!!current_pair[[2]],
+                                    "(?:\\{.*?\\})|;", " "),
+          r_clean = str_replace(r_clean, "\\s+$", ""),
+          r_list =  str_split(r_clean, "\\s+"),
+          r_corresponding = map2_chr(match_mask, r_list,
+                                     function(logical, string)
+                                       subset(string, logical))
+        ) %>%
+        select(-p_clean,
+               -p_list,
+               -match_mask,
+               -r_clean,
+               -r_list) %>%
+        rename(
+          !!unparsed_score_name := !!current_pair[[1]],
+          !!current_pair[[1]] := p_max,
+          !!unparsed_rankscore_name := !!current_pair[[2]],
+          !!current_pair[[2]] := r_corresponding
+        )
+    )
+  return(selected_columns)
+}
+
 #' @noRd
 .last <- function() {
   message("You're a rock star!")
