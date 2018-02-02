@@ -1,4 +1,4 @@
-# new internal helper functions for freeze 5 refactoring -----------------------
+# new internal helper functions from freeze 5 refactoring ----------------------
 
 #' add column_name_unparsed column to tibble prior to parsing (for debugging, 
 #' mostly)
@@ -6,7 +6,6 @@
 #' @noRd
 .preserve_raw <- function(selected_columns, to_parse) {
   selected_columns <- selected_columns %>%
-    # first copy unparsed columns to colum_name_unparsed
     dplyr::bind_cols(dplyr::select_at(
       .,
       .vars = to_parse,
@@ -274,8 +273,8 @@
 }
 
 # helper for .parseDistinct()
-# NOTE: .;abc;def becomes ;abc;def instead of .;abc;def problem?
-# I think no, because .parse_distinct() fixes that case
+# takes complicated string and simplifies to a ;-separated string, then
+# calls .collapse_unique() to return a string of |-separated unique values
 
 #' @importFrom magrittr "%>%"
 #' @noRd
