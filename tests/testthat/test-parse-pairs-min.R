@@ -43,7 +43,8 @@ test_that(".parse_pairs_min() gives error when parsing a pair", {
                     "0.19464286{1};0.19821429{1}0.20178571{1};0.20535715{1}")
   )
 
-  expect_error(.parse_pairs_min(example, list("Eigen_PC_raw", "MAP20_149bp")),
+  expect_error(.parse_pairs_min(example,
+                                list(c("Eigen_PC_raw", "MAP20_149bp"))),
                "a stub for now")
 })
 
@@ -80,9 +81,15 @@ test_that(".parse_pairs_min() returns expected tibble when parsing a single", {
     # note: first value of parsed MAP20_149bp is "0", not "0.0". I think that's
     # okay
     MAP20_149bp = c("0", "0.004166664", "0.015773803", "0.01666666",
-                    "0.09196428", "0.11339285", "0.19464286", "0.19464286")
+                    "0.09196428", "0.11339285", "0.19464286", "0.19464286"),
+    MAP20_149bp_unparsed = c("0.0{1}", "0.004166664{1}", "0.015773803{10}",
+                    "0.01666666{8}",
+                    "0.09196428{1}0.09553571{1}0.09732143{1}0.09910714{1}",
+                    "0.11339285{1}0.12053571{1}0.12410714{1}0.12767857{1}",
+                    "0.19464286{1}0.19821429{1}0.20178571{1}0.20535715{1}",
+                    "0.19464286{1};0.19821429{1}0.20178571{1};0.20535715{1}")
   )
-  result <- .parse_pairs_min(example, list("MAP20_149bp"))
+  result <- .parse_pairs_min(example, list(c("MAP20_149bp")))
   expect_identical(result, target)
 })
 
@@ -105,8 +112,8 @@ test_that(".parse_pairs_min() gives error when parsing a tripple", {
                     "0.19464286{1}0.19821429{1}0.20178571{1}0.20535715{1}",
                     "0.19464286{1};0.19821429{1}0.20178571{1};0.20535715{1}")
   )
-  expect_error(.parse_pairs_min(example, list("Eigen_PC_raw",
+  expect_error(.parse_pairs_min(example, list(c("Eigen_PC_raw",
                                               "MAP20_149bp",
-                                              "fathmm_MKL_coding_score")),
+                                              "fathmm_MKL_coding_score"))),
                "pair columns not length 1 or 2")
 })
