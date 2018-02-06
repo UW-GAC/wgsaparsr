@@ -181,12 +181,13 @@ load_config <- function(config_path) {
 #'
 #' @param which_list A string describing list to extract. Values may include
 #'   "desired", "max", "min", "pick_y", "pick_n", "pick_a", "clean", "distinct",
-#'   "pivots", or "groups"
+#'   "pivots", "max_pairs", "min_pairs", "pick_Y_pairs", "pick_N_pairs",
+#'   or "pick_A_pairs"
 #'
 #' @param list_type "SNV", "indel", "dbnsfp", or "all"
 #'
-#' @return list (or tibble for "pivots" or "groups") containing fields matching
-#'   desired which_list and list_type
+#' @return list (or tibble for "pivots") containing fields matching desired
+#'   which_list and list_type
 #'
 #' @examples
 #' \dontrun{
@@ -199,7 +200,7 @@ load_config <- function(config_path) {
 #'
 #' snv_parse_max <- .getListFromConfig(freeze_5_config, "max", "SNV")
 #' }
-#' 
+#'
 #' @importFrom magrittr "%>%"
 #' @noRd
 
@@ -207,11 +208,14 @@ load_config <- function(config_path) {
   # check arguments
   .validate_config(config_df)
   if (!any(which_list == c("desired", "max", "min", "pick_Y", "pick_N",
-                           "pick_A", "clean", "distinct", "pivots", "groups"))
+                           "pick_A", "clean", "distinct", "pivots",
+                           "max_pairs", "min_pairs", "pick_Y_pairs",
+                           "pick_N_pairs", "pick_A_pairs"))
       ) {
     msg <- paste0('which_list must be one of: "desired", "max", "min", ',
                  '"pick_Y", "pick_N", "pick_A", "clean", "distinct", ',
-                 '"pivots", or "groups"')
+                 '"pivots", "max_pairs", "min_pairs", "pick_Y_pairs", ',
+                 '"pick_N_pairs", or "pick_A_pairs"')
     stop(msg)
   }
   if (!any(list_type == c("SNV", "indel", "dbnsfp", "all"))) {
@@ -288,15 +292,6 @@ load_config <- function(config_path) {
       dplyr::select(.data$field) %>%
       purrr::flatten()
     return(distinct_fields)
-  } else if (which_list == "groups") {
-    # returns tibble # TEST THIS ONE OUT CAREFULLY!
-    parse_groups <- fields_by_list_type %>%
-      dplyr::filter(!is.na(.data$parseGroup)) %>% #nolint
-      dplyr::select(.data$field,
-                    .data$parseGroup, #nolint
-                    .data$transformation) %>%
-      dplyr::arrange(.data$parseGroup, .data$transformation) #nolint
-    return(parse_groups)
   } else if (which_list == "pivots") {
     # returns tibble # TEST THIS ONE OUT CAREFULLY!
     pivot_groups <- fields_by_list_type %>%
@@ -307,6 +302,71 @@ load_config <- function(config_path) {
       dplyr::arrange(.data$pivotGroup, .data$pivotChar) #nolint
     # could split(pivot_groups, pivot_groups$pivotGroup) to make list of tibbles
     return(pivot_groups)
+  } else if (which_list == "max_pairs") {
+    # returns list # TEST THIS ONE OUT CAREFULLY!
+    group_tibble <- fields_by_list_type %>%
+      dplyr::filter(!is.na(.data$parseGroup)) %>% #nolint
+      dplyr::select(.data$field,
+                    .data$parseGroup, #nolint
+                    .data$transformation) %>%
+      dplyr::arrange(.data$parseGroup, .data$transformation) %>% #nolint
+      dplyr::group_by(parseGroup) %>% #nolint
+      dplyr::filter(any(.data$transformation == "max")) %>%
+      dplyr::ungroup()
+    parse_groups <- split(group_tibble$field, group_tibble$parseGroup) #nolint
+    return(parse_groups)
+  } else if (which_list == "min_pairs") {
+    # returns list # TEST THIS ONE OUT CAREFULLY!
+    group_tibble <- fields_by_list_type %>%
+      dplyr::filter(!is.na(.data$parseGroup)) %>% #nolint
+      dplyr::select(.data$field,
+                    .data$parseGroup, #nolint
+                    .data$transformation) %>%
+      dplyr::arrange(.data$parseGroup, .data$transformation) %>% #nolint
+      dplyr::group_by(parseGroup) %>% #nolint
+      dplyr::filter(any(.data$transformation == "min")) %>%
+      dplyr::ungroup()
+    parse_groups <- split(group_tibble$field, group_tibble$parseGroup) #nolint
+    return(parse_groups)
+  } else if (which_list == "pick_Y_pairs") {
+    # returns list # TEST THIS ONE OUT CAREFULLY!
+    group_tibble <- fields_by_list_type %>%
+      dplyr::filter(!is.na(.data$parseGroup)) %>% #nolint
+      dplyr::select(.data$field,
+                    .data$parseGroup, #nolint
+                    .data$transformation) %>%
+      dplyr::arrange(.data$parseGroup, .data$transformation) %>% #nolint
+      dplyr::group_by(parseGroup) %>% #nolint
+      dplyr::filter(any(.data$transformation == "pick_Y")) %>%
+      dplyr::ungroup()
+    parse_groups <- split(group_tibble$field, group_tibble$parseGroup) #nolint
+    return(parse_groups)
+  } else if (which_list == "pick_N_pairs") {
+    # returns list # TEST THIS ONE OUT CAREFULLY!
+    group_tibble <- fields_by_list_type %>%
+      dplyr::filter(!is.na(.data$parseGroup)) %>% #nolint
+      dplyr::select(.data$field,
+                    .data$parseGroup, #nolint
+                    .data$transformation) %>%
+      dplyr::arrange(.data$parseGroup, .data$transformation) %>% #nolint
+      dplyr::group_by(parseGroup) %>% #nolint
+      dplyr::filter(any(.data$transformation == "pick_N")) %>%
+      dplyr::ungroup()
+    parse_groups <- split(group_tibble$field, group_tibble$parseGroup) #nolint
+    return(parse_groups)
+  } else if (which_list == "pick_A_pairs") {
+    # returns list # TEST THIS ONE OUT CAREFULLY!
+    group_tibble <- fields_by_list_type %>%
+      dplyr::filter(!is.na(.data$parseGroup)) %>% #nolint
+      dplyr::select(.data$field,
+                    .data$parseGroup, #nolint
+                    .data$transformation) %>%
+      dplyr::arrange(.data$parseGroup, .data$transformation) %>% #nolint
+      dplyr::group_by(parseGroup) %>% #nolint
+      dplyr::filter(any(.data$transformation == "pick_A")) %>%
+      dplyr::ungroup()
+    parse_groups <- split(group_tibble$field, group_tibble$parseGroup) #nolint
+    return(parse_groups)
   } else {
     stop("Unknown list.")
   }

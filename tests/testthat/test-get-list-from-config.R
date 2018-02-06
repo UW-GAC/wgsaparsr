@@ -3,7 +3,8 @@ context("test_.get_list_from_config() - unit tests")
 test_that(".get_list_from_config() gives error for bad which_list argument", {
   msg <- paste0('which_list must be one of: "desired", "max", "min", ',
                 '"pick_Y", "pick_N", "pick_A", "clean", "distinct", ',
-                '"pivots", or "groups"')
+                '"pivots", "max_pairs", "min_pairs", "pick_Y_pairs", ',
+                '"pick_N_pairs", or "pick_A_pairs"')
   test_df <- dplyr::tibble(
     field = c("Header 1", "Header 2", "Header 3"),
     SNV = c(TRUE, FALSE, FALSE),
@@ -252,7 +253,7 @@ test_that(".get_list_from_config() returns expected 'distinct' list for SNV", {
   expect_identical(result, target)
 })
 
-test_that(".get_list_from_config() returns expected 'pivots' list for SNV", {
+test_that(".get_list_from_config() returns expected 'pivots' tibble for SNV", {
   test_config <- dplyr::tibble(
     field = c("Header 1", "Header 2", "Header 3"),
     SNV = c(TRUE, FALSE, FALSE),
@@ -272,7 +273,7 @@ test_that(".get_list_from_config() returns expected 'pivots' list for SNV", {
   expect_identical(result, target)
 })
 
-test_that(".get_list_from_config() returns expected 'pivots' list for SNV", {
+test_that(".get_list_from_config() returns expected 'pivots' tibble for SNV", {
   test_config <- dplyr::tibble(
     field = c("Header 1", "Header 2", "Header 3"),
     SNV = c(TRUE, TRUE, FALSE),
@@ -292,7 +293,28 @@ test_that(".get_list_from_config() returns expected 'pivots' list for SNV", {
   expect_identical(result, target)
 })
 
-test_that(".get_list_from_config() returns expected 'groups' list for SNV", {
+test_that(".get_list_from_config() returns expected 'pivots' tibble for SNV", {
+  test_config <- dplyr::tibble(
+    field = c("Header 1", "Header 2", "Header 3", "Header 4"),
+    SNV = c(TRUE, TRUE, TRUE, TRUE),
+    indel = c(FALSE, TRUE, FALSE, FALSE),
+    dbnsfp = c(FALSE, FALSE, TRUE, TRUE),
+    sourceGroup = c("1", "2", "3", "4"),
+    pivotGroup = c("1", "1", "2", "2"),
+    pivotChar = c("|", "|", ";", ";"),
+    parseGroup = c("1", NA, "2", NA),
+    transformation = c("clean", NA, "min", NA)
+  )
+
+  target <- dplyr::tibble(field = c("Header 1", "Header 2", "Header 3",
+                                    "Header 4"),
+                          pivotGroup = c("1", "1", "2", "2"),
+                          pivotChar = c("|", "|", ";", ";"))
+  result <- .get_list_from_config(test_config, "pivots", "SNV")
+  expect_identical(result, target)
+})
+
+test_that(".get_list_from_config() returns expected 'max_pairs' list for SNV", {
   test_config <- dplyr::tibble(
     field = c("Header 1", "Header 2", "Header 3"),
     SNV = c(TRUE, TRUE, FALSE),
@@ -302,12 +324,105 @@ test_that(".get_list_from_config() returns expected 'groups' list for SNV", {
     pivotGroup = c("1", "1", "1"),
     pivotChar = c("|", "|", "|"),
     parseGroup = c("1", "1", "2"),
-    transformation = c(NA, "clean", "max")
+    transformation = c(NA, "max", "max")
   )
 
-  target <- dplyr::tibble(field = c("Header 2", "Header 1"),
-                   parseGroup = c("1", "1"),
-                   transformation = c("clean", NA))
-  result <- .get_list_from_config(test_config, "groups", "SNV")
+  target <- list("1" = c("Header 2", "Header 1"))
+  result <- .get_list_from_config(test_config, "max_pairs", "SNV")
   expect_identical(result, target)
 })
+
+test_that(
+  ".get_list_from_config() returns expected 'max_pairs' list for SNV", {
+    test_config <- dplyr::tibble(
+      field = c("Header 1", "Header 2", "Header 3", "Header 4"),
+      SNV = c(TRUE, TRUE, TRUE, TRUE),
+      indel = c(FALSE, TRUE, FALSE, FALSE),
+      dbnsfp = c(FALSE, FALSE, TRUE, TRUE),
+      sourceGroup = c("1", "2", "3", "4"),
+      pivotGroup = c("1", "1", "2", "2"),
+      pivotChar = c("|", "|", ";", ";"),
+      parseGroup = c("1", "1", "2", "2"),
+      transformation = c("max", NA, "max", NA)
+    )
+
+    target <- list("1" = c("Header 1", "Header 2"),
+                   "2" = c("Header 3", "Header 4"))
+    result <- .get_list_from_config(test_config, "max_pairs", "SNV")
+    expect_identical(result, target)
+  })
+
+test_that(".get_list_from_config() returns expected 'min_pairs' list for SNV", {
+  test_config <- dplyr::tibble(
+    field = c("Header 1", "Header 2", "Header 3"),
+    SNV = c(TRUE, TRUE, FALSE),
+    indel = c(FALSE, TRUE, FALSE),
+    dbnsfp = c(FALSE, FALSE, TRUE),
+    sourceGroup = c("1", "2", "3"),
+    pivotGroup = c("1", "1", "1"),
+    pivotChar = c("|", "|", "|"),
+    parseGroup = c("1", "1", "2"),
+    transformation = c(NA, "min", "max")
+  )
+
+  target <- list("1" = c("Header 2", "Header 1"))
+  result <- .get_list_from_config(test_config, "min_pairs", "SNV")
+  expect_identical(result, target)
+})
+
+test_that(
+  ".get_list_from_config() returns expected 'pick_Y_pairs' list for SNV", {
+  test_config <- dplyr::tibble(
+    field = c("Header 1", "Header 2", "Header 3"),
+    SNV = c(TRUE, TRUE, FALSE),
+    indel = c(FALSE, TRUE, FALSE),
+    dbnsfp = c(FALSE, FALSE, TRUE),
+    sourceGroup = c("1", "2", "3"),
+    pivotGroup = c("1", "1", "1"),
+    pivotChar = c("|", "|", "|"),
+    parseGroup = c("1", "1", "2"),
+    transformation = c(NA, "pick_Y", "max")
+  )
+
+  target <- list("1" = c("Header 2", "Header 1"))
+  result <- .get_list_from_config(test_config, "pick_Y_pairs", "SNV")
+  expect_identical(result, target)
+})
+
+test_that(
+  ".get_list_from_config() returns expected 'pick_N_pairs' list for SNV", {
+    test_config <- dplyr::tibble(
+      field = c("Header 1", "Header 2", "Header 3"),
+      SNV = c(TRUE, TRUE, FALSE),
+      indel = c(FALSE, TRUE, FALSE),
+      dbnsfp = c(FALSE, FALSE, TRUE),
+      sourceGroup = c("1", "2", "3"),
+      pivotGroup = c("1", "1", "1"),
+      pivotChar = c("|", "|", "|"),
+      parseGroup = c("1", "1", "2"),
+      transformation = c(NA, "pick_N", "max")
+    )
+
+    target <- list("1" = c("Header 2", "Header 1"))
+    result <- .get_list_from_config(test_config, "pick_N_pairs", "SNV")
+    expect_identical(result, target)
+  })
+
+test_that(
+  ".get_list_from_config() returns expected 'pick_A_pairs' list for SNV", {
+    test_config <- dplyr::tibble(
+      field = c("Header 1", "Header 2", "Header 3"),
+      SNV = c(TRUE, TRUE, FALSE),
+      indel = c(FALSE, TRUE, FALSE),
+      dbnsfp = c(FALSE, FALSE, TRUE),
+      sourceGroup = c("1", "2", "3"),
+      pivotGroup = c("1", "1", "1"),
+      pivotChar = c("|", "|", "|"),
+      parseGroup = c("1", "1", "2"),
+      transformation = c(NA, "pick_A", "max")
+    )
+
+    target <- list("1" = c("Header 2", "Header 1"))
+    result <- .get_list_from_config(test_config, "pick_A_pairs", "SNV")
+    expect_identical(result, target)
+  })
