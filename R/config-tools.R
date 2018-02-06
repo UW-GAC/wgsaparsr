@@ -299,8 +299,9 @@ load_config <- function(config_path) {
       dplyr::select(.data$field,
                     .data$pivotGroup, #nolint
                     .data$pivotChar) %>% #nolint
-      dplyr::arrange(.data$pivotGroup, .data$pivotChar) #nolint
-    # could split(pivot_groups, pivot_groups$pivotGroup) to make list of tibbles
+      dplyr::arrange(.data$pivotGroup, .data$pivotChar) %>% #nolint
+      split(.$pivotGroup) %>% #nolint
+      purrr::map(~dplyr::select(., -pivotGroup)) #nolint
     return(pivot_groups)
   } else if (which_list == "max_pairs") {
     # returns list # TEST THIS ONE OUT CAREFULLY!

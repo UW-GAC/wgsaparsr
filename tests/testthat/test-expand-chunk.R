@@ -113,18 +113,18 @@ test_that(".expand_chunk returns expected tibble - snp", {
     "SIFT4G_pred" =
       c("a", "a", "a", "a", "a", "a", "a", "a", "b", "b", "b", "b", "b", "b",
         "b", "b"),
-    "Ensembl_Regulatory_Build_Overviews" =
-      c("3", "3", "3", "3", "4", "4", "4", "4", "3", "3", "3", "3", "4", "4",
-        "4", "4"),
-    "Ensembl_Regulatory_Build_TFBS" =
-      c("5", "5", "6", "6", "5", "5", "6", "6", "5", "5", "6", "6", "5", "5",
-        "6", "6"),
     "GTEx_V6_gene" =
       c("1", "2", "1", "2", "1", "2", "1", "2", "1", "2", "1", "2", "1", "2",
         "1", "2"),
     "GTEx_V6_tissue" =
       c("1", "2", "1", "2", "1", "2", "1", "2", "1", "2", "1", "2", "1", "2",
-        "1", "2")
+        "1", "2"),
+    "Ensembl_Regulatory_Build_Overviews" =
+      c("3", "3", "3", "3", "4", "4", "4", "4", "3", "3", "3", "3", "4", "4",
+        "4", "4"),
+    "Ensembl_Regulatory_Build_TFBS" =
+      c("5", "5", "6", "6", "5", "5", "6", "6", "5", "5", "6", "6", "5", "5",
+        "6", "6")
   )
   result <- .expand_chunk(example_snp, freeze = 4)
   expect_identical(result, target)
@@ -188,6 +188,7 @@ test_that(".expand_chunk returns expected tibble - dbnsfp", {
     "SLR_test_statistic" = c("a", "b", "b"),
     "codonpos" = c("a", "b", "b"),
     "fold_degenerate" = c("a", "b", "b"),
+    "Ensembl_geneid" = c("a", "b", "c"),
     "aapos" = c("a", "b", "b"),
     "Polyphen2_HDIV_score" = c("a", "b", "b"),
     "Polyphen2_HDIV_rankscore" = c("a", "b", "b"),
@@ -218,8 +219,7 @@ test_that(".expand_chunk returns expected tibble - dbnsfp", {
     "VEST3_rankscore" = c("a", "b", "b"),
     "PROVEAN_score" = c("a", "b", "b"),
     "PROVEAN_converted_rankscore" = c("a", "b", "b"),
-    "PROVEAN_pred" = c("a", "b", "b"),
-    "Ensembl_geneid" = c("a", "b", "c")
+    "PROVEAN_pred" = c("a", "b", "b")
   )
   result <- .expand_chunk(example_dbnsfp, freeze = 4, dbnsfp_flag = TRUE)
   expect_identical(result, target)
@@ -318,18 +318,18 @@ test_that(".expand_chunk returns expected tibble - indel", {
     "VEP_ensembl_LoF_info" =
       c("a", "a", "a", "a", "a", "a", "a", "a", "b", "b", "b", "b", "b", "b",
         "b", "b"),
-    "Ensembl_Regulatory_Build_Overviews" =
-      c("3", "3", "3", "3", "4", "4", "4", "4", "3", "3", "3", "3", "4", "4",
-        "4", "4"),
-    "Ensembl_Regulatory_Build_TFBS" =
-      c("5", "5", "6", "6", "5", "5", "6", "6", "5", "5", "6", "6", "5", "5",
-        "6", "6"),
     "GTEx_V6_gene" =
       c("1", "2", "1", "2", "1", "2", "1", "2", "1", "2", "1", "2", "1", "2",
         "1", "2"),
     "GTEx_V6_tissue" =
       c("1", "2", "1", "2", "1", "2", "1", "2", "1", "2", "1", "2", "1", "2",
-        "1", "2")
+        "1", "2"),
+    "Ensembl_Regulatory_Build_Overviews" =
+      c("3", "3", "3", "3", "4", "4", "4", "4", "3", "3", "3", "3", "4", "4",
+        "4", "4"),
+    "Ensembl_Regulatory_Build_TFBS" =
+      c("5", "5", "6", "6", "5", "5", "6", "6", "5", "5", "6", "6", "5", "5",
+        "6", "6")
   )
   result <- .expand_chunk(example_indel, freeze = 4, indel_flag = TRUE)
   expect_identical(result, target)
