@@ -1,5 +1,113 @@
 # functions for working with configuration files--------------------------------
 
+#' @importFrom magrittr "%>%"
+#' @noRd
+.clean_config <- function(config_tibble) {
+  # remove rows with field == NA, select required cols, and order output
+  cleaned_config <- config_tibble %>%
+    dplyr::filter(!(is.na(.data$field))) %>%
+    dplyr::select(field, SNV, indel, dbnsfp, sourceGroup, pivotGroup, #nolint
+                  pivotChar, parseGroup, transformation) #nolint
+
+  # replace NA values with FALSE for some columns
+  cleaned_config <- cleaned_config %>%
+    tidyr::replace_na(list(SNV = FALSE, indel = FALSE, dbnsfp = FALSE))
+
+  # drop rows that don't have at a TRUE for SNV, indel, or dbnsfp
+  cleaned_config <- cleaned_config %>%
+    dplyr::filter(.data$SNV | .data$indel | .data$dbnsfp)
+
+  return(cleaned_config)
+}
+
+
+#' @importFrom magrittr "%>%"
+#' @noRd
+.validate_config <- function(config_tibble) {
+  # check required columns are there
+  required_columns <-
+    c(
+      "field",
+      "SNV",
+      "indel",
+      "dbnsfp",
+      "sourceGroup",
+      "pivotGroup",
+      "pivotChar",
+      "parseGroup",
+      "transformation"
+    )
+
+  if (!(all(required_columns %in% colnames(config_tibble)))) {
+    stop("Required columns are not in config tibble")
+  }
+
+  # check SNV field has allowed values
+  if (!all(levels(as.factor(config_tibble$SNV)) %in% c(TRUE, FALSE))) {
+    stop("SNV field has values other than TRUE, FALSE, or NA")
+  }
+
+  # check indel field is logical
+  if (!all(levels(as.factor(config_tibble$indel)) %in% c(TRUE, FALSE))) {
+    stop("indel field has values other than TRUE, FALSE, or NA")
+  }
+
+  # check dbnsfp field is logical
+  if (!all(levels(as.factor(config_tibble$dbnsfp)) %in% c(TRUE, FALSE))) {
+    stop("dbnsfp field has values other than TRUE, FALSE, or NA")
+  }
+
+  # check transformation field for allowed values
+  if (!all(levels(as.factor(config_tibble$transformation)) %in%
+           c("max", "min", "pick_Y", "pick_N", "pick_A", "clean",
+             "distinct"))) {
+    stop("transformation field has unrecognized values")
+  }
+
+  # pivotChar is the same within pivotGroup
+  char_count <- config_tibble %>%
+    dplyr::filter(!is.na(.$pivotGroup)) %>% #nolint
+    dplyr::group_by(pivotGroup) %>% #nolint
+    dplyr::summarize_at(
+      .funs = dplyr::funs(dplyr::n_distinct(levels(as.factor(.)))),
+      .vars = "pivotChar")
+
+  if (any(char_count$pivotChar != 1)) { #nolint
+    stop("all pivotChar values must be the same withinin a pivotGroup")
+  }
+
+  # transformation is the same within parseGroup
+
+  # first, define a summary function to check whether any transformation
+  # fields are not in the same as the first one in that group or NA
+  # for example, a pair, transformation may be c("max", NA), but cannot
+  # be c("max", "min")
+  check_too_many <- function(character) {
+    !all(character %in% c(character[[1]], NA))
+  }
+
+  # now group the transformations by parseGroup and summarize
+  # with check_too_many()
+  trans_count <- config_tibble %>%
+    dplyr::filter(!is.na(.$parseGroup)) %>% #nolint
+    dplyr::group_by(parseGroup) %>% #nolint
+    dplyr::arrange(transformation, .by_group = TRUE) %>%
+    dplyr::summarize_at(
+      .funs = dplyr::funs(check_too_many(.)),
+      .vars = "transformation")
+
+  if (any(trans_count$transformation)) {
+    stop("all transformation values must be the same withinin a parseGroup")
+  }
+
+  # other validation possibilities:
+  # values in config_tibble$field match column headings in WGSA file
+  # sourceGroup numerical values
+  # pivotGroup numerical values
+  # pivotChar single character
+  # parseGroup numerical values
+}
+
 #' Load and validate configuration file
 #'
 #' WGSAParsr configuration files are flexible tab-separated files. They must
@@ -63,114 +171,6 @@ load_config <- function(config_path) {
   config <- .clean_config(raw_config)
   return(config)
 }
-
-#' @importFrom magrittr "%>%"
-#' @noRd
-.validate_config <- function(config_tibble) {
-  # check required columns are there
-  required_columns <-
-    c(
-      "field",
-      "SNV",
-      "indel",
-      "dbnsfp",
-      "sourceGroup",
-      "pivotGroup",
-      "pivotChar",
-      "parseGroup",
-      "transformation"
-    )
-
-  if (!(all(required_columns %in% colnames(config_tibble)))) {
-    stop("Required columns are not in config tibble")
-  }
-
-  # check SNV field has allowed values
-  if (!all(levels(as.factor(config_tibble$SNV)) %in% c(TRUE, FALSE))) {
-    stop("SNV field has values other than TRUE, FALSE, or NA")
-  }
-
-  # check indel field is logical
-  if (!all(levels(as.factor(config_tibble$indel)) %in% c(TRUE, FALSE))) {
-    stop("indel field has values other than TRUE, FALSE, or NA")
-  }
-
-  # check dbnsfp field is logical
-  if (!all(levels(as.factor(config_tibble$dbnsfp)) %in% c(TRUE, FALSE))) {
-    stop("dbnsfp field has values other than TRUE, FALSE, or NA")
-  }
-
-  # check transformation field for allowed values
-  if (!all(levels(as.factor(config_tibble$transformation)) %in%
-           c("max", "min", "pick_Y", "pick_N", "pick_A", "clean",
-             "distinct"))) {
-    stop("transformation field has unrecognized values")
-  }
-
-  # pivotChar is the same within pivotGroup
-  char_count <- config_tibble %>%
-    dplyr::filter(!is.na(.$pivotGroup)) %>% #nolint
-    dplyr::group_by(pivotGroup) %>% #nolint
-    dplyr::summarize_at(
-      .funs = dplyr::funs(dplyr::n_distinct(levels(as.factor(.)))),
-      .vars = "pivotChar")
-
-    if (any(char_count$pivotChar != 1)) { #nolint
-      stop("all pivotChar values must be the same withinin a pivotGroup")
-    }
-
-  # transformation is the same within parseGroup
-
-  # first, define a summary function to check whether any transformation
-  # fields are not in the same as the first one in that group or NA
-  # for example, a pair, transformation may be c("max", NA), but cannot
-  # be c("max", "min")
-  check_too_many <- function(character) {
-    !all(character %in% c(character[[1]], NA))
-  }
-
-  # now group the transformations by parseGroup and summarize
-  # with check_too_many()
-  trans_count <- config_tibble %>%
-    dplyr::filter(!is.na(.$parseGroup)) %>% #nolint
-    dplyr::group_by(parseGroup) %>% #nolint
-    dplyr::arrange(transformation, .by_group = TRUE) %>%
-    dplyr::summarize_at(
-      .funs = dplyr::funs(check_too_many(.)),
-      .vars = "transformation")
-
-  if (any(trans_count$transformation)) {
-    stop("all transformation values must be the same withinin a parseGroup")
-  }
-
-  # other validation possibilities:
-  # values in config_tibble$field match column headings in WGSA file
-  # sourceGroup numerical values
-  # pivotGroup numerical values
-  # pivotChar single character
-  # parseGroup numerical values
-}
-
-#' @importFrom magrittr "%>%"
-#' @noRd
-.clean_config <- function(config_tibble) {
-  # remove rows with field == NA, select required cols, and order output
-  cleaned_config <- config_tibble %>%
-    dplyr::filter(!(is.na(.data$field))) %>%
-    dplyr::select(field, SNV, indel, dbnsfp, sourceGroup, pivotGroup, #nolint
-           pivotChar, parseGroup, transformation) #nolint
-
-  # replace NA values with FALSE for some columns
-  cleaned_config <- cleaned_config %>%
-    tidyr::replace_na(list(SNV = FALSE, indel = FALSE, dbnsfp = FALSE))
-
-  # drop rows that don't have at a TRUE for SNV, indel, or dbnsfp
-  cleaned_config <- cleaned_config %>%
-    dplyr::filter(.data$SNV | .data$indel | .data$dbnsfp)
-
-  return(cleaned_config)
-}
-
 
 #' extract the appropriate fields from a configuration tibble (such as produced
 #' by loadConfig())

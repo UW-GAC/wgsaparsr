@@ -30,9 +30,7 @@ test_that(".expand_chunk returns expected tibble - snp", {
     "SIFT4G_pred" = c("a|b"),
     "GTEx_V6_gene" = c("1|2"),
     "GTEx_V6_tissue" = c("1|2"),
-
     "Ensembl_Regulatory_Build_Overviews" = c("3;4"),
-
     "Ensembl_Regulatory_Build_TFBS" = c("5;6")
   )
 
@@ -221,7 +219,7 @@ test_that(".expand_chunk returns expected tibble - dbnsfp", {
     "PROVEAN_score" = c("a", "b", "b"),
     "PROVEAN_converted_rankscore" = c("a", "b", "b"),
     "PROVEAN_pred" = c("a", "b", "b"),
-    "Ensembl_geneid" = c("a", "b", "c"),
+    "Ensembl_geneid" = c("a", "b", "c")
   )
   result <- .expand_chunk(example_dbnsfp, freeze = 4, dbnsfp_flag = TRUE)
   expect_identical(result, target)

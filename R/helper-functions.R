@@ -95,36 +95,37 @@ utils::globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance",
     } else {
       to_split_VEP <- .get_list("fr_4_snv_to_split_VEP")
     }
-#    to_split_TFBS <- .get_list("fr_4_snv_to_split_TFBS") #nolint
+    #    to_split_TFBS <- .get_list("fr_4_snv_to_split_TFBS") #nolint
     to_split_GTEx_V6 <- .get_list("fr_4_snv_to_split_GTEx_V6")
-  }
 
-  # pivot most fields by | for dbnsfp chunk-------------------------------------
-  if (dbnsfp_flag == TRUE) {
-    expanded <- selected_columns %>%
-      separate_rows(one_of(to_split), sep = "\\|") %>%
-      separate_rows(one_of(c("Ensembl_geneid")), sep = ";") %>%
-      distinct()
-  } else {
-    # pivot the VEP_* fields by | for snp and indel chunks----------------------
-    expanded <- selected_columns %>%
-      separate_rows(one_of(to_split_VEP), sep = "\\|")
 
-    # pivot the ENCODE_TFBS_* fields by ;---------------------------------------
-    # expanded <- expanded %>% #nolint
-    #   separate_rows(one_of(to_split_TFBS), sep = ";") #nolint
+    # pivot most fields by | for dbnsfp chunk-----------------------------------
+    if (dbnsfp_flag == TRUE) {
+      expanded <- selected_columns %>%
+        separate_rows(one_of(to_split), sep = "\\|") %>%
+        separate_rows(one_of(c("Ensembl_geneid")), sep = ";") %>%
+        distinct()
+    } else {
+      # pivot the VEP_* fields by | for snp and indel chunks--------------------
+      expanded <- selected_columns %>%
+        separate_rows(one_of(to_split_VEP), sep = "\\|")
 
-    # pivot the Ensembl_Regulatory_Build_Overviews field by ;-------------------
-    expanded <- expanded %>%
-      separate_rows(one_of("Ensembl_Regulatory_Build_Overviews"), sep = ";")
+      # pivot the ENCODE_TFBS_* fields by ;-------------------------------------
+      # expanded <- expanded %>% #nolint
+      #   separate_rows(one_of(to_split_TFBS), sep = ";") #nolint
 
-    # pivot the Ensembl_Regulatory_Build_TFBS field by ;------------------------
-    expanded <- expanded %>%
-      separate_rows(one_of("Ensembl_Regulatory_Build_TFBS"), sep = ";")
+      # pivot the Ensembl_Regulatory_Build_Overviews field by ;-----------------
+      expanded <- expanded %>%
+        separate_rows(one_of("Ensembl_Regulatory_Build_Overviews"), sep = ";")
 
-    # pivot the GTEx_V6 fields by |---------------------------------------------
-    expanded <- expanded %>%
-      separate_rows(one_of(to_split_GTEx_V6), sep = "\\|")
+      # pivot the Ensembl_Regulatory_Build_TFBS field by ;----------------------
+      expanded <- expanded %>%
+        separate_rows(one_of("Ensembl_Regulatory_Build_TFBS"), sep = ";")
+
+      # pivot the GTEx_V6 fields by |-------------------------------------------
+      expanded <- expanded %>%
+        separate_rows(one_of(to_split_GTEx_V6), sep = "\\|")
+    }
   }
   # remove duplicate rows
   expanded <- distinct(expanded)
