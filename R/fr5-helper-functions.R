@@ -5,6 +5,9 @@
 #' @importFrom magrittr "%>%"
 #' @noRd
 .preserve_raw <- function(selected_columns, to_parse) {
+  if (length(to_parse) == 0) {
+    return(selected_columns)
+  }
   selected_columns <- selected_columns %>%
     dplyr::bind_cols(dplyr::select_at(
       .,
@@ -346,16 +349,19 @@
     stop("pair_columns must be a list")
   }
   # perhaps map()?
+  parsed_columns <- selected_columns
   for (pair in pair_columns) {
     if (length(pair) == 1){
-      selected_columns <- .preserve_raw(selected_columns, unlist(pair))
-      return(.parse_max_columns(selected_columns, unlist(pair)))
+      parsed_columns <- .preserve_raw(parsed_columns, unlist(pair))
+      parsed_columns <- .parse_max_columns(parsed_columns, unlist(pair))
+      next
     }
     if (length(pair) != 2){
       stop("pair columns not length 1 or 2")
     }
     stop("a stub for now")
   }
+  return(parsed_columns)
 }
 
 #' @importFrom magrittr "%>%"
@@ -365,16 +371,19 @@
     stop("pair_columns must be a list")
   }
   # perhaps map()?
+  parsed_columns <- selected_columns
   for (pair in pair_columns) {
     if (length(pair) == 1){
-      selected_columns <- .preserve_raw(selected_columns, unlist(pair))
-      return(.parse_min_columns(selected_columns, unlist(pair)))
+      parsed_columns <- .preserve_raw(parsed_columns, unlist(pair))
+      parsed_columns <- .parse_min_columns(parsed_columns, unlist(pair))
+      next
     }
     if (length(pair) != 2){
       stop("pair columns not length 1 or 2")
     }
     stop("a stub for now")
   }
+  return(parsed_columns)
 }
 
 
@@ -387,21 +396,23 @@
     stop("pair_columns must be a list")
   }
   # perhaps map()?
+  parsed_columns <- selected_columns
   for (pair in pair_columns) {
     if (length(pair) == 1){
-      selected_columns <- .preserve_raw(selected_columns, unlist(pair))
-      return(.parse_a_columns(selected_columns, unlist(pair)))
+      parsed_columns <- .preserve_raw(parsed_columns, unlist(pair))
+      parsed_columns <- .parse_a_columns(parsed_columns, unlist(pair))
+      next
     }
     if (length(pair) != 2){
       stop("pair columns not length 1 or 2")
     }
 
-    selected_columns <- .preserve_raw(selected_columns, unlist(pair))
+    parsed_columns <- .preserve_raw(parsed_columns, unlist(pair))
     current_pair <- rlang::syms(pair)
     # assumes pred_name <- pair[[1]], score_name <- pair[[2]]
-    selected_columns <-
+    parsed_columns <-
       suppressWarnings(
-        selected_columns %>%
+        parsed_columns %>%
           dplyr::mutate(
             # If A present keep A,
             # else if D present keep D,
@@ -445,7 +456,24 @@
           )
       )
   }
-  return(selected_columns)
+  return(parsed_columns)
+}
+
+#' @importFrom magrittr "%>%"
+#' @noRd
+.pivot_fields <- function(selected_columns, pivot_columns) {
+  if (typeof(pivot_columns) != "list") {
+    stop("pivot_columns must be a list")
+  }
+  # perhaps map()?
+  pivoted_columns <- selected_columns
+  for (pivot_set in pivot_columns) {
+    regexp <- paste0("\\", pivot_set$pivotChar[[1]]) #nolint
+    pivoted_columns <- pivoted_columns %>%
+      tidyr::separate_rows(dplyr::one_of(pivot_set$field), sep = regexp)
+  }
+  pivoted_columns <- dplyr::distinct(pivoted_columns)
+  return(pivoted_columns)
 }
 
 #' @noRd

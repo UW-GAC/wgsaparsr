@@ -253,22 +253,28 @@ test_that(".get_list_from_config() returns expected 'distinct' list for SNV", {
   expect_identical(result, target)
 })
 
-test_that(".get_list_from_config() returns expected 'pivots' tibble for SNV", {
+test_that(".get_list_from_config() returns expected 'pivots' list for SNV", {
   test_config <- dplyr::tibble(
-    field = c("Header 1", "Header 2", "Header 3"),
-    SNV = c(TRUE, FALSE, FALSE),
-    indel = c(FALSE, TRUE, FALSE),
-    dbnsfp = c(FALSE, FALSE, TRUE),
-    sourceGroup = c("1", "2", "3"),
-    pivotGroup = c("1", "1", "1"),
-    pivotChar = c("|", "|", "|"),
-    parseGroup = c("1", NA, "1"),
-    transformation = c(NA, "min", "max")
+    field = c("Header 1", "Header 2", "Header 3", "Header 4"),
+    SNV = c(TRUE, TRUE, TRUE, TRUE),
+    indel = c(FALSE, TRUE, FALSE, FALSE),
+    dbnsfp = c(FALSE, FALSE, TRUE, FALSE),
+    sourceGroup = c("1", "2", "3", "4"),
+    pivotGroup = c("1", "1", "2", "2"),
+    pivotChar = c("|", "|", ";", ";"),
+    parseGroup = c("1", NA, "1", NA),
+    transformation = c(NA, "min", "max", NA)
   )
 
-  target <- dplyr::tibble(field = "Header 1",
-                   pivotGroup = c("1"),
-                   pivotChar = c("|"))
+  target <- list(
+    "1" = dplyr::tibble(field = c("Header 1", "Header 2"),
+                        pivotChar = c("|", "|")
+    ),
+    "2" = dplyr::tibble(field = c("Header 3", "Header 4"),
+                        pivotChar = c(";", ";")
+    )
+  )
+
   result <- .get_list_from_config(test_config, "pivots", "SNV")
   expect_identical(result, target)
 })
@@ -286,30 +292,11 @@ test_that(".get_list_from_config() returns expected 'pivots' tibble for SNV", {
     transformation = c("clean", "min", NA)
   )
 
-  target <- dplyr::tibble(field = c("Header 1", "Header 2"),
-                   pivotGroup = c("1", "1"),
-                   pivotChar = c("|", "|"))
-  result <- .get_list_from_config(test_config, "pivots", "SNV")
-  expect_identical(result, target)
-})
-
-test_that(".get_list_from_config() returns expected 'pivots' tibble for SNV", {
-  test_config <- dplyr::tibble(
-    field = c("Header 1", "Header 2", "Header 3", "Header 4"),
-    SNV = c(TRUE, TRUE, TRUE, TRUE),
-    indel = c(FALSE, TRUE, FALSE, FALSE),
-    dbnsfp = c(FALSE, FALSE, TRUE, TRUE),
-    sourceGroup = c("1", "2", "3", "4"),
-    pivotGroup = c("1", "1", "2", "2"),
-    pivotChar = c("|", "|", ";", ";"),
-    parseGroup = c("1", NA, "2", NA),
-    transformation = c("clean", NA, "min", NA)
+  target <- list(
+    "1" = dplyr::tibble(field = c("Header 1", "Header 2"),
+                        pivotChar = c("|", "|")
+    )
   )
-
-  target <- dplyr::tibble(field = c("Header 1", "Header 2", "Header 3",
-                                    "Header 4"),
-                          pivotGroup = c("1", "1", "2", "2"),
-                          pivotChar = c("|", "|", ";", ";"))
   result <- .get_list_from_config(test_config, "pivots", "SNV")
   expect_identical(result, target)
 })
