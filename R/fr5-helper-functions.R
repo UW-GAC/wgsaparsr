@@ -386,6 +386,49 @@
   return(parsed_columns)
 }
 
+#' @importFrom magrittr "%>%"
+#' @noRd
+.parse_pairs_pick_y <- function(selected_columns, pair_columns) {
+  if (typeof(pair_columns) != "list") {
+    stop("pair_columns must be a list")
+  }
+  # perhaps map()?
+  parsed_columns <- selected_columns
+  for (pair in pair_columns) {
+    if (length(pair) == 1){
+      parsed_columns <- .preserve_raw(parsed_columns, unlist(pair))
+      parsed_columns <- .parse_yes_columns(parsed_columns, unlist(pair))
+      next
+    }
+    if (length(pair) != 2){
+      stop("pair columns not length 1 or 2")
+    }
+    stop(".parse_pairs_pick_y() not implemented yet")
+  }
+  return(parsed_columns)
+}
+
+#' @importFrom magrittr "%>%"
+#' @noRd
+.parse_pairs_pick_n <- function(selected_columns, pair_columns) {
+  if (typeof(pair_columns) != "list") {
+    stop("pair_columns must be a list")
+  }
+  # perhaps map()?
+  parsed_columns <- selected_columns
+  for (pair in pair_columns) {
+    if (length(pair) == 1){
+      parsed_columns <- .preserve_raw(parsed_columns, unlist(pair))
+      parsed_columns <- .parse_no_columns(parsed_columns, unlist(pair))
+      next
+    }
+    if (length(pair) != 2){
+      stop("pair columns not length 1 or 2")
+    }
+    stop(".parse_pairs_pick_n() not implemented yet")
+  }
+  return(parsed_columns)
+}
 
 #' @importFrom magrittr "%>%"
 #' @importFrom rlang "!!"
@@ -474,6 +517,166 @@
   }
   pivoted_columns <- dplyr::distinct(pivoted_columns)
   return(pivoted_columns)
+}
+
+#' chunk = with colnames, as from wgsaparsr:::.get_fields_from_chunk()
+#' config = tibble as from load_config()
+#' type = "SNV"|"indel"
+#' @importFrom magrittr "%>%"
+#' @noRd
+.parse_then_pivot <- function(chunk, config, type) {
+  # check args---------------------------
+  if (!(type %in% c("SNV", "indel"))) {
+    stop('type must be one of "SNV" or "indel"')
+  }
+
+  .validate_config(config)
+
+  # get desired fields from config to validate
+  desired <- .get_list_from_config(config, "desired", type)
+
+  # validate the config against chunk
+  if (!all(unlist(desired) %in% names(chunk))) {
+    stop("not all desired fields are in sourcefile")
+  }
+
+  # build lists from config file---------
+  # fields that are transformed by themselves:
+  parse_max <- .get_list_from_config(config, "max", type)
+  parse_min <- .get_list_from_config(config, "min", type)
+  pick_y <- .get_list_from_config(config, "pick_Y", type)
+  pick_n <- .get_list_from_config(config, "pick_N", type)
+  pick_a <- .get_list_from_config(config, "pick_A", type)
+  parse_clean <- .get_list_from_config(config, "clean", type)
+  parse_distinct <- .get_list_from_config(config, "distinct", type)
+
+  # fields that are transformed as pairs:
+  parse_pairs_max <- .get_list_from_config(config, "max_pairs", type)
+  parse_pairs_min <- .get_list_from_config(config, "min_pairs", type)
+  parse_pairs_pick_y <- .get_list_from_config(config, "pick_Y_pairs", type)
+  parse_pairs_pick_n <- .get_list_from_config(config, "pick_N_pairs", type)
+  parse_pairs_pick_a <- .get_list_from_config(config, "pick_A_pairs", type)
+
+  # pivoting
+  to_pivot <- .get_list_from_config(config, "pivots", type)
+
+  # select the variables from chunk----------
+  selected <- chunk %>% dplyr::select(unlist(desired))
+
+  # parse the chunk single fields-------------
+  # preserve unparsed, first (maybe with flag?)
+  parsed <- .preserve_raw(selected, unlist(parse_max))
+  parsed <- .parse_max_columns(parsed, unlist(parse_max))
+
+  parsed <- .preserve_raw(parsed, unlist(parse_min))
+  parsed <- .parse_min_columns(parsed, unlist(parse_min))
+
+  parsed <- .preserve_raw(parsed, unlist(pick_y))
+  parsed <- .parse_yes_columns(parsed, unlist(pick_y))
+
+  parsed <- .preserve_raw(parsed, unlist(pick_n))
+  parsed <- .parse_no_columns(parsed, unlist(pick_n))
+
+  parsed <- .preserve_raw(parsed, unlist(pick_a))
+  parsed <- .parse_a_columns(parsed, unlist(pick_a))
+
+  parsed <- .preserve_raw(parsed, unlist(parse_clean))
+  parsed <- .parse_clean(parsed, unlist(parse_clean))
+
+  parsed <- .preserve_raw(parsed, unlist(parse_distinct))
+  parsed <- .parse_distinct(parsed, unlist(parse_distinct))
+
+  # parse the chunk pair fields-------------
+  parsed <- .parse_pairs_max(parsed, parse_pairs_max)
+  parsed <- .parse_pairs_min(parsed, parse_pairs_min)
+  parsed <- .parse_pairs_pick_y(parsed, parse_pairs_pick_y)
+  parsed <- .parse_pairs_pick_n(parsed, parse_pairs_pick_n)
+  parsed <- .parse_pairs_a(parsed, parse_pairs_pick_a)
+
+  # pivot chunk on pivot fields--------------
+  pivoted <- .pivot_fields(parsed, to_pivot)
+
+  return(pivoted)
+}
+
+#' chunk = with colnames, as from wgsaparsr:::.get_fields_from_chunk()
+#' config = tibble as from load_config()
+#' type = "dbnsfp"
+#' @importFrom magrittr "%>%"
+#' @noRd
+.pivot_then_parse <- function(chunk, config, type = "dbnsfp") {
+  # check args---------------------------
+  if (!(type %in% c("dbnsfp"))) {
+    stop('type must be "dbnsfp"')
+  }
+
+  .validate_config(config)
+
+  # get desired fields from config to validate
+  desired <- .get_list_from_config(config, "desired", type)
+
+  # validate the config against chunk-----
+  if (!all(unlist(desired) %in% names(chunk))) {
+    stop("not all desired fields are in sourcefile")
+  }
+
+  # build lists from config file---------
+  # fields that are transformed by themselves:
+  parse_max <- .get_list_from_config(config, "max", type)
+  parse_min <- .get_list_from_config(config, "min", type)
+  pick_y <- .get_list_from_config(config, "pick_Y", type)
+  pick_n <- .get_list_from_config(config, "pick_N", type)
+  pick_a <- .get_list_from_config(config, "pick_A", type)
+  parse_clean <- .get_list_from_config(config, "clean", type)
+  parse_distinct <- .get_list_from_config(config, "distinct", type)
+
+  # fields that are transformed as pairs:
+  parse_pairs_max <- .get_list_from_config(config, "max_pairs", type)
+  parse_pairs_min <- .get_list_from_config(config, "min_pairs", type)
+  parse_pairs_pick_y <- .get_list_from_config(config, "pick_Y_pairs", type)
+  parse_pairs_pick_n <- .get_list_from_config(config, "pick_N_pairs", type)
+  parse_pairs_pick_a <- .get_list_from_config(config, "pick_A_pairs", type)
+
+  # pivoting
+  to_pivot <- .get_list_from_config(config, "pivots", type)
+
+  # select the variables from chunk----------
+  selected <- chunk %>% dplyr::select(unlist(desired))
+
+  # pivot chunk on pivot fields--------------
+  pivoted <- .pivot_fields(selected, to_pivot)
+
+  # parse the chunk single fields-------------
+  # preserve unparsed, first (maybe with flag?)
+  parsed <- .preserve_raw(pivoted, unlist(parse_max))
+  parsed <- .parse_max_columns(parsed, unlist(parse_max))
+
+  parsed <- .preserve_raw(parsed, unlist(parse_min))
+  parsed <- .parse_min_columns(parsed, unlist(parse_min))
+
+  parsed <- .preserve_raw(parsed, unlist(pick_y))
+  parsed <- .parse_yes_columns(parsed, unlist(pick_y))
+
+  parsed <- .preserve_raw(parsed, unlist(pick_n))
+  parsed <- .parse_no_columns(parsed, unlist(pick_n))
+
+  parsed <- .preserve_raw(parsed, unlist(pick_a))
+  parsed <- .parse_a_columns(parsed, unlist(pick_a))
+
+  parsed <- .preserve_raw(parsed, unlist(parse_clean))
+  parsed <- .parse_clean(parsed, unlist(parse_clean))
+
+  parsed <- .preserve_raw(parsed, unlist(parse_distinct))
+  parsed <- .parse_distinct(parsed, unlist(parse_distinct))
+
+  # parse the chunk pair fields-------------
+  parsed <- .parse_pairs_max(parsed, parse_pairs_max)
+  parsed <- .parse_pairs_min(parsed, parse_pairs_min)
+  parsed <- .parse_pairs_pick_y(parsed, parse_pairs_pick_y)
+  parsed <- .parse_pairs_pick_n(parsed, parse_pairs_pick_n)
+  parsed <- .parse_pairs_a(parsed, parse_pairs_pick_a)
+
+  return(parsed)
 }
 
 #' @noRd
