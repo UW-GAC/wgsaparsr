@@ -343,6 +343,7 @@
 }
 
 #' @importFrom magrittr "%>%"
+#' @importFrom rlang ":="
 #' @noRd
 .parse_pairs_max <- function(selected_columns, pair_columns) {
   if (typeof(pair_columns) != "list") {
@@ -351,6 +352,7 @@
   # perhaps map()?
   parsed_columns <- selected_columns
   for (pair in pair_columns) {
+    # if a single, pass it along.
     if (length(pair) == 1){
       parsed_columns <- .preserve_raw(parsed_columns, unlist(pair))
       parsed_columns <- .parse_max_columns(parsed_columns, unlist(pair))
@@ -359,7 +361,56 @@
     if (length(pair) != 2){
       stop("pair columns not length 1 or 2")
     }
-    stop("a stub for now")
+    # if we've really got a pair, parse them.
+    current_pair <- rlang::syms(pair)
+    score_name <- pair[[1]]
+    pred_name <- pair[[2]]
+    unparsed_score_name <- paste0(score_name, "_unparsed")
+    unparsed_pred_name <- paste0(pred_name, "_unparsed")
+
+    parsed_columns <-
+      suppressWarnings(
+        parsed_columns %>%
+          dplyr::mutate(
+            p_list = stringr::str_split(rlang::UQ(current_pair[[1]]), ";"),
+            p_list = purrr::map(p_list, as.numeric),
+            p_max = purrr::map_dbl(p_list, max, na.rm = TRUE),
+            p_max = as.character(p_max),
+            p_max = ifelse( (p_max == "-Inf"), ".", p_max),
+            match_mask = purrr::map2(p_list, p_max, stringr::str_detect),
+            # replace NA with false
+            match_mask = purrr::map(match_mask,
+                                    function(x)
+                                      replace(x, is.na(x), FALSE)),
+            # if all FALSE, change all to TRUE, then keep only first
+            match_mask = purrr::map(match_mask,
+                                    function(x)
+                                      if (all(x == FALSE))
+                                        ! x
+                                    else
+                                      x),
+            # if match_mask has more than one TRUE, keep only first TRUE
+            # -- thanks Adrienne!
+            match_mask = purrr::map(match_mask,
+                                    function(x)
+                                      x & !duplicated(x)),
+            r_list =  stringr::str_split(rlang::UQ(current_pair[[2]]), ";"),
+            r_corresponding = purrr::map2_chr(match_mask, r_list,
+                                              function(logical, string)
+                                                ifelse(length(string) == 1,
+                                                       string,
+                                                       subset(string, logical)))
+          ) %>%
+          dplyr::select(-p_list,
+                        -match_mask,
+                        -r_list) %>%
+          dplyr::rename(
+            rlang::UQ(unparsed_score_name) := rlang::UQ(current_pair[[1]]),
+            rlang::UQ(current_pair[[1]]) := p_max,
+            rlang::UQ(unparsed_pred_name) := rlang::UQ(current_pair[[2]]),
+            rlang::UQ(current_pair[[2]]) := r_corresponding
+          )
+      )
   }
   return(parsed_columns)
 }
@@ -373,6 +424,7 @@
   # perhaps map()?
   parsed_columns <- selected_columns
   for (pair in pair_columns) {
+    # if a single, pass it along.
     if (length(pair) == 1){
       parsed_columns <- .preserve_raw(parsed_columns, unlist(pair))
       parsed_columns <- .parse_min_columns(parsed_columns, unlist(pair))
@@ -381,14 +433,106 @@
     if (length(pair) != 2){
       stop("pair columns not length 1 or 2")
     }
-    stop("a stub for now")
+    # if we've really got a pair, parse them.
+    current_pair <- rlang::syms(pair)
+    score_name <- pair[[1]]
+    pred_name <- pair[[2]]
+    unparsed_score_name <- paste0(score_name, "_unparsed")
+    unparsed_pred_name <- paste0(pred_name, "_unparsed")
+
+    parsed_columns <-
+      suppressWarnings(
+        parsed_columns %>%
+          dplyr::mutate(
+            p_list = stringr::str_split(rlang::UQ(current_pair[[1]]), ";"),
+            p_list = purrr::map(p_list, as.numeric),
+            p_min = purrr::map_dbl(p_list, min, na.rm = TRUE),
+            p_min = as.character(p_min),
+            p_min = ifelse( (p_min == "Inf"), ".", p_min),
+            match_mask = purrr::map2(p_list, p_min, stringr::str_detect),
+            # replace NA with false
+            match_mask = purrr::map(match_mask,
+                                    function(x)
+                                      replace(x, is.na(x), FALSE)),
+            # if all FALSE, change all to TRUE, then keep only first
+            match_mask = purrr::map(match_mask,
+                                    function(x)
+                                      if (all(x == FALSE))
+                                        ! x
+                                    else
+                                      x),
+            # if match_mask has more than one TRUE, keep only first TRUE
+            # -- thanks Adrienne!
+            match_mask = purrr::map(match_mask,
+                                    function(x)
+                                      x & !duplicated(x)),
+            r_list =  stringr::str_split(rlang::UQ(current_pair[[2]]), ";"),
+            r_corresponding = purrr::map2_chr(match_mask, r_list,
+                                              function(logical, string)
+                                                ifelse(length(string) == 1,
+                                                       string,
+                                                       subset(string, logical)))
+          ) %>%
+          dplyr::select(-p_list,
+                        -match_mask,
+                        -r_list) %>%
+          dplyr::rename(
+            rlang::UQ(unparsed_score_name) := rlang::UQ(current_pair[[1]]),
+            rlang::UQ(current_pair[[1]]) := p_min,
+            rlang::UQ(unparsed_pred_name) := rlang::UQ(current_pair[[2]]),
+            rlang::UQ(current_pair[[2]]) := r_corresponding
+          )
+      )
   }
   return(parsed_columns)
 }
 
+#' @importFrom magrittr "%>%"
+#' @noRd
+.parse_pairs_pick_y <- function(selected_columns, pair_columns) {
+  if (typeof(pair_columns) != "list") {
+    stop("pair_columns must be a list")
+  }
+  # perhaps map()?
+  parsed_columns <- selected_columns
+  for (pair in pair_columns) {
+    if (length(pair) == 1){
+      parsed_columns <- .preserve_raw(parsed_columns, unlist(pair))
+      parsed_columns <- .parse_yes_columns(parsed_columns, unlist(pair))
+      next
+    }
+    if (length(pair) != 2){
+      stop("pair columns not length 1 or 2")
+    }
+    stop(".parse_pairs_pick_y() not implemented yet")
+  }
+  return(parsed_columns)
+}
 
 #' @importFrom magrittr "%>%"
-#' @importFrom rlang "!!"
+#' @noRd
+.parse_pairs_pick_n <- function(selected_columns, pair_columns) {
+  if (typeof(pair_columns) != "list") {
+    stop("pair_columns must be a list")
+  }
+  # perhaps map()?
+  parsed_columns <- selected_columns
+  for (pair in pair_columns) {
+    if (length(pair) == 1){
+      parsed_columns <- .preserve_raw(parsed_columns, unlist(pair))
+      parsed_columns <- .parse_no_columns(parsed_columns, unlist(pair))
+      next
+    }
+    if (length(pair) != 2){
+      stop("pair columns not length 1 or 2")
+    }
+    stop(".parse_pairs_pick_n() not implemented yet")
+  }
+  return(parsed_columns)
+}
+
+#' @importFrom magrittr "%>%"
+#' @importFrom rlang ":="
 #' @noRd
 #'
 .parse_pairs_a <- function(selected_columns, pair_columns) {
@@ -407,9 +551,13 @@
       stop("pair columns not length 1 or 2")
     }
 
-    parsed_columns <- .preserve_raw(parsed_columns, unlist(pair))
+    # if we've really got a pair, parse them.
     current_pair <- rlang::syms(pair)
-    # assumes pred_name <- pair[[1]], score_name <- pair[[2]]
+    score_name <- pair[[2]]
+    pred_name <- pair[[1]]
+    unparsed_score_name <- paste0(score_name, "_unparsed")
+    unparsed_pred_name <- paste0(pred_name, "_unparsed")
+
     parsed_columns <-
       suppressWarnings(
         parsed_columns %>%
@@ -420,39 +568,42 @@
             # else if N present keep N,
             # else .
             new_p = ifelse(
-              stringr::str_detect(!!current_pair[[1]], "A"),
+              stringr::str_detect(rlang::UQ(current_pair[[1]]), "A"),
               "A",
               ifelse(
-                stringr::str_detect(!!current_pair[[1]], "D"),
+                stringr::str_detect(rlang::UQ(current_pair[[1]]), "D"),
                 "D",
                 ifelse(
-                  stringr::str_detect(!!current_pair[[1]], "P"),
+                  stringr::str_detect(rlang::UQ(current_pair[[1]]), "P"),
                   "P",
-                  ifelse(stringr::str_detect(!!current_pair[[1]], "N"), "N",
+                  ifelse(stringr::str_detect(rlang::UQ(current_pair[[1]]), "N"),
+                         "N",
                          ".")
                 )
               )
             ),
-            p_list = stringr::str_split(!!current_pair[[1]], ";"),
+            p_list = stringr::str_split(rlang::UQ(current_pair[[1]]), ";"),
             match_mask = purrr::map2(p_list, new_p, stringr::str_detect),
             # if match_mask has more than one TRUE, keep only first TRUE
             # -- thanks Adrienne!
             match_mask = purrr::map(match_mask,
-                             function(x)
-                               x & !duplicated(x)),
-            r_list =  stringr::str_split(!!current_pair[[2]], ";"),
-            r_corresponding = purrr::map2_chr(match_mask, r_list,
+                                    function(x)
+                                      x & !duplicated(x)),
+            r_list =  stringr::str_split(UQ(current_pair[[2]]), ";"),
+            r_corresponding = map2_chr(match_mask, r_list,
                                        function(logical, string)
-                                         subset(string, logical))
+                                         ifelse(length(string) == 1,
+                                                string,
+                                                subset(string, logical)))
           ) %>%
           dplyr::select(-p_list,
-                 -match_mask,
-                 -r_list,
-                 -!!current_pair[[2]],
-                 -!!current_pair[[1]]) %>%
+                        -match_mask,
+                        -r_list) %>%
           dplyr::rename(
-            !!current_pair[[2]] := r_corresponding,
-            !!current_pair[[1]] := new_p
+            rlang::UQ(unparsed_score_name) := rlang::UQ(current_pair[[2]]),
+            rlang::UQ(current_pair[[2]]) := r_corresponding,
+            rlang::UQ(unparsed_pred_name) := rlang::UQ(current_pair[[1]]),
+            rlang::UQ(current_pair[[1]]) := new_p
           )
       )
   }
@@ -474,6 +625,166 @@
   }
   pivoted_columns <- dplyr::distinct(pivoted_columns)
   return(pivoted_columns)
+}
+
+#' chunk = with colnames, as from wgsaparsr:::.get_fields_from_chunk()
+#' config = tibble as from load_config()
+#' type = "SNV"|"indel"
+#' @importFrom magrittr "%>%"
+#' @noRd
+.parse_then_pivot <- function(chunk, config, type) {
+  # check args---------------------------
+  if (!(type %in% c("SNV", "indel"))) {
+    stop('type must be one of "SNV" or "indel"')
+  }
+
+  .validate_config(config)
+
+  # get desired fields from config to validate
+  desired <- .get_list_from_config(config, "desired", type)
+
+  # validate the config against chunk
+  if (!all(unlist(desired) %in% names(chunk))) {
+    stop("not all desired fields are in sourcefile")
+  }
+
+  # build lists from config file---------
+  # fields that are transformed by themselves:
+  parse_max <- .get_list_from_config(config, "max", type)
+  parse_min <- .get_list_from_config(config, "min", type)
+  pick_y <- .get_list_from_config(config, "pick_Y", type)
+  pick_n <- .get_list_from_config(config, "pick_N", type)
+  pick_a <- .get_list_from_config(config, "pick_A", type)
+  parse_clean <- .get_list_from_config(config, "clean", type)
+  parse_distinct <- .get_list_from_config(config, "distinct", type)
+
+  # fields that are transformed as pairs:
+  parse_pairs_max <- .get_list_from_config(config, "max_pairs", type)
+  parse_pairs_min <- .get_list_from_config(config, "min_pairs", type)
+  parse_pairs_pick_y <- .get_list_from_config(config, "pick_Y_pairs", type)
+  parse_pairs_pick_n <- .get_list_from_config(config, "pick_N_pairs", type)
+  parse_pairs_pick_a <- .get_list_from_config(config, "pick_A_pairs", type)
+
+  # pivoting
+  to_pivot <- .get_list_from_config(config, "pivots", type)
+
+  # select the variables from chunk----------
+  selected <- chunk %>% dplyr::select(unlist(desired))
+
+  # parse the chunk single fields-------------
+  # preserve unparsed, first (maybe with flag?)
+  parsed <- .preserve_raw(selected, unlist(parse_max))
+  parsed <- .parse_max_columns(parsed, unlist(parse_max))
+
+  parsed <- .preserve_raw(parsed, unlist(parse_min))
+  parsed <- .parse_min_columns(parsed, unlist(parse_min))
+
+  parsed <- .preserve_raw(parsed, unlist(pick_y))
+  parsed <- .parse_yes_columns(parsed, unlist(pick_y))
+
+  parsed <- .preserve_raw(parsed, unlist(pick_n))
+  parsed <- .parse_no_columns(parsed, unlist(pick_n))
+
+  parsed <- .preserve_raw(parsed, unlist(pick_a))
+  parsed <- .parse_a_columns(parsed, unlist(pick_a))
+
+  parsed <- .preserve_raw(parsed, unlist(parse_clean))
+  parsed <- .parse_clean(parsed, unlist(parse_clean))
+
+  parsed <- .preserve_raw(parsed, unlist(parse_distinct))
+  parsed <- .parse_distinct(parsed, unlist(parse_distinct))
+
+  # parse the chunk pair fields-------------
+  parsed <- .parse_pairs_max(parsed, parse_pairs_max)
+  parsed <- .parse_pairs_min(parsed, parse_pairs_min)
+  parsed <- .parse_pairs_pick_y(parsed, parse_pairs_pick_y)
+  parsed <- .parse_pairs_pick_n(parsed, parse_pairs_pick_n)
+  parsed <- .parse_pairs_a(parsed, parse_pairs_pick_a)
+
+  # pivot chunk on pivot fields--------------
+  pivoted <- .pivot_fields(parsed, to_pivot)
+
+  return(pivoted)
+}
+
+#' chunk = with colnames, as from wgsaparsr:::.get_fields_from_chunk()
+#' config = tibble as from load_config()
+#' type = "dbnsfp"
+#' @importFrom magrittr "%>%"
+#' @noRd
+.pivot_then_parse <- function(chunk, config, type = "dbnsfp") {
+  # check args---------------------------
+  if (!(type %in% c("dbnsfp"))) {
+    stop('type must be "dbnsfp"')
+  }
+
+  .validate_config(config)
+
+  # get desired fields from config to validate
+  desired <- .get_list_from_config(config, "desired", type)
+
+  # validate the config against chunk-----
+  if (!all(unlist(desired) %in% names(chunk))) {
+    stop("not all desired fields are in sourcefile")
+  }
+
+  # build lists from config file---------
+  # fields that are transformed by themselves:
+  parse_max <- .get_list_from_config(config, "max", type)
+  parse_min <- .get_list_from_config(config, "min", type)
+  pick_y <- .get_list_from_config(config, "pick_Y", type)
+  pick_n <- .get_list_from_config(config, "pick_N", type)
+  pick_a <- .get_list_from_config(config, "pick_A", type)
+  parse_clean <- .get_list_from_config(config, "clean", type)
+  parse_distinct <- .get_list_from_config(config, "distinct", type)
+
+  # fields that are transformed as pairs:
+  parse_pairs_max <- .get_list_from_config(config, "max_pairs", type)
+  parse_pairs_min <- .get_list_from_config(config, "min_pairs", type)
+  parse_pairs_pick_y <- .get_list_from_config(config, "pick_Y_pairs", type)
+  parse_pairs_pick_n <- .get_list_from_config(config, "pick_N_pairs", type)
+  parse_pairs_pick_a <- .get_list_from_config(config, "pick_A_pairs", type)
+
+  # pivoting
+  to_pivot <- .get_list_from_config(config, "pivots", type)
+
+  # select the variables from chunk----------
+  selected <- chunk %>% dplyr::select(unlist(desired))
+
+  # pivot chunk on pivot fields--------------
+  pivoted <- .pivot_fields(selected, to_pivot)
+
+  # parse the chunk single fields-------------
+  # preserve unparsed, first (maybe with flag?)
+  parsed <- .preserve_raw(pivoted, unlist(parse_max))
+  parsed <- .parse_max_columns(parsed, unlist(parse_max))
+
+  parsed <- .preserve_raw(parsed, unlist(parse_min))
+  parsed <- .parse_min_columns(parsed, unlist(parse_min))
+
+  parsed <- .preserve_raw(parsed, unlist(pick_y))
+  parsed <- .parse_yes_columns(parsed, unlist(pick_y))
+
+  parsed <- .preserve_raw(parsed, unlist(pick_n))
+  parsed <- .parse_no_columns(parsed, unlist(pick_n))
+
+  parsed <- .preserve_raw(parsed, unlist(pick_a))
+  parsed <- .parse_a_columns(parsed, unlist(pick_a))
+
+  parsed <- .preserve_raw(parsed, unlist(parse_clean))
+  parsed <- .parse_clean(parsed, unlist(parse_clean))
+
+  parsed <- .preserve_raw(parsed, unlist(parse_distinct))
+  parsed <- .parse_distinct(parsed, unlist(parse_distinct))
+
+  # parse the chunk pair fields-------------
+  parsed <- .parse_pairs_max(parsed, parse_pairs_max)
+  parsed <- .parse_pairs_min(parsed, parse_pairs_min)
+  parsed <- .parse_pairs_pick_y(parsed, parse_pairs_pick_y)
+  parsed <- .parse_pairs_pick_n(parsed, parse_pairs_pick_n)
+  parsed <- .parse_pairs_a(parsed, parse_pairs_pick_a)
+
+  return(parsed)
 }
 
 #' @noRd
