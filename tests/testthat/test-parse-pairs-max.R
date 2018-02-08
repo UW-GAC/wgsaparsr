@@ -23,7 +23,7 @@ test_that(".parse_pairs_max() gives error if pair_columns is not a list", {
                "pair_columns must be a list")
 })
 
-test_that(".parse_pairs_max() gives error when parsing a pair", {
+test_that(".parse_pairs_max() gives error when parsing a tripple", {
   example <- dplyr::tibble(
     Eigen_PC_raw = c(".{1}", "-0.164398825586883{1}",
                      ".{5}-0.00506108216253831{4}0.0200792355286427{1}",
@@ -32,9 +32,9 @@ test_that(".parse_pairs_max() gives error when parsing a pair", {
                      ".{3}-0.0842385276257326{1}-0.0880785370562746{1}",
                      ".;-0.0842385276257326;-0.0880785370562746{1}"
     ),
-    fathmm_MKL_coding_score = c(".{1}", "0.87811{1}", ".{5}0.90605{5}",
-                                ".{5}0.90734{3}", ".{5}", ".{3}0.90912{2}",
-                                ".{3}0.90863{2}", "0.90863{3};0.90863{2}"),
+    "fathmm_MKL_coding_score" = c(".{1}", "0.87811{1}", ".{5}0.90605{5}",
+                                  ".{5}0.90734{3}", ".{5}", ".{3}0.90912{2}",
+                                  ".{3}0.90863{2}", "0.90863{3};0.90863{2}"),
     MAP20_149bp = c("0.0{1}", "0.004166664{1}", "0.015773803{10}",
                     "0.01666666{8}",
                     "0.09196428{1}0.09553571{1}0.09732143{1}0.09910714{1}",
@@ -42,10 +42,10 @@ test_that(".parse_pairs_max() gives error when parsing a pair", {
                     "0.19464286{1}0.19821429{1}0.20178571{1}0.20535715{1}",
                     "0.19464286{1};0.19821429{1}0.20178571{1};0.20535715{1}")
   )
-
-  expect_error(.parse_pairs_max(example,
-                                list(c("Eigen_PC_raw", "MAP20_149bp"))),
-               "a stub for now")
+  expect_error(.parse_pairs_max(example, list(c("Eigen_PC_raw",
+                                                "MAP20_149bp",
+                                                "fathmm_MKL_coding_score"))),
+               "pair columns not length 1 or 2")
 })
 
 test_that(".parse_pairs_max() returns expected tibble when parsing a single", {
@@ -93,27 +93,75 @@ test_that(".parse_pairs_max() returns expected tibble when parsing a single", {
   expect_identical(result, target)
 })
 
-test_that(".parse_pairs_max() gives error when parsing a tripple", {
-  example <- dplyr::tibble(
-    Eigen_PC_raw = c(".{1}", "-0.164398825586883{1}",
-                     ".{5}-0.00506108216253831{4}0.0200792355286427{1}",
-                     ".{5}0.636779480039485{1}0.651616016738356{2}", ".{5}",
-                     ".{3}0.382030178748437{1}0.394216023865136{1}",
-                     ".{3}-0.0842385276257326{1}-0.0880785370562746{1}",
-                     ".;-0.0842385276257326;-0.0880785370562746{1}"
-    ),
-    "fathmm_MKL_coding_score" = c(".{1}", "0.87811{1}", ".{5}0.90605{5}",
-                                ".{5}0.90734{3}", ".{5}", ".{3}0.90912{2}",
-                                ".{3}0.90863{2}", "0.90863{3};0.90863{2}"),
-    MAP20_149bp = c("0.0{1}", "0.004166664{1}", "0.015773803{10}",
-                    "0.01666666{8}",
-                    "0.09196428{1}0.09553571{1}0.09732143{1}0.09910714{1}",
-                    "0.11339285{1}0.12053571{1}0.12410714{1}0.12767857{1}",
-                    "0.19464286{1}0.19821429{1}0.20178571{1}0.20535715{1}",
-                    "0.19464286{1};0.19821429{1}0.20178571{1};0.20535715{1}")
+
+test_that(".parse_pairs_max() returns expected tibble when parsing a pair", {
+  example <- dplyr::tribble(
+    ~Polyphen2_HDIV_score, ~Polyphen2_HDIV_pred, ~Polyphen2_HVAR_score,
+    ~Polyphen2_HVAR_pred,
+    "0.941;0.941;0.146", "P;P;B", "0.688;0.688;0.138", "P;P;B",
+    "1.0;1.0;0.999", "D", "0.993;0.993;0.989", "D",
+    "0.325;0.325;0.243", "B", "0.21;0.21;0.136", "B",
+    "0.999;0.999;0.994", "D", "0.939;0.939;0.863", "D;D;P",
+    "0.96;0.96;0.931", "D;D;P", "0.814;0.814;0.699", "P"
   )
-  expect_error(.parse_pairs_max(example, list(c("Eigen_PC_raw",
-                                              "MAP20_149bp",
-                                              "fathmm_MKL_coding_score"))),
-               "pair columns not length 1 or 2")
+
+  target <- dplyr::tibble(
+    Polyphen2_HDIV_score_unparsed =
+      c("0.941;0.941;0.146", "1.0;1.0;0.999", "0.325;0.325;0.243",
+        "0.999;0.999;0.994", "0.96;0.96;0.931"),
+    Polyphen2_HDIV_pred_unparsed =
+      c("P;P;B", "D", "B", "D", "D;D;P"),
+    Polyphen2_HVAR_score =
+      c("0.688;0.688;0.138", "0.993;0.993;0.989", "0.21;0.21;0.136",
+        "0.939;0.939;0.863", "0.814;0.814;0.699"),
+    Polyphen2_HVAR_pred =
+      c("P;P;B", "D", "B", "D;D;P", "P"),
+    Polyphen2_HDIV_score =
+      c("0.941", "1", "0.325", "0.999", "0.96"),
+    Polyphen2_HDIV_pred =
+      c("P", "D", "B", "D", "D")
+  )
+  result <- .parse_pairs_max(example,
+                             list(c("Polyphen2_HDIV_score",
+                                    "Polyphen2_HDIV_pred")))
+  expect_identical(result, target)
+})
+
+test_that(".parse_pairs_max() returns expected tibble when parsing two pairs", {
+  example <- dplyr::tribble(
+    ~Polyphen2_HDIV_score, ~Polyphen2_HDIV_pred, ~Polyphen2_HVAR_score,
+    ~Polyphen2_HVAR_pred,
+    "0.941;0.941;0.146", "P;P;B", "0.688;0.688;0.138", "P;P;B",
+    "1.0;1.0;0.999", "D", "0.993;0.993;0.989", "D",
+    "0.325;0.325;0.243", "B", "0.21;0.21;0.136", "B",
+    "0.999;0.999;0.994", "D", "0.939;0.939;0.863", "D;D;P",
+    "0.96;0.96;0.931", "D;D;P", "0.814;0.814;0.699", "P"
+  )
+
+  target <- dplyr::tibble(
+    Polyphen2_HDIV_score_unparsed =
+      c("0.941;0.941;0.146", "1.0;1.0;0.999", "0.325;0.325;0.243",
+        "0.999;0.999;0.994", "0.96;0.96;0.931"),
+    Polyphen2_HDIV_pred_unparsed =
+      c("P;P;B", "D", "B", "D", "D;D;P"),
+    Polyphen2_HVAR_score_unparsed =
+      c("0.688;0.688;0.138", "0.993;0.993;0.989", "0.21;0.21;0.136",
+        "0.939;0.939;0.863", "0.814;0.814;0.699"),
+    Polyphen2_HVAR_pred_unparsed =
+      c("P;P;B", "D", "B", "D;D;P", "P"),
+    Polyphen2_HDIV_score =
+      c("0.941", "1", "0.325", "0.999", "0.96"),
+    Polyphen2_HDIV_pred =
+      c("P", "D", "B", "D", "D"),
+    Polyphen2_HVAR_score =
+      c("0.688", "0.993", "0.21", "0.939", "0.814"),
+    Polyphen2_HVAR_pred =
+      c("P", "D", "B", "D", "P")
+  )
+  result <- .parse_pairs_max(example,
+                             list(c("Polyphen2_HDIV_score",
+                                    "Polyphen2_HDIV_pred"),
+                                  c("Polyphen2_HVAR_score",
+                                    "Polyphen2_HVAR_pred")))
+  expect_identical(result, target)
 })
