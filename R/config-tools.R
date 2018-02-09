@@ -21,9 +21,35 @@
 }
 
 
+#' Validate configuration tibble
+#'
+#' WGSAParsr configuration can be loaded from a file with load_config() or
+#' passed as a data frame/tibble. This function validates the tibble as meeting
+#' the following criteria:
+#'
+#' Contains required columns: "field", "SNV", "indel", "dbnsfp", "sourceGroup",
+#' "pivotGroup", "pivotChar", "parseGroup", "transformation".
+#'
+#' the SNV, indel, and dbnsfp fields may contain NA or logical values
+#'
+#' the transformation field may contain NA or "max", "min", "pick_Y", "pick_N",
+#' "pick_A", "clean", "distinct".
+#'
+#' all members of each pivotGroup must have the same pivotChar
+#'
+#' a parseGroup may not have multiple transformations
+#'
+#' @param config_tibble tibble containing parsing configuration details.
+#'
+#' @examples
+#' \dontrun{
+#'
+#' validate_config(config_tibble)
+#' }
+#'
 #' @importFrom magrittr "%>%"
-#' @noRd
-.validate_config <- function(config_tibble) {
+#' @export
+validate_config <- function(config_tibble) {
   # check required columns are there
   required_columns <-
     c(
@@ -167,7 +193,7 @@ load_config <- function(config_path) {
     comment = "#",
     col_types = readr::cols()
   )
-  .validate_config(raw_config)
+  validate_config(raw_config)
   config <- .clean_config(raw_config)
   return(config)
 }
@@ -206,7 +232,7 @@ load_config <- function(config_path) {
 
 .get_list_from_config <- function(config_df, which_list, list_type){
   # check arguments
-  .validate_config(config_df)
+  validate_config(config_df)
   if (!any(which_list == c("desired", "max", "min", "pick_Y", "pick_N",
                            "pick_A", "clean", "distinct", "pivots",
                            "max_pairs", "min_pairs", "pick_Y_pairs",

@@ -1,5 +1,10 @@
 # new internal helper functions from freeze 5 refactoring ----------------------
 
+#' hack to pass devtools::check()
+#' see: https://stackoverflow.com/questions/9439256/
+#' @noRd
+utils::globalVariables(c("MAP35_140bp"))
+
 #' add column_name_unparsed column to tibble prior to parsing (for debugging,
 #' mostly)
 #' @importFrom magrittr "%>%"
@@ -638,7 +643,7 @@
     stop('type must be one of "SNV" or "indel"')
   }
 
-  .validate_config(config)
+  validate_config(config)
 
   # get desired fields from config to validate
   desired <- .get_list_from_config(config, "desired", type)
@@ -718,7 +723,7 @@
     stop('type must be "dbnsfp"')
   }
 
-  .validate_config(config)
+  validate_config(config)
 
   # get desired fields from config to validate
   desired <- .get_list_from_config(config, "desired", type)

@@ -11,9 +11,9 @@ test_that(".pivot_then_parse() gives desired field not in chunk", {
   )
   config <- dplyr::tibble(
     field = c("a", "b"),
-    SNV = c("TRUE", "TRUE"), # or could be logical instead of string
-    indel = c("TRUE", "TRUE"),
-    dbnsfp = c("TRUE", "TRUE"),
+    SNV = c(TRUE, TRUE), # or could be logical instead of string
+    indel = c(TRUE, TRUE),
+    dbnsfp = c(TRUE, TRUE),
     sourceGroup = c("1", "1"),
     pivotGroup = c("1", "1"),
     pivotChar = c(";", ";"),
@@ -33,9 +33,9 @@ test_that(".pivot_then_parse() returns expected tibble", {
   )
   config <- dplyr::tibble(
     field = c("a", "b", "c"),
-    SNV = c("FALSE", "TRUE", "FALSE"),
-    indel = c("FALSE", "FALSE", "FALSE"),
-    dbnsfp = c("TRUE", "FALSE", "TRUE"),
+    SNV = c(FALSE, TRUE, FALSE),
+    indel = c(FALSE, FALSE, FALSE),
+    dbnsfp = c(TRUE, FALSE, TRUE),
     sourceGroup = c("1", "1", "2"),
     pivotGroup = c(1, NA, NA),
     pivotChar = c("|", NA, NA),
