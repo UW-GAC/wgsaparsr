@@ -4,8 +4,8 @@
 \alias{parse_to_file}
 \title{Parse the WGSA output file to tidy and select columns of interest}
 \usage{
-parse_to_file(source_file, config, destination, dbnsfp_destination,
-  freeze = 5, chunk_size = 10000, verbose = TRUE, debug = FALSE)
+parse_to_file(source_file, config, destination, dbnsfp_destination = NA,
+  freeze = 5, chunk_size = 10000, verbose = TRUE)
 }
 \arguments{
 \item{source_file}{Path to the WGSA output file to parse (indel or SNV
@@ -23,8 +23,6 @@ validate_config()}
 \item{chunk_size}{Number of lines to parse each iteration (default 10,000)}
 
 \item{verbose}{more output to screen (default TRUE)}
-
-\item{debug}{keep unparsed cells in output file (default FALSE)}
 }
 \description{
 \href{https://sites.google.com/site/jpopgen/wgsa}{WGSA} generates distinct

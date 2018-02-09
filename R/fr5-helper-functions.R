@@ -5,6 +5,12 @@
 #' @noRd
 utils::globalVariables(c("MAP35_140bp"))
 
+#' Check if the current chunk includes a header row describing the fields
+#' @noRd
+.fr5_has_header <- function(raw_chunk){
+  any(stringr::str_detect(raw_chunk, "^CHROM\\tPOS\\tREF\\tALT")) #nolint
+}
+
 #' add column_name_unparsed column to tibble prior to parsing (for debugging,
 #' mostly)
 #' @importFrom magrittr "%>%"
@@ -594,7 +600,7 @@ utils::globalVariables(c("MAP35_140bp"))
             match_mask = purrr::map(match_mask,
                                     function(x)
                                       x & !duplicated(x)),
-            r_list =  stringr::str_split(UQ(current_pair[[2]]), ";"),
+            r_list =  stringr::str_split(rlang::UQ(current_pair[[2]]), ";"),
             r_corresponding = map2_chr(match_mask, r_list,
                                        function(logical, string)
                                          ifelse(length(string) == 1,

@@ -17,7 +17,6 @@
 #' @param freeze Which TOPMed freeze is being used (default 5)
 #' @param chunk_size Number of lines to parse each iteration (default 10,000)
 #' @param verbose more output to screen (default TRUE)
-#' @param debug keep unparsed cells in output file (default FALSE)
 #'
 #' @examples
 #' \dontrun{
@@ -33,15 +32,14 @@
 parse_to_file <- function(source_file,
                           config,
                           destination,
-                          dbnsfp_destination,
+                          dbnsfp_destination = NA,
                           freeze = 5,
                           chunk_size = 10000,
-                          verbose = TRUE,
-                          debug = FALSE) {
+                          verbose = TRUE) {
   if (file.exists(destination)) {
     stop("destination outfile already exists.")
   }
-  if (file.exists(dbnsfp_destination)) {
+  if (!is.na(dbnsfp_destination) && file.exists(dbnsfp_destination)) {
     stop("dbnsfp_destination outfile already exists.")
   }
   if (freeze == 4) {
@@ -149,7 +147,7 @@ parse_to_file <- function(source_file,
     # get header and check if indel file----------------------------------------
     first_line <- .get_first_line(source_file)
 
-    if (!.has_header(first_line)) {
+    if (!.fr5_has_header(first_line)) {
       stop("source_file doesn't have header line")
     }
 
@@ -196,24 +194,20 @@ parse_to_file <- function(source_file,
 
       # get list of desired fields from config to ensure outfile column order
       parsed_fields <-
-        unlist(.get_list_from_config(config, "desired", "indel"))
+        unlist(.get_list_from_config(config, "desired", type))
 
       # freeze 5 has some different field names between indel and SNV. Fix that.
       if ("MAP35_149bp" %in% names(parsed_lines)) {
-        parsed_lines <- dplyr::rename(parsed_lines, MAP35_149 = MAP35_140bp)
-        parsed_fields <- dplyr::rename(parsed_fields, MAP35_149 = MAP35_140bp)
+        parsed_lines <- dplyr::rename(parsed_lines, MAP35_149 = "MAP35_149bp")
+        parsed_fields <-
+          stringr::str_replace(parsed_fields, "MAP35_149bp", "MAP35_149")
       }
       if ("VEP_refseq_ProteinID(ENSP)" %in% names(parsed_lines)) {
         parsed_lines <- dplyr::rename(parsed_lines,
                       VEP_refseq_ProteinID = "VEP_refseq_ProteinID(ENSP)")
-        parsed_fields <- dplyr::rename(parsed_fields,
-                      VEP_refseq_ProteinID = "VEP_refseq_ProteinID(ENSP)")
-      }
-
-      # strip out the "_unparsed" columns, unless we want them.
-      if (!debug) {
-        parsed_lines <-
-          dplyr::select(parsed_lines, -dplyr::ends_with("_unparsed"))
+        parsed_fields <-
+          stringr::str_replace(parsed_fields, "VEP_refseq_ProteinID(ENSP)",
+                      "VEP_refseq_ProteinID")
       }
 
       if (type == "SNV") {
@@ -221,12 +215,6 @@ parse_to_file <- function(source_file,
         dbnsfp_parsed_lines <- .pivot_then_parse(all_fields, config, "dbnsfp")
         dbnsfp_parsed_fields <-
           unlist(.get_list_from_config(config, "desired", "dbnsfp"))
-
-        # strip out the "_unparsed" columns, unless we want them.
-        if (!debug) {
-          dbnsfp_parsed_lines <-
-            dplyr::select(dbnsfp_parsed_lines, -dplyr::ends_with("_unparsed"))
-        }
 
         # if present, write dbnsfp data to tsv file
         if (nrow(dbnsfp_parsed_lines) > 0) {
