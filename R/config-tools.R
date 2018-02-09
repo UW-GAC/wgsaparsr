@@ -227,7 +227,9 @@ load_config <- function(config_path) {
     fields_by_list_type <- config_df
   } else {
     list_type <- rlang::sym(list_type) # I confess I don't understand this well
-    fields_by_list_type <- config_df %>% dplyr::filter(!!list_type)
+    fields_by_list_type <-
+      config_df %>%
+      dplyr::filter(as.logical(rlang::UQ(list_type)))
   }
 
   if (which_list == "desired") {
