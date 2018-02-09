@@ -1,38 +1,43 @@
-# helper functions -------------------------------------------------------------
+# internal helper functions ----------------------------------------------------
 
-#' hack to pass devtools::check() 
+#' hack to pass devtools::check()
 #' see: https://stackoverflow.com/questions/9439256/
-#' @importFrom utils globalVariables
 #' @noRd
-globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
-                  "match_mask", "new_p", "p_clean", "p_list", "p_max", "p_min",
-                  "r_clean", "r_corresponding", "r_list", "v_clean",
-                  "v_corresponding", "v_list", "wacky_no_column", "aaalt",
-                  "Eigen-PC-raw_unparsed", "Eigen-phred",
-                  "Eigen-phred_unparsed", "Eigen-raw",
-                  "Eigen-raw_rankscore", "Eigen-raw_rankscore_unparsed",
-                  "Eigen-raw_unparsed", "GMS_paired-end",
-                  "GMS_paired-end_unparsed", "GMS_single-end",
-                  "GMS_single-end_unparsed", "H1-hESC_fitCons_rankscore",
-                  "H1-hESC_fitCons_rankscore_unparsed", "H1-hESC_fitCons_score",
-                  "H1-hESC_fitCons_score_unparsed", "MAP20(+-149bp)",
-                  "MAP20(+-149bp)_unparsed", "MAP35(+-149bp)",
-                  "MAP35(+-149bp)_unparsed", "fathmm-MKL_coding_rankscore",
-                  "fathmm-MKL_coding_rankscore_unparsed",
-                  "fathmm-MKL_coding_score",
-                  "fathmm-MKL_coding_score_unparsed",
-                  "fathmm-MKL_non-coding_rankscore",
-                  "fathmm-MKL_non-coding_rankscore_unparsed",
-                  "fathmm-MKL_non-coding_score",
-                  "fathmm-MKL_non-coding_score_unparsed",
-                  "#chr", "1000G_strict_masked", "1000G_strict_masked_unparsed",
-                  "1000Gp3_AC", "1000Gp3_AF", "1000Gp3_AFR_AC",
-                  "1000Gp3_AFR_AF", "1000Gp3_AMR_AC", "1000Gp3_AMR_AF",
-                  "1000Gp3_EAS_AC", "1000Gp3_EAS_AF", "1000Gp3_EUR_AC",
-                  "1000Gp3_EUR_AF", "1000Gp3_SAS_AC", "1000Gp3_SAS_AF",
-                  "CADDphred", "CADDraw", "Eigen-PC-raw",
-                  "Eigen-PC-raw_rankscore", "Eigen-PC-raw_rankscore_unparsed",
-                  "data", "data_copy"))
+utils::globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance",
+                         "aaref", "match_mask", "new_p", "p_clean", "p_list",
+                         "p_max", "p_min", "r_clean", "r_corresponding",
+                         "r_list", "v_clean", "v_corresponding", "v_list",
+                         "wacky_no_column", "aaalt", "Eigen-PC-raw_unparsed",
+                         "Eigen-phred", "Eigen-phred_unparsed", "Eigen-raw",
+                         "Eigen-raw_rankscore", "Eigen-raw_rankscore_unparsed",
+                         "Eigen-raw_unparsed", "GMS_paired-end",
+                         "GMS_paired-end_unparsed", "GMS_single-end",
+                         "GMS_single-end_unparsed", "H1-hESC_fitCons_rankscore",
+                         "H1-hESC_fitCons_rankscore_unparsed",
+                         "H1-hESC_fitCons_score",
+                         "H1-hESC_fitCons_score_unparsed", "MAP20(+-149bp)",
+                         "MAP20(+-149bp)_unparsed", "MAP35(+-149bp)",
+                         "MAP35(+-149bp)_unparsed",
+                         "fathmm-MKL_coding_rankscore",
+                         "fathmm-MKL_coding_rankscore_unparsed",
+                         "fathmm-MKL_coding_score",
+                         "fathmm-MKL_coding_score_unparsed",
+                         "fathmm-MKL_non-coding_rankscore",
+                         "fathmm-MKL_non-coding_rankscore_unparsed",
+                         "fathmm-MKL_non-coding_score",
+                         "fathmm-MKL_non-coding_score_unparsed",
+                         "#chr", "1000G_strict_masked",
+                         "1000G_strict_masked_unparsed",
+                         "1000Gp3_AC", "1000Gp3_AF", "1000Gp3_AFR_AC",
+                         "1000Gp3_AFR_AF", "1000Gp3_AMR_AC", "1000Gp3_AMR_AF",
+                         "1000Gp3_EAS_AC", "1000Gp3_EAS_AF", "1000Gp3_EUR_AC",
+                         "1000Gp3_EUR_AF", "1000Gp3_SAS_AC", "1000Gp3_SAS_AF",
+                         "CADDphred", "CADDraw", "Eigen-PC-raw",
+                         "Eigen-PC-raw_rankscore",
+                         "Eigen-PC-raw_rankscore_unparsed",
+                         "data", "data_copy", ".data", "dbnsfp", "field",
+                         "indel", "parseGroup", "pivotChar", "pivotGroup",
+                         "SNV", "sourceGroup", "transformation"))
 
 #' Check if the current chunk includes a header row describing the fields
 #' @noRd
@@ -44,17 +49,15 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
 }
 
 #' Check if the current chunk includes a header row describing the fields
-#' @importFrom stringr str_detect
 #' @noRd
 .has_header <- function(raw_chunk){
-  any(str_detect(raw_chunk, "^#?chr\\tpos\\tref\\talt")) #nolint
+  any(stringr::str_detect(raw_chunk, "^#?chr\\tpos\\tref\\talt")) #nolint
 }
 
 #' Get header row from raw chunk
-#' @importFrom stringr str_detect
 #' @noRd
 .get_header <- function(raw_chunk){
-  raw_chunk[str_detect(raw_chunk, "^#?chr\\tpos\\tref\\talt")]
+  raw_chunk[stringr::str_detect(raw_chunk, "^#?chr\\tpos\\tref\\talt")]
 }
 
 #' Check whether the source_file is WGSA indel annotation
@@ -73,7 +76,7 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
 }
 
 #' expand the selected annotation fields by separating list columns to rows:
-#' e.g. a field like value1|value2 becomes two rows, and other columns are 
+#' e.g. a field like value1|value2 becomes two rows, and other columns are
 #' duplicated
 #' @importFrom dplyr distinct one_of "%>%"
 #' @importFrom tidyr separate_rows
@@ -92,42 +95,43 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
     } else {
       to_split_VEP <- .get_list("fr_4_snv_to_split_VEP")
     }
-#    to_split_TFBS <- .get_list("fr_4_snv_to_split_TFBS") #nolint
+    #    to_split_TFBS <- .get_list("fr_4_snv_to_split_TFBS") #nolint
     to_split_GTEx_V6 <- .get_list("fr_4_snv_to_split_GTEx_V6")
-  }
 
-  # pivot most fields by | for dbnsfp chunk-------------------------------------
-  if (dbnsfp_flag == TRUE) {
-    expanded <- selected_columns %>%
-      separate_rows(one_of(to_split), sep = "\\|") %>%
-      separate_rows(one_of(c("Ensembl_geneid")), sep = ";") %>%
-      distinct()
-  } else {
-    # pivot the VEP_* fields by | for snp and indel chunks----------------------
-    expanded <- selected_columns %>%
-      separate_rows(one_of(to_split_VEP), sep = "\\|")
 
-    # pivot the ENCODE_TFBS_* fields by ;---------------------------------------
-    # expanded <- expanded %>% #nolint
-    #   separate_rows(one_of(to_split_TFBS), sep = ";") #nolint
+    # pivot most fields by | for dbnsfp chunk-----------------------------------
+    if (dbnsfp_flag == TRUE) {
+      expanded <- selected_columns %>%
+        separate_rows(one_of(to_split), sep = "\\|") %>%
+        separate_rows(one_of(c("Ensembl_geneid")), sep = ";") %>%
+        distinct()
+    } else {
+      # pivot the VEP_* fields by | for snp and indel chunks--------------------
+      expanded <- selected_columns %>%
+        separate_rows(one_of(to_split_VEP), sep = "\\|")
 
-    # pivot the Ensembl_Regulatory_Build_Overviews field by ;-------------------
-    expanded <- expanded %>%
-      separate_rows(one_of("Ensembl_Regulatory_Build_Overviews"), sep = ";")
+      # pivot the ENCODE_TFBS_* fields by ;-------------------------------------
+      # expanded <- expanded %>% #nolint
+      #   separate_rows(one_of(to_split_TFBS), sep = ";") #nolint
 
-    # pivot the Ensembl_Regulatory_Build_TFBS field by ;------------------------
-    expanded <- expanded %>%
-      separate_rows(one_of("Ensembl_Regulatory_Build_TFBS"), sep = ";")
+      # pivot the Ensembl_Regulatory_Build_Overviews field by ;-----------------
+      expanded <- expanded %>%
+        separate_rows(one_of("Ensembl_Regulatory_Build_Overviews"), sep = ";")
 
-    # pivot the GTEx_V6 fields by |---------------------------------------------
-    expanded <- expanded %>%
-      separate_rows(one_of(to_split_GTEx_V6), sep = "\\|")
+      # pivot the Ensembl_Regulatory_Build_TFBS field by ;----------------------
+      expanded <- expanded %>%
+        separate_rows(one_of("Ensembl_Regulatory_Build_TFBS"), sep = ";")
+
+      # pivot the GTEx_V6 fields by |-------------------------------------------
+      expanded <- expanded %>%
+        separate_rows(one_of(to_split_GTEx_V6), sep = "\\|")
+    }
   }
   # remove duplicate rows
   expanded <- distinct(expanded)
 }
 
-#' split the VEP_ensembl_Codon_Change_or_Distance field - 
+#' split the VEP_ensembl_Codon_Change_or_Distance field -
 #' if number, put in VEP_ensembl_Distance field
 #' if string, put in VEP_ensembl_Codon_Change field
 #' @importFrom dplyr "%>%" mutate_at funs
@@ -207,7 +211,7 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
   return(selected_columns)
 }
 
-#' parse columns from tibble for which we want to parse to N if there is an N 
+#' parse columns from tibble for which we want to parse to N if there is an N
 #' present, then Y if Y present, else .
 #' @importFrom dplyr mutate_at "%>%" bind_cols funs
 #' @importFrom stringr str_detect
@@ -234,7 +238,7 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
   return(selected_columns)
 }
 
-#' parse columns from tibble for which we want to parse to Y if there is an Y 
+#' parse columns from tibble for which we want to parse to Y if there is an Y
 #' present, then N if N present, else .
 #' @importFrom dplyr mutate_at "%>%" bind_cols funs
 #' @importFrom stringr str_detect
@@ -261,7 +265,7 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
   return(selected_columns)
 }
 
-#' parse column pairs from tibble for which we want to get logical mask from 
+#' parse column pairs from tibble for which we want to get logical mask from
 #' first column and apply to second column
 #' @importFrom dplyr mutate select rename "%>%"
 #' @importFrom stringr str_split
@@ -322,8 +326,8 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
 }
 
 
-#' parse column triples from tibble for which we want to get logical mask from 
-#' first column and apply to second and third columns. Assumes 2nd column is 
+#' parse column triples from tibble for which we want to get logical mask from
+#' first column and apply to second and third columns. Assumes 2nd column is
 #' rankscore.
 #' @importFrom dplyr mutate select rename "%>%"
 #' @importFrom stringr str_split
@@ -589,14 +593,14 @@ globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance", "aaref",
   return(filtered_selected_columns)
 }
 
-#' parse db_nsfp_mutation_pairs - select character from pair[[2]] and 
+#' parse db_nsfp_mutation_pairs - select character from pair[[2]] and
 #' corresponding value from pair[[1]]
 #' @importFrom dplyr mutate select rename "%>%"
 #' @importFrom stringr str_split str_detect
 #' @importFrom purrr map map_dbl map2 map2_chr
 #' @importFrom rlang syms
 #' @noRd
-#' 
+#'
 .parse_dbnsfp_mutation <- function(filtered_selected_columns,
                                    mutation_pairs) {
   for (pair in mutation_pairs) {

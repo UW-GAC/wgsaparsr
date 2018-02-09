@@ -1,6 +1,6 @@
 Package: wgsaparsr
 Title: A R package for Parsing Annotation File for Database Import
-Version: 3.1.0
+Version: 5.0.0
 Authors@R: person("Ben", "Heavner", email = "bheavner@uw.edu", role = c("aut", "cre"))
 Description: This package contains R functions to work with the output files produced by the WGSA annotation tool.
 Depends: R (>= 3.3.2)
@@ -10,10 +10,11 @@ LazyData: true
 RoxygenNote: 6.0.1
 Suggests: testthat,
     lintr
-Imports: stringr,
-    digest,
-    readr,
-    dplyr,
+Imports: dplyr,
+    magrittr,
     purrr,
+    readr,
+    rlang,
+    stringr,
     tidyr,
-    rlang
+    utils
