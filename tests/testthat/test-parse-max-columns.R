@@ -59,3 +59,22 @@ test_that(".parse_max_columns() returns expected tibble when parsing indel", {
                                  "MAP20_149bp"))
   expect_identical(result, target)
 })
+
+# add test based on observed bug when max_columns is a 1-length named list
+test_that(".parse_max_columns() returns expected tibble when parsing indel", {
+  example <- dplyr::tibble(
+    VEST3_score =
+      c(".",
+        "0.759;0.258;0.652;0.296;0.652;0.759;0.652;0.652;0.723",
+        "0.75;0.205;0.663;0.236;0.663;0.75;0.663;0.663;0.705"),
+    fathmm_MKL_coding_score = c(".{1}", "0.87811{1}", ".{5}0.90605{5}")
+  )
+  target <- dplyr::tibble(
+    VEST3_score = c(".", "0.759", "0.75"),
+    fathmm_MKL_coding_score = c(".{1}", "0.87811{1}", ".{5}0.90605{5}")
+  )
+  max_columns <- list(field = c("VEST3_score"))
+  result <- .parse_max_columns(example,
+                               unlist(max_columns))
+  expect_identical(result, target)
+})

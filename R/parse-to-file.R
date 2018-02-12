@@ -189,6 +189,7 @@ parse_to_file <- function(source_file,
       } else {
         type <- "SNV"
       }
+
       # parse chunk of indel or SNV annotation
       parsed_lines <- .parse_then_pivot(all_fields, config, type)
 
@@ -232,20 +233,21 @@ parse_to_file <- function(source_file,
                      parsed_fields,
                      header_flag)
 
-      # ready for the next chunk!
-      index <- index + 1L
-
       # update progress if desired
       if (verbose) {
         msg <- paste0(
-          "Chunks completed: ", index,
+          "Finished chunk ", index,
           "\n Sourcefile lines processed <= ",
-          chunk_size * index,
+          chunk_size * (index + 1),
           "\n Records in current import: ",
           dim(parsed_lines)[1]
         )
         message(msg)
       }
+
+      # ready for the next chunk!
+      index <- index + 1L
+
     }
     close(readfile_con)
   }
