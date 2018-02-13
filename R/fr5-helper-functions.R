@@ -51,19 +51,19 @@ utils::globalVariables(c("MAP35_140bp"))
   selected_columns <-
     selected_columns %>%
     #.{n} -> .
-    dplyr::mutate_at(.vars = to_clean,
+    dplyr::mutate_at(.vars = dplyr::vars(to_clean),
                      .funs = dplyr::funs(
                        stringr::str_replace_all(., "\\{[^\\}]+\\}$", "")
                        )
                      ) %>%
     # .{n}; -> .;
-    dplyr::mutate_at(.vars = to_clean,
+    dplyr::mutate_at(.vars = dplyr::vars(to_clean),
                      .funs = dplyr::funs(
                        stringr::str_replace_all(., "\\{[^\\}]+\\};", ";")
                        )
                      ) %>%
     # .{n}. -> .,. (or should it be .{n}. -> . ? or .{n}. -> .;. ?)
-    dplyr::mutate_at(.vars = to_clean,
+    dplyr::mutate_at(.vars = dplyr::vars(to_clean),
                      .funs = dplyr::funs(
                        stringr::str_replace_all(.,
                         "\\.\\{[^\\}]+\\}(?!;)", ".,")
@@ -96,43 +96,43 @@ utils::globalVariables(c("MAP35_140bp"))
       selected_columns %>%
         # replace ; or {*} with a space
         dplyr::mutate_at(
-          .vars = max_columns,
+          .vars = dplyr::vars(max_columns),
           .funs = dplyr::funs(
             stringr::str_replace_all(., "(?:\\{.*?\\})|;", " "))
         ) %>%
         # trim white space padding to be safe
         dplyr::mutate_at(
-          .vars = max_columns,
+          .vars = dplyr::vars(max_columns),
           .funs = dplyr::funs(stringr::str_trim(., side = "both"))
         ) %>%
         # also trim multiple spaces to be safe
         dplyr::mutate_at(
-          .vars = max_columns,
+          .vars = dplyr::vars(max_columns),
           .funs = dplyr::funs(stringr::str_replace(., "\\s{2,}", " ")) #nolint
         ) %>%
         # split the string at the space
         dplyr::mutate_at(
-          .vars = max_columns,
+          .vars = dplyr::vars(max_columns),
           .funs = dplyr::funs(stringr::str_split(., "\\s+"))
         ) %>%
         # make values numeric
         dplyr::mutate_at(
-          .vars = max_columns,
+          .vars = dplyr::vars(max_columns),
           .funs = dplyr::funs(purrr::map(., as.numeric))
         ) %>%
         # get the max values
         dplyr::mutate_at(
-          .vars = max_columns,
+          .vars = dplyr::vars(max_columns),
           .funs = dplyr::funs(purrr::map_dbl(., max, na.rm = TRUE))
         ) %>%
         # change to character
         dplyr::mutate_at(
-          .vars = max_columns,
+          .vars = dplyr::vars(max_columns),
           .funs = dplyr::funs(as.character)
         ) %>%
         # change "-Inf" to "."
         dplyr::mutate_at(
-          .vars = max_columns,
+          .vars = dplyr::vars(max_columns),
           .funs = dplyr::funs(ifelse((. == "-Inf"), ".", .)) #nolint
         )
     )
@@ -163,43 +163,43 @@ utils::globalVariables(c("MAP35_140bp"))
       selected_columns %>%
         # replace ; or {*} with a space
         dplyr::mutate_at(
-          .vars = min_columns,
+          .vars = dplyr::vars(min_columns),
           .funs = dplyr::funs(
             stringr::str_replace_all(., "(?:\\{.*?\\})|;", " "))
         ) %>%
         # trim white space padding to be safe
         dplyr::mutate_at(
-          .vars = min_columns,
+          .vars = dplyr::vars(min_columns),
           .funs = dplyr::funs(stringr::str_trim(., side = "both"))
         ) %>%
         # also trim multiple spaces to be safe
         dplyr::mutate_at(
-          .vars = min_columns,
+          .vars = dplyr::vars(min_columns),
           .funs = dplyr::funs(stringr::str_replace(., "\\s{2,}", " ")) #nolint
         ) %>%
         # split the string at the space
         dplyr::mutate_at(
-          .vars = min_columns,
+          .vars = dplyr::vars(min_columns),
           .funs = dplyr::funs(stringr::str_split(., "\\s+"))
         ) %>%
         # make values numeric
         dplyr::mutate_at(
-          .vars = min_columns,
+          .vars = dplyr::vars(min_columns),
           .funs = dplyr::funs(purrr::map(., as.numeric))
         ) %>%
         # get the min values
         dplyr::mutate_at(
-          .vars = min_columns,
+          .vars = dplyr::vars(min_columns),
           .funs = dplyr::funs(purrr::map_dbl(., min, na.rm = TRUE))
         ) %>%
         # change to character
         dplyr::mutate_at(
-          .vars = min_columns,
+          .vars = dplyr::vars(min_columns),
           .funs = dplyr::funs(as.character)
         ) %>%
         # change "Inf" to "."
         dplyr::mutate_at(
-          .vars = min_columns,
+          .vars = dplyr::vars(min_columns),
           .funs = dplyr::funs(ifelse((. == "Inf"), ".", .)) #nolint
         )
     )
@@ -217,7 +217,7 @@ utils::globalVariables(c("MAP35_140bp"))
     suppressWarnings(
       selected_columns %>%
         # parse:  Y if Y present, else N if N present, else .
-        dplyr::mutate_at(.vars = yes_columns,
+        dplyr::mutate_at(.vars = dplyr::vars(yes_columns),
                          .funs = dplyr::funs(ifelse(
                            stringr::str_detect(., "Y"),
                            "Y",
@@ -239,7 +239,7 @@ utils::globalVariables(c("MAP35_140bp"))
     suppressWarnings(
       selected_columns %>%
         # parse:  N if N present, else Y if Y present, else .
-        dplyr::mutate_at(.vars = no_columns,
+        dplyr::mutate_at(.vars = dplyr::vars(no_columns),
                          .funs = dplyr::funs(ifelse(
                            stringr::str_detect(., "N"),
                            "N",
@@ -261,7 +261,7 @@ utils::globalVariables(c("MAP35_140bp"))
     suppressWarnings(
       selected_columns %>%
         # parse: A if A present, then D, P, N, else .
-        mutate_at(.vars = a_columns,
+        mutate_at(.vars = dplyr::vars(a_columns),
                   .funs = dplyr::funs(
                     ifelse(stringr::str_detect(., "A"), "A",
                            ifelse(stringr::str_detect(., "D"), "D",
@@ -345,7 +345,7 @@ utils::globalVariables(c("MAP35_140bp"))
   # now parse column using new functions
   selected_columns <-
     selected_columns %>%
-    purrr::map_at(distinct_columns, .unique_values) %>%
+    purrr::map_at(distinct_columns, .unique_values) %>% # may need vars()?
     dplyr::as_tibble()
 
   return(selected_columns)
