@@ -157,55 +157,53 @@ utils::globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance",
 }
 
 #' parse columns from tibble for which we want to select maximum value
-#' @importFrom dplyr mutate select "%>%" mutate_at rename_all funs vars
-#' @importFrom dplyr bind_cols select_at
-#' @importFrom tidyr nest unnest
-#' @importFrom stringr str_replace_all str_replace str_split
-#' @importFrom purrr map map_dbl
+#' @importFrom magrittr "%>%"
 #' @noRd
 .parse_indel_max_columns <- function(selected_columns, max_columns) {
   selected_columns <-
     suppressWarnings(
       selected_columns %>%
         # first copy unparsed columns to colum_name_unparsed
-        bind_cols(
-          select_at(.,
-                    .vars = !!max_columns,
-                    .funs = funs(paste0(., "_unparsed")))) %>%
+        dplyr::bind_cols(
+          dplyr::select_at(.,
+                           .vars = dplyr::vars(max_columns),
+                           .funs = dplyr::funs(paste0(., "_unparsed")))) %>%
         # next replace ; or {*} with a space
-        mutate_at(
-          .vars = vars(!!max_columns),
-          .funs = funs(str_replace_all(., "(?:\\{.*?\\})|;", " "))
+        dplyr::mutate_at(
+          .vars = dplyr::vars(max_columns),
+          .funs = dplyr::funs(
+            stringr::str_replace_all(., "(?:\\{.*?\\})|;", " ")
+            )
         ) %>%
         # trim final space to be safe
-        mutate_at(
-          .vars = vars(!!max_columns),
-          .funs = funs(str_replace(., "\\s+$", ""))
+        dplyr::mutate_at(
+          .vars = dplyr::vars(max_columns),
+          .funs = dplyr::funs(stringr::str_replace(., "\\s+$", ""))
         ) %>%
         # split the string at the space
-        mutate_at(
-          .vars = vars(!!max_columns),
-          .funs = funs(str_split(., "\\s+"))
+        dplyr::mutate_at(
+          .vars = dplyr::vars(max_columns),
+          .funs = dplyr::funs(stringr::str_split(., "\\s+"))
         ) %>%
         # make values numeric
-        mutate_at(
-          .vars = vars(!!max_columns),
-          .funs = funs(map(., as.numeric))
+        dplyr::mutate_at(
+          .vars = dplyr::vars(max_columns),
+          .funs = dplyr::funs(purrr::map(., as.numeric))
         ) %>%
         # get the max values
-        mutate_at(
-          .vars = vars(!!max_columns),
-          .funs = funs(map_dbl(., max, na.rm = TRUE))
+        dplyr::mutate_at(
+          .vars = dplyr::vars(max_columns),
+          .funs = dplyr::funs(purrr::map_dbl(., max, na.rm = TRUE))
         ) %>%
         # change to character
-        mutate_at(
-          .vars = vars(!!max_columns),
-          .funs = funs(as.character)
+        dplyr::mutate_at(
+          .vars = dplyr::vars(max_columns),
+          .funs = dplyr::funs(as.character)
         ) %>%
         # change "-Inf" to "."
-        mutate_at(
-          .vars = vars(!!max_columns),
-          .funs = funs(ifelse( (. == "-Inf"), ".", .))
+        dplyr::mutate_at(
+          .vars = dplyr::vars(max_columns),
+          .funs = dplyr::funs(ifelse( (. == "-Inf"), ".", .))
         )
     )
   return(selected_columns)
@@ -213,25 +211,24 @@ utils::globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance",
 
 #' parse columns from tibble for which we want to parse to N if there is an N
 #' present, then Y if Y present, else .
-#' @importFrom dplyr mutate_at "%>%" bind_cols funs
-#' @importFrom stringr str_detect
+#' @importFrom magrittr "%>%"
 #' @noRd
 .parse_indel_no_columns <- function(selected_columns, no_columns) {
   selected_columns <-
     suppressWarnings(
       selected_columns %>%
         # first copy unparsed columns to colum_name_unparsed
-        bind_cols(select_at(
+        dplyr::bind_cols(dplyr::select_at(
           .,
-          .vars = !!no_columns,
-          .funs = funs(paste0(., "_unparsed"))
+          .vars = dplyr::vars(no_columns),
+          .funs = dplyr::funs(paste0(., "_unparsed"))
         )) %>%
         # then parse:  N if N present, else Y if Y present, else .
-        mutate_at(.vars = vars(!!no_columns),
-                  .funs = funs(ifelse(
-                    str_detect(., "N"),
+        dplyr::mutate_at(.vars = dplyr::vars(no_columns),
+                  .funs = dplyr::funs(ifelse(
+                    stringr::str_detect(., "N"),
                     "N",
-                    ifelse(str_detect(., "Y"),
+                    ifelse(stringr::str_detect(., "Y"),
                            "Y", ".")
                   )))
     )
@@ -240,25 +237,24 @@ utils::globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance",
 
 #' parse columns from tibble for which we want to parse to Y if there is an Y
 #' present, then N if N present, else .
-#' @importFrom dplyr mutate_at "%>%" bind_cols funs
-#' @importFrom stringr str_detect
+#' @importFrom magrittr "%>%"
 #' @noRd
 .parse_indel_yes_columns <- function(selected_columns, yes_columns){
   selected_columns <-
     suppressWarnings(
       selected_columns %>%
         # first copy unparsed columns to colum_name_unparsed
-        bind_cols(select_at(
+        dplyr::bind_cols(dplyr::select_at(
           .,
-          .vars = !!yes_columns,
-          .funs = funs(paste0(., "_unparsed"))
+          .vars = dplyr::vars(yes_columns),
+          .funs = dplyr::funs(paste0(., "_unparsed"))
         )) %>%
         # then parse:  Y if Y present, else N if N present, else .
-        mutate_at(.vars = vars(!!yes_columns),
-                  .funs = funs(ifelse(
-                    str_detect(., "Y"),
+        dplyr::mutate_at(.vars = dplyr::vars(yes_columns),
+                  .funs = dplyr::funs(ifelse(
+                    stringr::str_detect(., "Y"),
                     "Y",
-                    ifelse(str_detect(., "N"),
+                    ifelse(stringr::str_detect(., "N"),
                            "N", ".")
                   )))
     )
