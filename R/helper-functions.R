@@ -61,25 +61,22 @@ utils::globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance",
 }
 
 #' Check whether the source_file is WGSA indel annotation
-#' @importFrom stringr str_detect
 #' @noRd
 .is_indel <- function(header){
-  any(str_detect(header, "indel_focal_length"))
+  any(stringr::str_detect(header, "indel_focal_length"))
 }
 
 #' use read_tsv to read fields from raw chunk of TSV from readLines()
-#' @importFrom readr read_tsv cols col_character
 #' @noRd
 .get_fields_from_chunk <- function(raw_chunk) {
-  read_tsv(paste0(raw_chunk, collapse = "\n"),
-           col_types = cols(.default = col_character()))
+  readr::read_tsv(paste0(raw_chunk, collapse = "\n"),
+           col_types = readr::cols(.default = readr::col_character()))
 }
 
 #' expand the selected annotation fields by separating list columns to rows:
 #' e.g. a field like value1|value2 becomes two rows, and other columns are
 #' duplicated
-#' @importFrom dplyr distinct one_of "%>%"
-#' @importFrom tidyr separate_rows
+#' @importFrom magrittr "%>%"
 #' @noRd
 .expand_chunk <- function(selected_columns,
                           freeze,
@@ -102,13 +99,13 @@ utils::globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance",
     # pivot most fields by | for dbnsfp chunk-----------------------------------
     if (dbnsfp_flag == TRUE) {
       expanded <- selected_columns %>%
-        separate_rows(one_of(to_split), sep = "\\|") %>%
-        separate_rows(one_of(c("Ensembl_geneid")), sep = ";") %>%
-        distinct()
+        tidyr::separate_rows(dplyr::one_of(to_split), sep = "\\|") %>%
+        tidyr::separate_rows(dplyr::one_of(c("Ensembl_geneid")), sep = ";") %>%
+        dplyr::distinct()
     } else {
       # pivot the VEP_* fields by | for snp and indel chunks--------------------
       expanded <- selected_columns %>%
-        separate_rows(one_of(to_split_VEP), sep = "\\|")
+        tidyr::separate_rows(dplyr::one_of(to_split_VEP), sep = "\\|")
 
       # pivot the ENCODE_TFBS_* fields by ;-------------------------------------
       # expanded <- expanded %>% #nolint
@@ -116,40 +113,40 @@ utils::globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance",
 
       # pivot the Ensembl_Regulatory_Build_Overviews field by ;-----------------
       expanded <- expanded %>%
-        separate_rows(one_of("Ensembl_Regulatory_Build_Overviews"), sep = ";")
+        tidyr::separate_rows(
+          dplyr::one_of("Ensembl_Regulatory_Build_Overviews"), sep = ";")
 
       # pivot the Ensembl_Regulatory_Build_TFBS field by ;----------------------
       expanded <- expanded %>%
-        separate_rows(one_of("Ensembl_Regulatory_Build_TFBS"), sep = ";")
+        tidyr::separate_rows(
+          dplyr::one_of("Ensembl_Regulatory_Build_TFBS"), sep = ";")
 
       # pivot the GTEx_V6 fields by |-------------------------------------------
       expanded <- expanded %>%
-        separate_rows(one_of(to_split_GTEx_V6), sep = "\\|")
+        tidyr::separate_rows(dplyr::one_of(to_split_GTEx_V6), sep = "\\|")
     }
   }
   # remove duplicate rows
-  expanded <- distinct(expanded)
+  expanded <- dplyr::distinct(expanded)
 }
 
 #' split the VEP_ensembl_Codon_Change_or_Distance field -
 #' if number, put in VEP_ensembl_Distance field
 #' if string, put in VEP_ensembl_Codon_Change field
-#' @importFrom dplyr "%>%" mutate_at funs
-#' @importFrom tidyr extract
-#' @importFrom stringr str_replace
+#' #' @importFrom magrittr "%>%"
 #' @noRd
 .split_VEP_codon <- function(expanded) {
   expanded <- expanded %>%
-    extract(
+    tidyr::extract(
       col = VEP_ensembl_Codon_Change_or_Distance, #nolint
       into = c("VEP_ensembl_Distance", "VEP_ensembl_Codon_Change"),
       regex = "(\\d*)(\\D*)"
     ) %>%
-    mutate_at(vars(one_of(
+    dplyr::mutate_at(dplyr::vars(dplyr::one_of(
       c("VEP_ensembl_Distance",
         "VEP_ensembl_Codon_Change")
     )),
-    funs(str_replace(
+    dplyr::funs(stringr::str_replace(
       ., pattern = "^$", replacement = "."
     ))) # fill blanks with "."
 
@@ -263,15 +260,13 @@ utils::globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance",
 
 #' parse column pairs from tibble for which we want to get logical mask from
 #' first column and apply to second column
-#' @importFrom dplyr mutate select rename "%>%"
-#' @importFrom stringr str_split
-#' @importFrom purrr map map_dbl map2 map2_chr
-#' @importFrom rlang syms
+#' @importFrom magrittr "%>%"
+#' @importFrom rlang ":="
 #' @noRd
 .parse_indel_column_pairs <- function(selected_columns, pair_columns) {
   column_pairs <-
     for (pair in pair_columns) {
-      current_pair <- syms(pair)
+      current_pair <- rlang::syms(pair)
 
       score_name <- pair[[1]]
       rankscore_name <- pair[[2]]
@@ -281,40 +276,41 @@ utils::globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance",
       selected_columns <-
         suppressWarnings(
           selected_columns %>%
-            mutate(
-              p_clean = str_replace_all(!!current_pair[[1]],
+            dplyr::mutate(
+              p_clean = stringr::str_replace_all(rlang::UQ(current_pair[[1]]),
                                         "(?:\\{.*?\\})|;", " "),
-              p_clean = str_replace(p_clean, "\\s+$", ""),
-              p_list = str_split(p_clean, "\\s+"),
-              p_list = map(p_list, as.numeric),
-              p_max = map_dbl(p_list, max, na.rm = TRUE),
+              p_clean = stringr::str_replace(p_clean, "\\s+$", ""),
+              p_list = stringr::str_split(p_clean, "\\s+"),
+              p_list = purrr::map(p_list, as.numeric),
+              p_max = purrr::map_dbl(p_list, max, na.rm = TRUE),
               p_max = as.character(p_max),
               p_max = ifelse( (p_max == "-Inf"), ".", p_max),
-              match_mask = map2(p_list, p_max, str_detect),
+              match_mask = purrr::map2(p_list, p_max, stringr::str_detect),
               match_mask = replace(match_mask, is.na(match_mask), TRUE),
-              match_mask = map(match_mask,
+              match_mask = purrr::map(match_mask,
                                function(x)
                                  x &
                                  !duplicated(x)),
               # thanks Adrienne!
-              r_clean = str_replace_all(!!current_pair[[2]],
+              r_clean = stringr::str_replace_all(rlang::UQ(current_pair[[2]]),
                                         "(?:\\{.*?\\})|;", " "),
-              r_clean = str_replace(r_clean, "\\s+$", ""),
-              r_list =  str_split(r_clean, "\\s+"),
-              r_corresponding = map2_chr(match_mask, r_list,
+              r_clean = stringr::str_replace(r_clean, "\\s+$", ""),
+              r_list =  stringr::str_split(r_clean, "\\s+"),
+              r_corresponding = purrr::map2_chr(match_mask, r_list,
                                          function(logical, string)
                                            subset(string, logical))
             ) %>%
-            select(-p_clean,
+            dplyr::select(-p_clean,
                    -p_list,
                    -match_mask,
                    -r_clean,
                    -r_list) %>%
-            rename(
-              !!unparsed_score_name := !!current_pair[[1]],
-              !!current_pair[[1]] := p_max,
-              !!unparsed_rankscore_name := !!current_pair[[2]],
-              !!current_pair[[2]] := r_corresponding
+            dplyr::rename(
+              rlang::UQ(unparsed_score_name) := rlang::UQ(current_pair[[1]]),
+              rlang::UQ(current_pair[[1]]) := p_max,
+              rlang::UQ(unparsed_rankscore_name) :=
+                rlang::UQ(current_pair[[2]]),
+              rlang::UQ(current_pair[[2]]) := r_corresponding
             )
         )
     }
@@ -325,14 +321,12 @@ utils::globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance",
 #' parse column triples from tibble for which we want to get logical mask from
 #' first column and apply to second and third columns. Assumes 2nd column is
 #' rankscore.
-#' @importFrom dplyr mutate select rename "%>%"
-#' @importFrom stringr str_split
-#' @importFrom purrr map map_dbl map2 map2_chr
-#' @importFrom rlang syms
+#' @importFrom magrittr "%>%"
+#' @importFrom rlang ":="
 #' @noRd
 .parse_indel_column_triples <- function(selected_columns, triple_columns) {
   for (triple in triple_columns) {
-    current_triple <- syms(triple)
+    current_triple <- rlang::syms(triple)
 
     score_name <- triple[[1]]
     rankscore_name <- triple[[2]]
@@ -344,36 +338,38 @@ utils::globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance",
     selected_columns <-
       suppressWarnings(
         selected_columns %>%
-          mutate(
-            p_clean = str_replace_all(!!current_triple[[1]],
+          dplyr::mutate(
+            p_clean = stringr::str_replace_all(rlang::UQ(current_triple[[1]]),
                                       "(?:\\{.*?\\})|;", " "),
-            p_clean = str_replace(p_clean, "\\s+$", ""),
-            p_list = str_split(p_clean, "\\s+"),
-            p_list = map(p_list, as.numeric),
-            p_max = map_dbl(p_list, max, na.rm = TRUE),
+            p_clean = stringr::str_replace(p_clean, "\\s+$", ""),
+            p_list = stringr::str_split(p_clean, "\\s+"),
+            p_list = purrr::map(p_list, as.numeric),
+            p_max = purrr::map_dbl(p_list, max, na.rm = TRUE),
             p_max = as.character(p_max),
             p_max = ifelse( (p_max == "-Inf"), ".", p_max),
-            match_mask = map2(p_list, p_max, str_detect),
+            match_mask = purrr::map2(p_list, p_max, stringr::str_detect),
             match_mask = replace(match_mask, is.na(match_mask), TRUE),
-            match_mask = map(match_mask,
+            match_mask = purrr::map(match_mask,
                              function(x)
                                x & !duplicated(x)), # thanks Adrienne!
-            r_clean = str_replace_all(!!current_triple[[2]],
-                                      "(?:\\{.*?\\})|;", " "),
-            r_clean = str_replace(r_clean, "\\s+$", ""),
-            r_list =  str_split(r_clean, "\\s+"),
-            r_corresponding = map2_chr(match_mask, r_list,
+            r_clean = stringr::str_replace_all(
+              rlang::UQ(current_triple[[2]]),
+              "(?:\\{.*?\\})|;", " "),
+            r_clean = stringr::str_replace(r_clean, "\\s+$", ""),
+            r_list =  stringr::str_split(r_clean, "\\s+"),
+            r_corresponding = purrr::map2_chr(match_mask, r_list,
                                        function(logical, string)
                                          subset(string, logical)),
-            v_clean = str_replace_all(!!current_triple[[3]],
-                                      "(?:\\{.*?\\})|;", " "),
-            v_clean = str_replace(v_clean, "\\s+$", ""),
-            v_list =  str_split(v_clean, "\\s+"),
-            v_corresponding = map2_chr(match_mask, v_list,
+            v_clean = stringr::str_replace_all(
+              rlang::UQ(current_triple[[3]]),
+              "(?:\\{.*?\\})|;", " "),
+            v_clean = stringr::str_replace(v_clean, "\\s+$", ""),
+            v_list =  stringr::str_split(v_clean, "\\s+"),
+            v_corresponding = purrr::map2_chr(match_mask, v_list,
                                        function(logical, string)
                                          subset(string, logical))
           ) %>%
-          select(-p_clean,
+          dplyr::select(-p_clean,
                  -p_list,
                  -r_clean,
                  -r_list,
@@ -381,13 +377,14 @@ utils::globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance",
                  -v_clean,
                  -v_list
           ) %>%
-          rename(
-            !!unparsed_score_name := !!current_triple[[1]],
-            !!current_triple[[1]] := p_max,
-            !!unparsed_rankscore_name := !!current_triple[[2]],
-            !!current_triple[[2]] := r_corresponding,
-            !!unparsed_value_name := !!current_triple[[3]],
-            !!current_triple[[3]] := v_corresponding
+          dplyr::rename(
+            rlang::UQ(unparsed_score_name) := rlang::UQ(current_triple[[1]]),
+            rlang::UQ(current_triple[[1]]) := p_max,
+            rlang::UQ(unparsed_rankscore_name) :=
+              rlang::UQ(current_triple[[2]]),
+            rlang::UQ(current_triple[[2]]) := r_corresponding,
+            rlang::UQ(unparsed_value_name) := rlang::UQ(current_triple[[3]]),
+            rlang::UQ(current_triple[[3]]) := v_corresponding
           )
       )
   }
@@ -395,11 +392,11 @@ utils::globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance",
 }
 
 #' change any old names to new style names in fr_4 indel file
-#' @importFrom dplyr rename
+#' @importFrom magrittr "%>%"
 #' @noRd
 .fix_names <- function(indel_tibble) {
   indel_tibble <- indel_tibble %>%
-    rename(
+    dplyr::rename(
       chr = `#chr`,
       MAP20_149bp = `MAP20(+-149bp)`,
       MAP35_149bp = `MAP35(+-149bp)`,
@@ -451,8 +448,7 @@ utils::globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance",
 }
 
 #' select columns to set order and write_tsv
-#' @importFrom readr write_tsv
-#' @importFrom dplyr select one_of "%>%"
+#' @importFrom magrittr "%>%"
 #' @noRd
 .write_to_file <- function(parsed_lines,
                            destination,
@@ -460,25 +456,23 @@ utils::globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance",
                            header_flag) {
   if (header_flag) {
     parsed_lines %>%
-      select(one_of(processed_fields)) %>% # ensure column order
-      write_tsv(path = destination, append = FALSE)
+      dplyr::select(dplyr::one_of(processed_fields)) %>% # ensure column order
+      readr::write_tsv(path = destination, append = FALSE)
   } else {
     parsed_lines %>%
-      select(one_of(processed_fields)) %>%
-      write_tsv(path = destination, append = TRUE)
+      dplyr::select(dplyr::one_of(processed_fields)) %>%
+      readr::write_tsv(path = destination, append = TRUE)
   }
 }
 
 #' parse db_nsfp_low_pairs - select low value from pair[[1]] and corresponding
 #' value from pair[[2]]
-#' @importFrom dplyr mutate select rename "%>%"
-#' @importFrom stringr str_split str_detect
-#' @importFrom purrr map map_dbl map2 map2_chr
-#' @importFrom rlang syms
+#' @importFrom magrittr "%>%"
+#' @importFrom rlang ":="
 #' @noRd
 .parse_dbnsfp_low <- function(filtered_selected_columns, low_pairs) {
   for (pair in low_pairs) {
-    current_pair <- syms(pair)
+    current_pair <- rlang::syms(pair)
     score_name <- pair[[1]]
     pred_name <- pair[[2]]
     unparsed_score_name <- paste0(score_name, "_unparsed")
@@ -487,19 +481,19 @@ utils::globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance",
     filtered_selected_columns <-
       suppressWarnings(
         filtered_selected_columns %>%
-          mutate(
-            p_list = str_split(!!current_pair[[1]], ";"),
-            p_list = map(p_list, as.numeric),
-            p_min = map_dbl(p_list, min, na.rm = TRUE),
+          dplyr::mutate(
+            p_list = stringr::str_split(rlang::UQ(current_pair[[1]]), ";"),
+            p_list = purrr::map(p_list, as.numeric),
+            p_min = purrr::map_dbl(p_list, min, na.rm = TRUE),
             p_min = as.character(p_min),
             p_min = ifelse( (p_min == "Inf"), ".", p_min),
-            match_mask = map2(p_list, p_min, str_detect),
+            match_mask = purrr::map2(p_list, p_min, stringr::str_detect),
             # replace NA with false
-            match_mask = map(match_mask,
+            match_mask = purrr::map(match_mask,
                              function(x)
                                replace(x, is.na(x), FALSE)),
             # if all FALSE, change all to TRUE, then keep only first
-            match_mask = map(match_mask,
+            match_mask = purrr::map(match_mask,
                              function(x)
                                if (all(x == FALSE))
                                  ! x
@@ -507,22 +501,22 @@ utils::globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance",
                                x),
             # if match_mask has more than one TRUE, keep only first TRUE
             # -- thanks Adrienne!
-            match_mask = map(match_mask,
+            match_mask = purrr::map(match_mask,
                              function(x)
                                x & !duplicated(x)),
-            r_list =  str_split(!!current_pair[[2]], ";"),
-            r_corresponding = map2_chr(match_mask, r_list,
+            r_list =  stringr::str_split(rlang::UQ(current_pair[[2]]), ";"),
+            r_corresponding = purrr::map2_chr(match_mask, r_list,
                                        function(logical, string)
                                          subset(string, logical))
           ) %>%
-          select(-p_list,
+          dplyr::select(-p_list,
                  -match_mask,
                  -r_list) %>%
-          rename(
-            !!unparsed_score_name := !!current_pair[[1]],
-            !!current_pair[[1]] := p_min,
-            !!unparsed_pred_name := !!current_pair[[2]],
-            !!current_pair[[2]] := r_corresponding
+          dplyr::rename(
+            rlang::UQ(unparsed_score_name) := rlang::UQ(current_pair[[1]]),
+            rlang::UQ(current_pair[[1]]) := p_min,
+            rlang::UQ(unparsed_pred_name) := rlang::UQ(current_pair[[2]]),
+            rlang::UQ(current_pair[[2]]) := r_corresponding
           )
       )
   }
@@ -531,14 +525,12 @@ utils::globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance",
 
 #' parse db_nsfp_high_pairs - select high value from pair[[1]] and corresponding
 #' value from pair[[2]]
-#' @importFrom dplyr mutate select rename "%>%"
-#' @importFrom stringr str_split str_detect
-#' @importFrom purrr map map_dbl map2 map2_chr
-#' @importFrom rlang syms
+#' @importFrom magrittr "%>%"
+#' @importFrom rlang ":="
 #' @noRd
 .parse_dbnsfp_high <- function(filtered_selected_columns, high_pairs) {
   for (pair in high_pairs) {
-    current_pair <- syms(pair)
+    current_pair <- rlang::syms(pair)
     score_name <- pair[[1]]
     pred_name <- pair[[2]]
     unparsed_score_name <- paste0(score_name, "_unparsed")
@@ -547,19 +539,19 @@ utils::globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance",
     filtered_selected_columns <-
       suppressWarnings(
         filtered_selected_columns %>%
-          mutate(
-            p_list = str_split(!!current_pair[[1]], ";"),
-            p_list = map(p_list, as.numeric),
-            p_max = map_dbl(p_list, max, na.rm = TRUE),
+          dplyr::mutate(
+            p_list = stringr::str_split(rlang::UQ(current_pair[[1]]), ";"),
+            p_list = purrr::map(p_list, as.numeric),
+            p_max = purrr::map_dbl(p_list, max, na.rm = TRUE),
             p_max = as.character(p_max),
             p_max = ifelse( (p_max == "-Inf"), ".", p_max),
-            match_mask = map2(p_list, p_max, str_detect),
+            match_mask = purrr::map2(p_list, p_max, stringr::str_detect),
             # replace NA with false
-            match_mask = map(match_mask,
+            match_mask = purrr::map(match_mask,
                              function(x)
                                replace(x, is.na(x), FALSE)),
             # if all FALSE, change all to TRUE, then keep only first
-            match_mask = map(match_mask,
+            match_mask = purrr::map(match_mask,
                              function(x)
                                if (all(x == FALSE))
                                  ! x
@@ -567,22 +559,22 @@ utils::globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance",
                                x),
             # if match_mask has more than one TRUE, keep only first TRUE
             # -- thanks Adrienne!
-            match_mask = map(match_mask,
+            match_mask = purrr::map(match_mask,
                              function(x)
                                x & !duplicated(x)),
-            r_list =  str_split(!!current_pair[[2]], ";"),
-            r_corresponding = map2_chr(match_mask, r_list,
+            r_list =  stringr::str_split(rlang::UQ(current_pair[[2]]), ";"),
+            r_corresponding = purrr::map2_chr(match_mask, r_list,
                                        function(logical, string)
                                          subset(string, logical))
           ) %>%
-          select(-p_list,
+          dplyr::select(-p_list,
                  -match_mask,
                  -r_list) %>%
-          rename(
-            !!unparsed_score_name := !!current_pair[[1]],
-            !!current_pair[[1]] := p_max,
-            !!unparsed_pred_name := !!current_pair[[2]],
-            !!current_pair[[2]] := r_corresponding
+          dplyr::rename(
+            rlang::UQ(unparsed_score_name) := rlang::UQ(current_pair[[1]]),
+            rlang::UQ(current_pair[[1]]) := p_max,
+            rlang::UQ(unparsed_pred_name) := rlang::UQ(current_pair[[2]]),
+            rlang::UQ(current_pair[[2]]) := r_corresponding
           )
       )
   }
@@ -591,16 +583,14 @@ utils::globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance",
 
 #' parse db_nsfp_mutation_pairs - select character from pair[[2]] and
 #' corresponding value from pair[[1]]
-#' @importFrom dplyr mutate select rename "%>%"
-#' @importFrom stringr str_split str_detect
-#' @importFrom purrr map map_dbl map2 map2_chr
-#' @importFrom rlang syms
+#' @importFrom magrittr "%>%"
+#' @importFrom rlang ":="
 #' @noRd
 #'
 .parse_dbnsfp_mutation <- function(filtered_selected_columns,
                                    mutation_pairs) {
   for (pair in mutation_pairs) {
-    current_pair <- syms(pair)
+    current_pair <- rlang::syms(pair)
     score_name <- pair[[2]]
     pred_name <- pair[[1]]
     unparsed_score_name <- paste0(score_name, "_unparsed")
@@ -609,46 +599,50 @@ utils::globalVariables(c(".", ":=", "VEP_ensembl_Codon_Change_or_Distance",
     filtered_selected_columns <-
       suppressWarnings(
         filtered_selected_columns %>%
-          mutate(
+          dplyr::mutate(
             # If A present keep A,
             # else if D present keep D,
             # else if P present keep P,
             # else if N present keep N,
             # else .
             new_p = ifelse(
-              str_detect(!!current_pair[[1]], "A"),
+              stringr::str_detect(rlang::UQ(current_pair[[1]]), "A"),
               "A",
               ifelse(
-                str_detect(!!current_pair[[1]], "D"),
+                stringr::str_detect(rlang::UQ(current_pair[[1]]), "D"),
                 "D",
                 ifelse(
-                  str_detect(!!current_pair[[1]], "P"),
+                  stringr::str_detect(rlang::UQ(current_pair[[1]]), "P"),
                   "P",
-                  ifelse(str_detect(!!current_pair[[1]], "N"), "N",
-                         ".")
+                  ifelse(
+                    stringr::str_detect(rlang::UQ(current_pair[[1]]),
+                                        "N"),
+                    "N",
+                    "."
+                    )
                 )
               )
             ),
-            p_list = str_split(!!current_pair[[1]], ";"),
-            match_mask = map2(p_list, new_p, str_detect),
+            p_list = stringr::str_split(rlang::UQ(current_pair[[1]]), ";"),
+            match_mask = purrr::map2(p_list, new_p, stringr::str_detect),
             # if match_mask has more than one TRUE, keep only first TRUE
             # -- thanks Adrienne!
-            match_mask = map(match_mask,
+            match_mask = purrr::map(match_mask,
                              function(x)
                                x & !duplicated(x)),
-            r_list =  str_split(!!current_pair[[2]], ";"),
-            r_corresponding = map2_chr(match_mask, r_list,
+            r_list =  stringr::str_split(rlang::UQ(current_pair[[2]]), ";"),
+            r_corresponding = purrr::map2_chr(match_mask, r_list,
                                        function(logical, string)
                                          subset(string, logical))
           ) %>%
-          select(-p_list,
+          dplyr::select(-p_list,
                  -match_mask,
                  -r_list) %>%
-          rename(
-            !!unparsed_score_name := !!current_pair[[2]],
-            !!current_pair[[2]] := r_corresponding,
-            !!unparsed_pred_name := !!current_pair[[1]],
-            !!current_pair[[1]] := new_p
+          dplyr::rename(
+            rlang::UQ(unparsed_score_name) := rlang::UQ(current_pair[[2]]),
+            rlang::UQ(current_pair[[2]]) := r_corresponding,
+            rlang::UQ(unparsed_pred_name) := rlang::UQ(current_pair[[1]]),
+            rlang::UQ(current_pair[[1]]) := new_p
           )
       )
   }

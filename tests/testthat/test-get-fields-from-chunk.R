@@ -10,12 +10,12 @@ test_that(
                               "ref" = c("A", "C"),
                               "alt" = c("G", "T"))
     attributes(expected_result)$spec <-
-      cols(
-          .default = col_character(),
-          `#chr` = col_character(),
-          pos = col_character(),
-          ref = col_character(),
-          alt = col_character()
+      readr::cols(
+          .default = readr::col_character(),
+          `#chr` = readr::col_character(),
+          pos = readr::col_character(),
+          ref = readr::col_character(),
+          alt = readr::col_character()
         )
     expect_identical(.get_fields_from_chunk(test_chunk), expected_result)
   }

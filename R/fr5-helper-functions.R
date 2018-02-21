@@ -261,7 +261,7 @@ utils::globalVariables(c("MAP35_140bp"))
     suppressWarnings(
       selected_columns %>%
         # parse: A if A present, then D, P, N, else .
-        mutate_at(.vars = dplyr::vars(a_columns),
+        dplyr::mutate_at(.vars = dplyr::vars(a_columns),
                   .funs = dplyr::funs(
                     ifelse(stringr::str_detect(., "A"), "A",
                            ifelse(stringr::str_detect(., "D"), "D",
@@ -601,7 +601,7 @@ utils::globalVariables(c("MAP35_140bp"))
                                     function(x)
                                       x & !duplicated(x)),
             r_list =  stringr::str_split(rlang::UQ(current_pair[[2]]), ";"),
-            r_corresponding = map2_chr(match_mask, r_list,
+            r_corresponding = purrr::map2_chr(match_mask, r_list,
                                        function(logical, string)
                                          ifelse(length(string) == 1,
                                                 string,
