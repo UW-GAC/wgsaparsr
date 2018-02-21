@@ -1,7 +1,5 @@
 #' Parse a chunk tibble from a SNV annotation file
-#' @importFrom dplyr select mutate mutate_at distinct one_of vars funs "%>%"
-#' @importFrom tidyr separate_rows extract
-#' @importFrom stringr str_replace
+#' @importFrom magrittr "%>%"
 #' @noRd
 .parse_chunk_snv <- function(all_fields, freeze) {
   # set variables by freeze-----------------------------------------------------
@@ -12,8 +10,8 @@
 
   # pick desired columns--------------------------------------------------------
   selected_columns <- all_fields %>%
-    select(one_of(desired_columns)) %>% # select fields of interest
-    mutate(wgsa_version = WGSA_version) # add wgsa version
+    dplyr::select(dplyr::one_of(desired_columns)) %>% # select fields
+    dplyr::mutate(wgsa_version = WGSA_version) # add wgsa version
 
   # pivot columns---------------------------------------------------------------
   expanded <- .expand_chunk(selected_columns, freeze)
@@ -22,13 +20,11 @@
   expanded <- .split_VEP_codon(expanded)
 
   # remove redundant rows
-  expanded <- distinct(expanded)
+  expanded <- dplyr::distinct(expanded)
 }
 
 #' Parse a chunk tibble from an indel annotation file -- PIVOT FIRST?
-#' @importFrom dplyr select mutate mutate_at distinct one_of vars funs "%>%"
-#' @importFrom tidyr separate_rows extract
-#' @importFrom stringr str_replace
+#' @importFrom magrittr "%>%"
 #' @noRd
 .parse_chunk_indel <- function(all_fields, freeze) {
   # set variables by freeze-----------------------------------------------------
@@ -45,8 +41,8 @@
 
   # pick desired columns--------------------------------------------------------
   selected_columns <- all_fields %>%
-    select(one_of(desired_columns)) %>% # select fields of interest
-    mutate(wgsa_version = WGSA_version) # add wgsa version
+    dplyr::select(dplyr::one_of(desired_columns)) %>% # select fields
+    dplyr::mutate(wgsa_version = WGSA_version) # add wgsa version
 
   # pivot columns---------------------------------------------------------------
   expanded <- .expand_chunk(selected_columns, freeze, indel_flag = TRUE)
@@ -75,11 +71,11 @@
   }
 
   # remove redundant rows
-  expanded <- distinct(expanded)
+  expanded <- dplyr::distinct(expanded)
 }
 
 #' Parse a chunk tibble from a SNV annotation file for dbNSFP annotation
-#' @importFrom dplyr select one_of filter distinct "%>%" mutate
+#' @importFrom magrittr "%>%"
 #' @noRd
 .parse_chunk_dbnsfp <- function(all_fields, freeze) {
   # set variables by freeze-----------------------------------------------------
@@ -92,9 +88,9 @@
 
   # pick desired columns and rows-----------------------------------------------
   filtered_selected_columns <- all_fields %>%
-    select(one_of(desired_columns)) %>% # select fields of interest
-    filter(aaref != ".") %>% # select rows with dbNSFP annotation
-    distinct() # trim redundant rows before expanding
+    dplyr::select(dplyr::one_of(desired_columns)) %>% # select fields
+    dplyr::filter(aaref != ".") %>% # select rows with dbNSFP annotation
+    dplyr::distinct() # trim redundant rows before expanding
 
     # IF NO ROWS, RETURN EMPTY TIBBLE
   if (nrow(filtered_selected_columns) == 0) {
@@ -116,7 +112,8 @@
   expanded <- .parse_dbnsfp_mutation(expanded, mutation_pairs)
 
   # add aachange column---------------------------------------------------------
-  expanded <- expanded %>% mutate(aachange = paste0(aaref, "/", aaalt))
+  expanded <- expanded %>%
+    dplyr::mutate(aachange = paste0(aaref, "/", aaalt))
 
-  expanded <- distinct(expanded)
+  expanded <- dplyr::distinct(expanded)
 }
