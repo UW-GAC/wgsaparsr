@@ -167,7 +167,7 @@ parse_to_file <- function(source_file,
       }
 
       # if header line in this chunk, read raw chunk to all_fields tibble
-      header_flag <- .has_header(raw_chunk)
+      header_flag <- .fr5_has_header(raw_chunk)
 
       if (header_flag) {
         all_fields <- .get_fields_from_chunk(raw_chunk)
