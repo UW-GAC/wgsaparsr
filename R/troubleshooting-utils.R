@@ -34,7 +34,7 @@ get_problem_chunk <- function(source_file,
   # get header and check if indel file----------------------------------------
   first_line <- .get_first_line(source_file)
 
-  if (!.fr5_has_header(first_line)) {
+  if (!.has_header(first_line)) {
     stop("source_file doesn't have header line")
   }
 

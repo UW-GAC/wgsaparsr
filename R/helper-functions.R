@@ -3,7 +3,11 @@
 #' hack to pass devtools::check()
 #' see: https://stackoverflow.com/questions/9439256/
 #' @noRd
-utils::globalVariables(c("MAP35_140bp"))
+utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
+                         "dbnsfp", "sourceGroup", "pivotGroup", "pivotChar",
+                         "parseGroup", "transformation", ".", "p_list",
+                         "match_mask", "r_list", "r_corresponding",
+                         "new_p", "p_max", "p_min"))
 
 
 #' Check if the current chunk includes a header row describing the fields
