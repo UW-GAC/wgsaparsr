@@ -1,4 +1,7 @@
-[![Travis-CI Build Status](https://travis-ci.org/UW-GAC/wgsaparsr.svg?branch=master)](https://travis-ci.org/UW-GAC/wgsaparsr)
+| **Service** | **Master** | **Develop** |
+|:-------------:|:------:|:-------:|
+| CI Status | [![Travis-CI Build Status](https://travis-ci.org/UW-GAC/wgsaparsr.svg?branch=master)](https://travis-ci.org/UW-GAC/wgsaparsr) | [![Travis-CI Build Status](https://travis-ci.org/UW-GAC/wgsaparsr.svg?branch=develop)](https://travis-ci.org/UW-GAC/wgsaparsr)(https://github.com/UW-GAC/wgsaparsr/tree/develop) |
+| Test Coverage | [![Coverage Status](https://img.shields.io/codecov/c/github/UW-GAC/wgsaparsr/master.svg)](https://codecov.io/github/UW-GAC/wgsaparsr?branch=master) | [![Coverage Status](https://img.shields.io/codecov/c/github/UW-GAC/wgsaparsr/develop.svg)](https://codecov.io/github/UW-GAC/wgsaparsr?branch=develop) |
 
 # wgsaparsr
 
@@ -21,19 +24,19 @@ devtools::install_github("UW-GAC/wgsaparsr")
 # list all fields in an annotation file: 
 all_fields <- get_fields("WGSA_chr_1.gz")
 
-# parse a freeze 4 general annotation file for SNVs and dbnsfp annotations:
-parse_to_file(source_file = WGSA_file,
-              destination = "chr_22_snv_test.tsv",
-              dbnsfp_destination = "chr_22_dbnsfp_test.tsv",
-              freeze = 4,
-              chunk_size = 10000,
-              verbose = TRUE)
+# load a configuration file
+local_config <- load_config("config.tsv")
 
-# parse a freeze 4 general annotation file for indel annotations:
-parse_to_file(source_file = indel_file,
-              destination = "chr_22_indel_test.tsv",
-              freeze = 4,
-              chunk_size = 10000,
-              verbose = TRUE)
+# parse WGSA output file tsv output files 
+# (one for dbnsfp annotations, one for snv/indel annotaitons)
+parse_to_file(source_file = snv_source_file,
+  destination = snv_destination,
+  dbnsfp_destination = dbnsfp_destination,
+  config = config,
+  freeze = 5,
+  chunk_size = 1000,
+  verbose = TRUE)
 ```
 
+Expanded configuration file documentation coming soon. In the meantime, see 
+`?wgsaparsr::load_config()`
