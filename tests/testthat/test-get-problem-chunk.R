@@ -2,7 +2,7 @@ context("test_get_problem_chunk - unit tests")
 
 test_that(
   "get_problem_chunk returns the expected first chunk", {
-    warning(list.files())
+    stop(list.files())
     load(file = "loaded_chunk.RDa")
     expect_equivalent(loaded_chunk,
                      get_problem_chunk("1k_annotation.gz", 5, 1))
