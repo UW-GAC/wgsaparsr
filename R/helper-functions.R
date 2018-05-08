@@ -74,9 +74,10 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
 
   # if no {*}, no parsing needed.
   if (!any(
-    selected_columns %>%
+    suppressWarnings(selected_columns %>%
     dplyr::select(to_clean) %>%
-    stringr::str_detect("\\{[^\\}]+\\}"))){
+    stringr::str_detect("\\{[^\\}]+\\}")))
+    ){
     return(selected_columns)
   }
 
@@ -114,10 +115,11 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
   }
 
   # if no ; or {*}, only single values, so no parsing needed
-  if (!any(
+  if (!any(suppressWarnings( # warning - stri_detect_regex
     selected_columns %>%
     dplyr::select(max_columns) %>%
-    stringr::str_detect("\\{[^\\}]+\\}|;"))){
+    stringr::str_detect("\\{[^\\}]+\\}|;"))) # argument is not an atomic vector
+  ){
     return(selected_columns)
   }
 
@@ -182,9 +184,11 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
 
   # if no ; or {*}, only single values, so no parsing needed
   if (!any(
+    suppressWarnings(
     selected_columns %>%
     dplyr::select(min_columns) %>%
-    stringr::str_detect("\\{[^\\}]+\\}|;"))){
+    stringr::str_detect("\\{[^\\}]+\\}|;")))
+    ){
     return(selected_columns)
   }
 
@@ -367,9 +371,11 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
 
   # if no {*} or ;, no parsing needed.
   if (!any(
+    suppressWarnings(
     selected_columns %>%
-    dplyr::select(distinct_columns) %>%
-    stringr::str_detect("(?:\\{.*?\\})|;"))
+      dplyr::select(distinct_columns) %>%
+      stringr::str_detect("(?:\\{.*?\\})|;"))
+  )
   ){
     return(selected_columns)
   }
