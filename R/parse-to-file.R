@@ -157,5 +157,7 @@ parse_to_file <- function(source_file,
 
   }
   close(readfile_con)
+  msg <- paste0(index, " chunks parsed.\n")
+  message(msg)
   .last()
 }
