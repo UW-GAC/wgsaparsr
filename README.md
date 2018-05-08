@@ -1,6 +1,6 @@
 | **Service** | **Master** | **Develop** |
 |:-------------:|:------:|:-------:|
-| CI Status | [![Travis-CI Build Status](https://travis-ci.org/UW-GAC/wgsaparsr.svg?branch=master)](https://travis-ci.org/UW-GAC/wgsaparsr) | [![Travis-CI Build Status](https://travis-ci.org/UW-GAC/wgsaparsr.svg?branch=develop)](https://github.com/UW-GAC/wgsaparsr/tree/develop) |
+| CI Status | [![Travis-CI Build Status](https://travis-ci.org/UW-GAC/wgsaparsr.svg?branch=master)](https://travis-ci.org/UW-GAC/wgsaparsr) | [![Travis-CI Build Status](https://travis-ci.org/UW-GAC/wgsaparsr.svg?branch=develop)](https://travis-ci.org/UW-GAC/wgsaparsr?branch=develop) |
 | Test Coverage | [![Coverage Status](https://img.shields.io/codecov/c/github/UW-GAC/wgsaparsr/master.svg)](https://codecov.io/github/UW-GAC/wgsaparsr/branch/master) | [![Coverage Status](https://img.shields.io/codecov/c/github/UW-GAC/wgsaparsr/develop.svg)](https://codecov.io/github/UW-GAC/wgsaparsr/branch/develop) |
 
 # wgsaparsr
