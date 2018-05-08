@@ -14,22 +14,15 @@
 #' \dontrun{
 #'
 #' problem_chunk <-
-#'   get_problem_chunk(snv_source_file,
-#'                     config,
-#'                     1000,
-#'                     problem_chunk_number)
+#'   get_problem_chunk(source_file = "./path/to/source.gz",
+#'                     chunk_size = 1000,
+#'                     problem_index = 7)
 #' }
 #'
 #' @export
 get_problem_chunk <- function(source_file,
-                              config,
                               chunk_size,
                               problem_index){
-  if ("data.frame" %in% class(config)) {
-    validate_config(config)
-  } else {
-    config <- load_config(config)
-  }
 
   # get header and check if indel file----------------------------------------
   first_line <- .get_first_line(source_file)

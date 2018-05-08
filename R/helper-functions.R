@@ -35,7 +35,12 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
 #' Check if the current chunk includes a header row describing the fields
 #' @noRd
 .has_header <- function(raw_chunk){
-  any(stringr::str_detect(raw_chunk, "^CHROM\\tPOS\\tREF\\tALT")) #nolint
+  expression <- paste0(
+    "(^CHROM\\tPOS\\tREF\\tALT)|",
+    "(#chr\\tpos\\tref\\talt\\t)|",
+    "(chr\\tpos\\tref\\talt\\t)"
+  )
+  any(stringr::str_detect(raw_chunk, expression))
 }
 
 #' add column_name_unparsed column to tibble prior to parsing (for debugging,
