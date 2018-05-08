@@ -13,8 +13,8 @@ get_fields(source)
 a character vector with the names of the WGSA fields
 }
 \description{
-\href{https://sites.google.com/site/jpopgen/wgsa}{WGSA} output files can 
-contain thousands of fields, including fields with lists of entries. This 
+\href{https://sites.google.com/site/jpopgen/wgsa}{WGSA} output files can
+contain thousands of fields, including fields with lists of entries. This
 function reads the header of a WGSA file and returns a list of fields in the file.
 }
 \examples{
