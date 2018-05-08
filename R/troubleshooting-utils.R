@@ -4,8 +4,6 @@
 #'
 #' @param source_file Path to the WGSA output file to parse (indel or SNV
 #'   annotation)
-#' @param config Path to config file or a dataframe that passes
-#'   validate_config()
 #' @param chunk_size Number of lines to parse each iteration (default 10,000)
 #' @param problem_index the index of desired chunk to get. Likely one more than
 #'   the last output from a call to wgsaparsr::parse_to_file()
