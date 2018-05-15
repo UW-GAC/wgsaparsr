@@ -191,6 +191,46 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
 }
 
 # TODO: is there a way to short-circuit parsing on trivial case?
+#' @examples
+#' \dontrun{
+#' .parse_y_n_columns(selected_columns, yes_columns, "yes")
+#' .parse_y_n_columns(selected_columns, no_columns, "no")
+#' }
+#' @importFrom magrittr "%>%"
+#' @noRd
+.parse_y_n_columns <- function(selected_columns, target_columns, sense){
+  if (length(yes_columns) == 0){
+    return(selected_columns)
+  }
+
+  if (! sense %in% c("yes", "no")){
+    stop('sense must be "yes" or "no"')
+  }
+
+  if (sense == "yes") {
+    preference <- "Y"
+    second <- "N"
+  } else {
+    preference <- "N"
+    second <- "Y"
+  }
+
+  selected_columns <-
+    suppressWarnings(
+      selected_columns %>%
+        # parse:  preference if present, else second if present, else .
+        dplyr::mutate_at(.vars = dplyr::vars(target_columns),
+                         .funs = dplyr::funs(ifelse(
+                           stringr::str_detect(., preference),
+                           preference,
+                           ifelse(stringr::str_detect(., second),
+                                  second, ".")
+                         )))
+    )
+  return(selected_columns)
+}
+
+# TODO: is there a way to short-circuit parsing on trivial case?
 #' @importFrom magrittr "%>%"
 #' @noRd
 .parse_yes_columns <- function(selected_columns, yes_columns){
