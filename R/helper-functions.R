@@ -491,7 +491,8 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
     # if a single, pass it along.
     if (length(pair) == 1){
       parsed_columns <- .preserve_raw(parsed_columns, unlist(pair))
-      parsed_columns <- .parse_max_columns(parsed_columns, unlist(pair))
+      parsed_columns <-
+        .parse_extreme_columns(parsed_columns, unlist(pair), "max")
       next
     }
     if (length(pair) != 2){
@@ -810,10 +811,10 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
   # parse the chunk single fields-------------
   # preserve unparsed, first (maybe with flag?)
   parsed <- .preserve_raw(selected, unlist(parse_max))
-  parsed <- .parse_max_columns(parsed, unlist(parse_max))
+  parsed <- .parse_extreme_columns(parsed, unlist(parse_max), "max")
 
   parsed <- .preserve_raw(parsed, unlist(parse_min))
-  parsed <- .parse_min_columns(parsed, unlist(parse_min))
+  parsed <- .parse_extreme_columns(parsed, unlist(parse_min), "min")
 
   parsed <- .preserve_raw(parsed, unlist(pick_y))
   parsed <- .parse_yes_columns(parsed, unlist(pick_y))
@@ -893,10 +894,10 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
   # parse the chunk single fields-------------
   # preserve unparsed, first (maybe with flag?)
   parsed <- .preserve_raw(pivoted, unlist(parse_max))
-  parsed <- .parse_max_columns(parsed, unlist(parse_max))
+  parsed <- .parse_extreme_columns(parsed, unlist(parse_max), "max")
 
   parsed <- .preserve_raw(parsed, unlist(parse_min))
-  parsed <- .parse_min_columns(parsed, unlist(parse_min))
+  parsed <- .parse_extreme_columns(parsed, unlist(parse_min), "min")
 
   parsed <- .preserve_raw(parsed, unlist(pick_y))
   parsed <- .parse_yes_columns(parsed, unlist(pick_y))
