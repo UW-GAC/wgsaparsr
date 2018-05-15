@@ -199,7 +199,7 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
 #' @importFrom magrittr "%>%"
 #' @noRd
 .parse_y_n_columns <- function(selected_columns, target_columns, sense){
-  if (length(yes_columns) == 0){
+  if (length(target_columns) == 0){
     return(selected_columns)
   }
 
