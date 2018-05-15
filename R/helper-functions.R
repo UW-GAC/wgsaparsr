@@ -105,12 +105,17 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
   return(selected_columns)
 }
 
-#' pick maximum value from compound entry in column
+#' pick maximum or minimum value from compound entry in column
+#' @examples
+#' \dontrun{
+#' .parse_extreme_columns(selected_columns, max_columns, "max")
+#' .parse_extreme_columns(selected_columns, min_columns, "min")
+#' }
 #' @importFrom magrittr "%>%"
 #' @noRd
 
-.parse_max_columns <- function(selected_columns, max_columns) {
-  if (length(max_columns) == 0){
+.parse_extreme_columns <- function(selected_columns, target_columns, sense) {
+  if (length(target_columns) == 0){
     return(selected_columns)
   }
 
@@ -119,126 +124,67 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
   # atomic vector
   if (!any(suppressWarnings(
     selected_columns %>%
-    dplyr::select(max_columns) %>%
+    dplyr::select(target_columns) %>%
     stringr::str_detect("\\{[^\\}]+\\}|;")))
   ){
     return(selected_columns)
   }
 
-  # if ; or {*}, replace with a space, split on whitespace, and return max
+  if (! sense %in% c("max", "min")){
+    stop('sense must be "max" or "min"')
+  }
+  # if ; or {*}, replace with a space, split on whitespace, and return extreme
   # value
+  if (sense == "max") {
+    to_replace <- "-Inf"
+  } else {
+    to_replace <- "Inf"
+  }
+
   selected_columns <-
     suppressWarnings(
       selected_columns %>%
         # replace ; or {*} with a space
         dplyr::mutate_at(
-          .vars = dplyr::vars(max_columns),
+          .vars = dplyr::vars(target_columns),
           .funs = dplyr::funs(
             stringr::str_replace_all(., "(?:\\{.*?\\})|;", " "))
         ) %>%
         # trim white space padding to be safe
         dplyr::mutate_at(
-          .vars = dplyr::vars(max_columns),
+          .vars = dplyr::vars(target_columns),
           .funs = dplyr::funs(stringr::str_trim(., side = "both"))
         ) %>%
         # also trim multiple spaces to be safe
         dplyr::mutate_at(
-          .vars = dplyr::vars(max_columns),
+          .vars = dplyr::vars(target_columns),
           .funs = dplyr::funs(stringr::str_replace(., "\\s{2,}", " ")) #nolint
         ) %>%
         # split the string at the space
         dplyr::mutate_at(
-          .vars = dplyr::vars(max_columns),
+          .vars = dplyr::vars(target_columns),
           .funs = dplyr::funs(stringr::str_split(., "\\s+"))
         ) %>%
         # make values numeric
         dplyr::mutate_at(
-          .vars = dplyr::vars(max_columns),
+          .vars = dplyr::vars(target_columns),
           .funs = dplyr::funs(purrr::map(., as.numeric))
         ) %>%
         # get the max values
         dplyr::mutate_at(
-          .vars = dplyr::vars(max_columns),
-          .funs = dplyr::funs(purrr::map_dbl(., max, na.rm = TRUE))
-        ) %>%
-        # change to character
-        dplyr::mutate_at(
-          .vars = dplyr::vars(max_columns),
-          .funs = dplyr::funs(as.character)
-        ) %>%
-        # change "-Inf" to "."
-        dplyr::mutate_at(
-          .vars = dplyr::vars(max_columns),
-          .funs = dplyr::funs(ifelse((. == "-Inf"), ".", .)) #nolint
-        )
-    )
-  return(selected_columns)
-}
-
-#' pick minimmum value from compound entry in column
-#' @importFrom magrittr "%>%"
-#' @noRd
-
-.parse_min_columns <- function(selected_columns, min_columns) {
-  if (length(min_columns) == 0){
-    return(selected_columns)
-  }
-
-  # if no ; or {*}, only single values, so no parsing needed
-  if (!any(
-    suppressWarnings(
-    selected_columns %>%
-    dplyr::select(min_columns) %>%
-    stringr::str_detect("\\{[^\\}]+\\}|;")))
-    ){
-    return(selected_columns)
-  }
-
-  # if ; or {*}, replace with a space, split on whitespace, and return min
-  # value
-  selected_columns <-
-    suppressWarnings(
-      selected_columns %>%
-        # replace ; or {*} with a space
-        dplyr::mutate_at(
-          .vars = dplyr::vars(min_columns),
+          .vars = dplyr::vars(target_columns),
           .funs = dplyr::funs(
-            stringr::str_replace_all(., "(?:\\{.*?\\})|;", " "))
-        ) %>%
-        # trim white space padding to be safe
-        dplyr::mutate_at(
-          .vars = dplyr::vars(min_columns),
-          .funs = dplyr::funs(stringr::str_trim(., side = "both"))
-        ) %>%
-        # also trim multiple spaces to be safe
-        dplyr::mutate_at(
-          .vars = dplyr::vars(min_columns),
-          .funs = dplyr::funs(stringr::str_replace(., "\\s{2,}", " ")) #nolint
-        ) %>%
-        # split the string at the space
-        dplyr::mutate_at(
-          .vars = dplyr::vars(min_columns),
-          .funs = dplyr::funs(stringr::str_split(., "\\s+"))
-        ) %>%
-        # make values numeric
-        dplyr::mutate_at(
-          .vars = dplyr::vars(min_columns),
-          .funs = dplyr::funs(purrr::map(., as.numeric))
-        ) %>%
-        # get the min values
-        dplyr::mutate_at(
-          .vars = dplyr::vars(min_columns),
-          .funs = dplyr::funs(purrr::map_dbl(., min, na.rm = TRUE))
+            purrr::invoke_map_dbl(., .f = sense, na.rm = TRUE))
         ) %>%
         # change to character
         dplyr::mutate_at(
-          .vars = dplyr::vars(min_columns),
+          .vars = dplyr::vars(target_columns),
           .funs = dplyr::funs(as.character)
         ) %>%
-        # change "Inf" to "."
+        # change "-Inf" or "Inf" to "."
         dplyr::mutate_at(
-          .vars = dplyr::vars(min_columns),
-          .funs = dplyr::funs(ifelse((. == "Inf"), ".", .)) #nolint
+          .vars = dplyr::vars(target_columns),
+          .funs = dplyr::funs(ifelse((. == to_replace), ".", .)) #nolint
         )
     )
   return(selected_columns)
@@ -406,7 +352,8 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
     # if a single, pass it along.
     if (length(pair) == 1){
       parsed_columns <- .preserve_raw(parsed_columns, unlist(pair))
-      parsed_columns <- .parse_max_columns(parsed_columns, unlist(pair))
+      parsed_columns <-
+        .parse_extreme_columns(parsed_columns, unlist(pair), "max")
       next
     }
     if (length(pair) != 2){
@@ -478,7 +425,8 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
     # if a single, pass it along.
     if (length(pair) == 1){
       parsed_columns <- .preserve_raw(parsed_columns, unlist(pair))
-      parsed_columns <- .parse_min_columns(parsed_columns, unlist(pair))
+      parsed_columns <-
+        .parse_extreme_columns(parsed_columns, unlist(pair), "min")
       next
     }
     if (length(pair) != 2){
@@ -725,10 +673,10 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
   # parse the chunk single fields-------------
   # preserve unparsed, first (maybe with flag?)
   parsed <- .preserve_raw(selected, unlist(parse_max))
-  parsed <- .parse_max_columns(parsed, unlist(parse_max))
+  parsed <- .parse_extreme_columns(parsed, unlist(parse_max), "max")
 
   parsed <- .preserve_raw(parsed, unlist(parse_min))
-  parsed <- .parse_min_columns(parsed, unlist(parse_min))
+  parsed <- .parse_extreme_columns(parsed, unlist(parse_min), "min")
 
   parsed <- .preserve_raw(parsed, unlist(pick_y))
   parsed <- .parse_yes_columns(parsed, unlist(pick_y))
@@ -808,10 +756,10 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
   # parse the chunk single fields-------------
   # preserve unparsed, first (maybe with flag?)
   parsed <- .preserve_raw(pivoted, unlist(parse_max))
-  parsed <- .parse_max_columns(parsed, unlist(parse_max))
+  parsed <- .parse_extreme_columns(parsed, unlist(parse_max), "max")
 
   parsed <- .preserve_raw(parsed, unlist(parse_min))
-  parsed <- .parse_min_columns(parsed, unlist(parse_min))
+  parsed <- .parse_extreme_columns(parsed, unlist(parse_min), "min")
 
   parsed <- .preserve_raw(parsed, unlist(pick_y))
   parsed <- .parse_yes_columns(parsed, unlist(pick_y))
