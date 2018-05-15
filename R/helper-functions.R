@@ -115,10 +115,12 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
   }
 
   # if no ; or {*}, only single values, so no parsing needed
-  if (!any(suppressWarnings( # warning - stri_detect_regex
+  # suppressWarnings to avoid warning - stri_detect_regex argument is not an
+  # atomic vector
+  if (!any(suppressWarnings(
     selected_columns %>%
     dplyr::select(max_columns) %>%
-    stringr::str_detect("\\{[^\\}]+\\}|;"))) # argument is not an atomic vector
+    stringr::str_detect("\\{[^\\}]+\\}|;")))
   ){
     return(selected_columns)
   }
