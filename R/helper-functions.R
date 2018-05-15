@@ -244,6 +244,91 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
   return(selected_columns)
 }
 
+#' pick maximum or minimum value from compound entry in column
+#' @examples
+#' \dontrun{
+#' .parse_extreme_columns(selected_columns, max_columns, "max")
+#' .parse_extreme_columns(selected_columns, min_columns, "min")
+#' }
+#' @importFrom magrittr "%>%"
+#' @noRd
+
+.parse_extreme_columns <- function(selected_columns, target_columns, sense) {
+  if (length(target_columns) == 0){
+    return(selected_columns)
+  }
+
+  # if no ; or {*}, only single values, so no parsing needed
+  # suppressWarnings to avoid warning - stri_detect_regex argument is not an
+  # atomic vector
+  if (!any(suppressWarnings(
+    selected_columns %>%
+    dplyr::select(target_columns) %>%
+    stringr::str_detect("\\{[^\\}]+\\}|;")))
+  ){
+    return(selected_columns)
+  }
+
+  if (! sense %in% c("max", "min")){
+    stop('sense must be "max" or "min"')
+  }
+  # if ; or {*}, replace with a space, split on whitespace, and return extreme
+  # value
+  if (sense == "max") {
+    to_replace <- "-Inf"
+  } else {
+    to_replace <- "Inf"
+  }
+
+  selected_columns <-
+    suppressWarnings(
+      selected_columns %>%
+        # replace ; or {*} with a space
+        dplyr::mutate_at(
+          .vars = dplyr::vars(target_columns),
+          .funs = dplyr::funs(
+            stringr::str_replace_all(., "(?:\\{.*?\\})|;", " "))
+        ) %>%
+        # trim white space padding to be safe
+        dplyr::mutate_at(
+          .vars = dplyr::vars(target_columns),
+          .funs = dplyr::funs(stringr::str_trim(., side = "both"))
+        ) %>%
+        # also trim multiple spaces to be safe
+        dplyr::mutate_at(
+          .vars = dplyr::vars(target_columns),
+          .funs = dplyr::funs(stringr::str_replace(., "\\s{2,}", " ")) #nolint
+        ) %>%
+        # split the string at the space
+        dplyr::mutate_at(
+          .vars = dplyr::vars(target_columns),
+          .funs = dplyr::funs(stringr::str_split(., "\\s+"))
+        ) %>%
+        # make values numeric
+        dplyr::mutate_at(
+          .vars = dplyr::vars(target_columns),
+          .funs = dplyr::funs(purrr::map(., as.numeric))
+        ) %>%
+        # get the max values
+        dplyr::mutate_at(
+          .vars = dplyr::vars(target_columns),
+          .funs = dplyr::funs(
+            purrr::invoke_map_dbl(., .f = sense, na.rm = TRUE))
+        ) %>%
+        # change to character
+        dplyr::mutate_at(
+          .vars = dplyr::vars(target_columns),
+          .funs = dplyr::funs(as.character)
+        ) %>%
+        # change "-Inf" or "Inf" to "."
+        dplyr::mutate_at(
+          .vars = dplyr::vars(target_columns),
+          .funs = dplyr::funs(ifelse((. == to_replace), ".", .)) #nolint
+        )
+    )
+  return(selected_columns)
+}
+
 # TODO: is there a way to short-circuit parsing on trivial case?
 #' @importFrom magrittr "%>%"
 #' @noRd
