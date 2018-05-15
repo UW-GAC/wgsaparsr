@@ -199,7 +199,7 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
 #' @importFrom magrittr "%>%"
 #' @noRd
 .parse_y_n_columns <- function(selected_columns, target_columns, sense){
-  if (length(yes_columns) == 0){
+  if (length(target_columns) == 0){
     return(selected_columns)
   }
 
@@ -225,50 +225,6 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
                            preference,
                            ifelse(stringr::str_detect(., second),
                                   second, ".")
-                         )))
-    )
-  return(selected_columns)
-}
-
-# TODO: is there a way to short-circuit parsing on trivial case?
-#' @importFrom magrittr "%>%"
-#' @noRd
-.parse_yes_columns <- function(selected_columns, yes_columns){
-  if (length(yes_columns) == 0){
-    return(selected_columns)
-  }
-  selected_columns <-
-    suppressWarnings(
-      selected_columns %>%
-        # parse:  Y if Y present, else N if N present, else .
-        dplyr::mutate_at(.vars = dplyr::vars(yes_columns),
-                         .funs = dplyr::funs(ifelse(
-                           stringr::str_detect(., "Y"),
-                           "Y",
-                           ifelse(stringr::str_detect(., "N"),
-                                  "N", ".")
-                         )))
-    )
-  return(selected_columns)
-}
-
-# TODO: is there a way to short-circuit parsing on trivial case?
-#' @importFrom magrittr "%>%"
-#' @noRd
-.parse_no_columns <- function(selected_columns, no_columns){
-  if (length(no_columns) == 0){
-    return(selected_columns)
-  }
-  selected_columns <-
-    suppressWarnings(
-      selected_columns %>%
-        # parse:  N if N present, else Y if Y present, else .
-        dplyr::mutate_at(.vars = dplyr::vars(no_columns),
-                         .funs = dplyr::funs(ifelse(
-                           stringr::str_detect(., "N"),
-                           "N",
-                           ifelse(stringr::str_detect(., "Y"),
-                                  "Y", ".")
                          )))
     )
   return(selected_columns)
@@ -537,7 +493,7 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
   for (pair in pair_columns) {
     if (length(pair) == 1){
       parsed_columns <- .preserve_raw(parsed_columns, unlist(pair))
-      parsed_columns <- .parse_yes_columns(parsed_columns, unlist(pair))
+      parsed_columns <- .parse_y_n_columns(parsed_columns, unlist(pair), "yes")
       next
     }
     if (length(pair) != 2){
@@ -559,7 +515,7 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
   for (pair in pair_columns) {
     if (length(pair) == 1){
       parsed_columns <- .preserve_raw(parsed_columns, unlist(pair))
-      parsed_columns <- .parse_no_columns(parsed_columns, unlist(pair))
+      parsed_columns <- .parse_y_n_columns(parsed_columns, unlist(pair), "no")
       next
     }
     if (length(pair) != 2){
@@ -719,10 +675,10 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
   parsed <- .parse_extreme_columns(parsed, unlist(parse_min), "min")
 
   parsed <- .preserve_raw(parsed, unlist(pick_y))
-  parsed <- .parse_yes_columns(parsed, unlist(pick_y))
+  parsed <- .parse_y_n_columns(parsed, unlist(pick_y), "yes")
 
   parsed <- .preserve_raw(parsed, unlist(pick_n))
-  parsed <- .parse_no_columns(parsed, unlist(pick_n))
+  parsed <- .parse_y_n_columns(parsed, unlist(pick_n), "no")
 
   parsed <- .preserve_raw(parsed, unlist(pick_a))
   parsed <- .parse_a_columns(parsed, unlist(pick_a))
@@ -802,10 +758,10 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
   parsed <- .parse_extreme_columns(parsed, unlist(parse_min), "min")
 
   parsed <- .preserve_raw(parsed, unlist(pick_y))
-  parsed <- .parse_yes_columns(parsed, unlist(pick_y))
+  parsed <- .parse_y_n_columns(parsed, unlist(pick_y), "yes")
 
   parsed <- .preserve_raw(parsed, unlist(pick_n))
-  parsed <- .parse_no_columns(parsed, unlist(pick_n))
+  parsed <- .parse_y_n_columns(parsed, unlist(pick_n), "no")
 
   parsed <- .preserve_raw(parsed, unlist(pick_a))
   parsed <- .parse_a_columns(parsed, unlist(pick_a))
