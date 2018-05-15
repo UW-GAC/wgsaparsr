@@ -4,8 +4,6 @@ language: r
 sudo: false
 cache: packages
 
-r:
-  - 3.4.0
 r_packages:
   - covr
 
