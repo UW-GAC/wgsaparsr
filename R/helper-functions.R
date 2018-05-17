@@ -13,10 +13,7 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
 #' Check if the current chunk includes a header row describing the fields
 #' @noRd
 .get_first_line <- function(source_file){
-  readfile_con <- gzfile(source_file, "r")
-  first_line <- suppressWarnings(readLines(readfile_con, n = 1))
-  close(readfile_con)
-  return(first_line)
+  readr::read_lines(source_file, n_max = 1)
 }
 
 #' Check whether the source_file is WGSA indel annotation
