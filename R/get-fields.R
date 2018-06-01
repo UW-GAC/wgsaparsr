@@ -18,7 +18,9 @@ get_fields <- function(source) {
   header <- suppressWarnings(readLines(readfile_con, n = 1))
   close(readfile_con)
   fields <- stringr::str_split(header, "\t", simplify = TRUE)
-  if (!any(fields[[1]] == "#chr" | fields[[1]] == "chr")) {
+  if (!any(fields[[1]] == "#chr" |
+           fields[[1]] == "chr" |
+           fields[[1]] == "CHROM")) {
     stop("First line of source doesn't look like a WGSA header")
   }
   return(fields)
