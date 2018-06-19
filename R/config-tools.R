@@ -3,11 +3,25 @@
 #' @importFrom magrittr "%>%"
 #' @noRd
 .clean_config <- function(config_tibble) {
-  # remove rows with field == NA, select required cols, and order output
+  # remove rows with field == NA, select required and optional cols, and order
+  # output
+
+  desired_columns <-
+    c("field", "SNV", "indel", "dbnsfp", "pivotGroup", "pivotChar",
+      "parseGroup", "transformation")
+
+  if ("order" %in% colnames(config_tibble)) {
+    desired_columns <- append(desired_columns, "order")
+  }
+
+  if ("sourceGroup" %in% colnames(config_tibble)) {
+    desired_columns <- append(desired_columns, "sourceGroup")
+  }
+
+  # remove rows that don't have field names and select desired columns
   cleaned_config <- config_tibble %>%
     dplyr::filter(!(is.na(.data$field))) %>%
-    dplyr::select(field, SNV, indel, dbnsfp, sourceGroup, pivotGroup, #nolint
-                  pivotChar, parseGroup, transformation) #nolint
+    dplyr::select(rlang::UQ(desired_columns))
 
   # replace NA values with FALSE for some columns
   cleaned_config <- cleaned_config %>%
@@ -16,6 +30,12 @@
   # drop rows that don't have at a TRUE for SNV, indel, or dbnsfp
   cleaned_config <- cleaned_config %>%
     dplyr::filter(.data$SNV | .data$indel | .data$dbnsfp)
+
+  # go ahead and sort the rows by the order column, if it's there
+  if ("order" %in% colnames(cleaned_config)) {
+    cleaned_config <- cleaned_config %>%
+      dplyr::arrange(order)
+  }
 
   return(cleaned_config)
 }
@@ -27,8 +47,8 @@
 #' passed as a data frame/tibble. This function validates the tibble as meeting
 #' the following criteria:
 #'
-#' Contains required columns: "field", "SNV", "indel", "dbnsfp", "sourceGroup",
-#' "pivotGroup", "pivotChar", "parseGroup", "transformation".
+#' Contains required columns: "field", "SNV", "indel", "dbnsfp", "pivotGroup",
+#'   "pivotChar", "parseGroup", "transformation".
 #'
 #' the SNV, indel, and dbnsfp fields may contain NA or logical values
 #'
@@ -57,7 +77,6 @@ validate_config <- function(config_tibble) {
       "SNV",
       "indel",
       "dbnsfp",
-      "sourceGroup",
       "pivotGroup",
       "pivotChar",
       "parseGroup",
@@ -128,7 +147,6 @@ validate_config <- function(config_tibble) {
 
   # other validation possibilities:
   # values in config_tibble$field match column headings in WGSA file
-  # sourceGroup numerical values
   # pivotGroup numerical values
   # pivotChar single character
   # parseGroup numerical values
@@ -147,8 +165,6 @@ validate_config <- function(config_tibble) {
 #'   should be parsed for indel annotation
 #'   \item \strong{dbnsfp} logical (TRUE/FALSE) indicating whether the field
 #'   should be parsed for dbnsfp annotation
-#'   \item \strong{sourceGroup} numerical value for column grouping/ordering in
-#'   output
 #'   \item \strong{pivotGroup} numerical value to group annotations for pivoting
 #'   \item \strong{pivotChar} character separating fields that should be used
 #'   for pivoting
@@ -168,6 +184,15 @@ validate_config <- function(config_tibble) {
 #'       pivotGroup and pivotChar = |
 #'     }
 #' }
+#'
+#' Additionally, the following fields may be included, and are processed during
+#' configuration file loading, but are not required:
+#' \itemize{
+#'   \item \strong{order} numerical value for column ordering in parsed output
+#'   \item \strong{sourceGroup} numerical value for column grouping/ordering in
+#'   output
+#' }
+#'
 #' Other columns (such as notes) may be included in the configuration file,
 #' but will not be validated or imported with this function. The configuration
 #' file may include comments beginning with #.
@@ -202,8 +227,8 @@ load_config <- function(config_path) {
 #' by loadConfig())
 #'
 #' @param config_df Tibble containing configuration parameters. Required columns
-#'   include "field", "SNV", "indel", "dbnsfp", "sourceGroup", "pivotGroup",
-#'   "pivotChar", "parseGroup", "transformation"
+#'   include "field", "SNV", "indel", "dbnsfp", "pivotGroup", "pivotChar",
+#'   "parseGroup", "transformation"
 #'
 #' @param which_list A string describing list to extract. Values may include
 #'   "desired", "max", "min", "pick_y", "pick_n", "pick_a", "clean", "distinct",
