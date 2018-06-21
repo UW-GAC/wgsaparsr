@@ -1,9 +1,9 @@
 context("test_load_config - unit tests")
 
 test_that(
-  "load_config() returns an error if required columns aren't present", {
+  "load_config() returns an error if validation fails", {
     expect_error(load_config("bad_config.tsv"),
-                 "Required columns are not in config tibble")
+                 "Required columns missing")
   }
 )
 

@@ -31,7 +31,7 @@
   cleaned_config <- cleaned_config %>%
     dplyr::filter(.data$SNV | .data$indel | .data$dbnsfp)
 
-  # go ahead and sort the rows by the order column, if it's there
+  # sort the rows by the order column, if it's there
   if ("order" %in% colnames(cleaned_config)) {
     cleaned_config <- cleaned_config %>%
       dplyr::arrange(order)
@@ -84,7 +84,7 @@ validate_config <- function(config_tibble) {
     )
 
   if (!(all(required_columns %in% colnames(config_tibble)))) {
-    stop("Required columns are not in config tibble")
+    stop("Required columns missing")
   }
 
   # check SNV field has allowed values
@@ -143,6 +143,13 @@ validate_config <- function(config_tibble) {
 
   if (any(trans_count$transformation)) {
     stop("all transformation values must be the same withinin a parseGroup")
+  }
+
+  # if order is a column, are rows in order?
+  if ("order" %in% colnames(config_tibble)) {
+    if (is.unsorted(config_tibble$order)) {
+      stop("configuration rows not arranged by order")
+    }
   }
 
   # other validation possibilities:
@@ -224,7 +231,7 @@ load_config <- function(config_path) {
 }
 
 #' extract the appropriate fields from a configuration tibble (such as produced
-#' by loadConfig())
+#' by load_config())
 #'
 #' @param config_df Tibble containing configuration parameters. Required columns
 #'   include "field", "SNV", "indel", "dbnsfp", "pivotGroup", "pivotChar",
@@ -242,9 +249,9 @@ load_config <- function(config_path) {
 #'
 #' @examples
 #' \dontrun{
-#' local_config <- loadConfig("config.tsv")
+#' local_config <- load_config("config.tsv")
 #'
-#' freeze_5_config <- loadConfig(system.file("extdata",
+#' freeze_5_config <- load_config(system.file("extdata",
 #'                                            path = "fr_5_config.tsv",
 #'                                            package = "wgsaparsr",
 #'                                            mustWork = TRUE))
@@ -284,7 +291,7 @@ load_config <- function(config_path) {
   }
 
   if (which_list == "desired") {
-    # returns list
+    # returns list ## PERHAPS ORDER HERE?
     desired_fields <- fields_by_list_type %>%
       dplyr::select(field) %>%
       purrr::flatten()
