@@ -15,8 +15,8 @@ passed as a data frame/tibble. This function validates the tibble as meeting
 the following criteria:
 }
 \details{
-Contains required columns: "field", "SNV", "indel", "dbnsfp", "sourceGroup",
-"pivotGroup", "pivotChar", "parseGroup", "transformation".
+Contains required columns: "field", "SNV", "indel", "dbnsfp", "pivotGroup",
+  "pivotChar", "parseGroup", "transformation".
 
 the SNV, indel, and dbnsfp fields may contain NA or logical values
 

@@ -13,7 +13,7 @@ test_that("validate_config() gives error when required column is missing", {
     transformation = "a"
   )
   expect_error(validate_config(example),
-               "Required columns are not in config tibble")
+               "Required columns missing")
 })
 
 test_that("validate_config() gives error when SNV has bad value", {
@@ -110,5 +110,22 @@ test_that("validate_config() gives error when transformation groups wrong", {
   )
   msg <- paste0("all transformation values must be the same withinin a ",
                "parseGroup")
+  expect_error(validate_config(example), msg)
+})
+
+test_that("validate_config() gives error when not in order", {
+  example <- dplyr::tibble(
+    field = c("a", "b"),
+    SNV = c("TRUE", "TRUE"),
+    indel = c("TRUE", "TRUE"),
+    dbnsfp = c("TRUE", "TRUE"),
+    sourceGroup = c("1", "1"),
+    pivotGroup = c("1", "1"),
+    pivotChar = c(";", ";"),
+    parseGroup = c("1", "1"),
+    transformation = c("max", "max"),
+    order = c("2", "1")
+  )
+  msg <- "configuration rows not arranged by order"
   expect_error(validate_config(example), msg)
 })

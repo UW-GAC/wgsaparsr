@@ -1,7 +1,7 @@
 context("test_.get_fields_from_chunk - unit tests")
 
 test_that(
-  ".get_fields_from_chunk returns TRUE when it should", {
+  ".get_fields_from_chunk returns expected result", {
     test_chunk <- c(paste("#chr", "pos", "ref", "alt", sep = "\t"),
                     paste("1", "42", "A", "G", sep = "\t"),
                     paste("2", "12", "C", "T", sep = "\t"))

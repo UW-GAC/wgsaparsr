@@ -4,14 +4,11 @@
 \alias{get_problem_chunk}
 \title{Get problem chunks from WGSA output file}
 \usage{
-get_problem_chunk(source_file, config, chunk_size, problem_index)
+get_problem_chunk(source_file, chunk_size, problem_index)
 }
 \arguments{
 \item{source_file}{Path to the WGSA output file to parse (indel or SNV
 annotation)}
-
-\item{config}{Path to config file or a dataframe that passes
-validate_config()}
 
 \item{chunk_size}{Number of lines to parse each iteration (default 10,000)}
 
@@ -25,10 +22,9 @@ Get problem chunks from WGSA output file
 \dontrun{
 
 problem_chunk <-
-  get_problem_chunk(snv_source_file,
-                    config,
-                    1000,
-                    problem_chunk_number)
+  get_problem_chunk(source_file = "./path/to/source.gz",
+                    chunk_size = 1000,
+                    problem_index = 7)
 }
 
 }
