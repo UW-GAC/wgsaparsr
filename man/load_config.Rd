@@ -25,8 +25,6 @@ include a header with field names, and the following fields, in any order:
   should be parsed for indel annotation
   \item \strong{dbnsfp} logical (TRUE/FALSE) indicating whether the field
   should be parsed for dbnsfp annotation
-  \item \strong{sourceGroup} numerical value for column grouping/ordering in
-  output
   \item \strong{pivotGroup} numerical value to group annotations for pivoting
   \item \strong{pivotChar} character separating fields that should be used
   for pivoting
@@ -46,6 +44,16 @@ include a header with field names, and the following fields, in any order:
       pivotGroup and pivotChar = |
     }
 }
+}
+\details{
+Additionally, the following fields may be included, and are processed during
+configuration file loading, but are not required:
+\itemize{
+  \item \strong{order} numerical value for column ordering in parsed output
+  \item \strong{sourceGroup} numerical value for column grouping/ordering in
+  output
+}
+
 Other columns (such as notes) may be included in the configuration file,
 but will not be validated or imported with this function. The configuration
 file may include comments beginning with #.

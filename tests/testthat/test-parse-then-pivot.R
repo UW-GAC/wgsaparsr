@@ -29,7 +29,6 @@ test_that(".parse_then_pivot() returns expected tibble", {
     a = c("1;2", "3", "4;5"),
     b = c("waa", "bim", "bam"),
     c = c("foo", "bar", "baz;bat")
-
   )
   config <- dplyr::tibble(
     field = c("a", "b", "c"),
