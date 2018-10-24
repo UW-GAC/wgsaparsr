@@ -5,7 +5,7 @@
 \title{Parse the WGSA output file to tidy and select columns of interest}
 \usage{
 parse_to_file(source_file, config, destination, dbnsfp_destination = NA,
-  freeze = 5, chunk_size = 10000, verbose = TRUE)
+  chunk_size = 10000, verbose = TRUE)
 }
 \arguments{
 \item{source_file}{Path to the WGSA output file to parse (indel or SNV
@@ -17,8 +17,6 @@ validate_config()}
 \item{destination}{Path to the desired indel or snv output file}
 
 \item{dbnsfp_destination}{Path to the desired dbnsfp output file}
-
-\item{freeze}{Which TOPMed freeze is being used (default 5)}
 
 \item{chunk_size}{Number of lines to parse each iteration (default 10,000)}
 

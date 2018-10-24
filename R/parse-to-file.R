@@ -14,7 +14,6 @@
 #'   validate_config()
 #' @param destination Path to the desired indel or snv output file
 #' @param dbnsfp_destination Path to the desired dbnsfp output file
-#' @param freeze Which TOPMed freeze is being used (default 5)
 #' @param chunk_size Number of lines to parse each iteration (default 10,000)
 #' @param verbose more output to screen (default TRUE)
 #'
@@ -33,7 +32,6 @@ parse_to_file <- function(source_file,
                           config,
                           destination,
                           dbnsfp_destination = NA,
-                          freeze = 5,
                           chunk_size = 10000,
                           verbose = TRUE) {
   if (file.exists(destination)) {
