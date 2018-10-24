@@ -5,7 +5,7 @@
 \title{Parse the WGSA output file to tidy and select columns of interest}
 \usage{
 parse_to_file(source_file, config, destination, dbnsfp_destination = NA,
-  chunk_size = 10000, verbose = TRUE)
+  chunk_size = 10000, header_file = NA, verbose = TRUE)
 }
 \arguments{
 \item{source_file}{Path to the WGSA output file to parse (indel or SNV
@@ -19,6 +19,8 @@ validate_config()}
 \item{dbnsfp_destination}{Path to the desired dbnsfp output file}
 
 \item{chunk_size}{Number of lines to parse each iteration (default 10,000)}
+
+\item{header_file}{Path to a header file (optional)}
 
 \item{verbose}{more output to screen (default TRUE)}
 }

@@ -15,6 +15,7 @@
 #' @param destination Path to the desired indel or snv output file
 #' @param dbnsfp_destination Path to the desired dbnsfp output file
 #' @param chunk_size Number of lines to parse each iteration (default 10,000)
+#' @param header_file Path to a header file (optional)
 #' @param verbose more output to screen (default TRUE)
 #'
 #' @examples
@@ -33,6 +34,7 @@ parse_to_file <- function(source_file,
                           destination,
                           dbnsfp_destination = NA,
                           chunk_size = 10000,
+                          header_file = NA,
                           verbose = TRUE) {
   if (file.exists(destination)) {
     stop("destination outfile already exists.")
@@ -52,7 +54,12 @@ parse_to_file <- function(source_file,
   first_line <- .get_first_line(source_file)
 
   if (!.has_header(first_line)) {
-    stop("source_file doesn't have header line")
+    if (is.na(header_file)) {
+      msg = paste0("source_file doesn't have header line and none provided in",
+                   "header_file parameter")
+                   stop(msg)
+    }
+    first_line <- .get_first_line(header_file)
   }
 
   raw_header <- first_line
