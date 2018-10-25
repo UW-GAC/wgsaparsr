@@ -52,6 +52,9 @@ configuration file loading, but are not required:
   \item \strong{order} numerical value for column ordering in parsed output
   \item \strong{sourceGroup} numerical value for column grouping/ordering in
   output
+  \item \strong{nullValue} the character used to encode a NULL value in the
+  WGSA field. If included, WGSAParsr will convert the NULL value to a blank
+  in output to facilitate downstream processing.
 }
 
 Other columns (such as notes) may be included in the configuration file,

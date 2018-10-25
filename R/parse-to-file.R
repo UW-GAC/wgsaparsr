@@ -104,6 +104,8 @@ parse_to_file <- function(source_file,
     # parse chunk of indel or SNV annotation
     parsed_lines <- .parse_then_pivot(all_fields, config, type)
 
+    ## FIX NULLS HERE
+
     # get list of desired fields from config to ensure outfile column order
     parsed_fields <-
       unlist(.get_list_from_config(config, "desired", type))
@@ -131,6 +133,9 @@ parse_to_file <- function(source_file,
 
       # if present, write dbnsfp data to tsv file
       if (nrow(dbnsfp_parsed_lines) > 0 & ncol(dbnsfp_parsed_lines) > 0) {
+
+        ## FIX NULLS HERE
+
         .write_to_file(
           dbnsfp_parsed_lines,
           dbnsfp_destination,

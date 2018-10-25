@@ -6,10 +6,12 @@
   # remove rows with field == NA, select required and optional cols, and order
   # output
 
+  # required columns in config file
   desired_columns <-
     c("field", "SNV", "indel", "dbnsfp", "pivotGroup", "pivotChar",
       "parseGroup", "transformation")
 
+  # add in optional columns from config file
   if ("order" %in% colnames(config_tibble)) {
     desired_columns <- append(desired_columns, "order")
   }
@@ -18,12 +20,16 @@
     desired_columns <- append(desired_columns, "sourceGroup")
   }
 
+  if ("nullValue" %in% colnames(config_tibble)) {
+    desired_columns <- append(desired_columns, "nullValue")
+  }
+
   # remove rows that don't have field names and select desired columns
   cleaned_config <- config_tibble %>%
     dplyr::filter(!(is.na(.data$field))) %>%
     dplyr::select(rlang::UQ(desired_columns))
 
-  # replace NA values with FALSE for some columns
+  # replace NA values in config file with FALSE for some columns
   cleaned_config <- cleaned_config %>%
     tidyr::replace_na(list(SNV = FALSE, indel = FALSE, dbnsfp = FALSE))
 
@@ -198,6 +204,9 @@ validate_config <- function(config_tibble) {
 #'   \item \strong{order} numerical value for column ordering in parsed output
 #'   \item \strong{sourceGroup} numerical value for column grouping/ordering in
 #'   output
+#'   \item \strong{nullValue} the character used to encode a NULL value in the
+#'   WGSA field. If included, WGSAParsr will convert the NULL value to a blank
+#'   in output to facilitate downstream processing.
 #' }
 #'
 #' Other columns (such as notes) may be included in the configuration file,
