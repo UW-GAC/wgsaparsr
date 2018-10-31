@@ -131,6 +131,7 @@ parse_to_file <- function(source_file,
 
       # if present, write dbnsfp data to tsv file
       if (nrow(dbnsfp_parsed_lines) > 0 & ncol(dbnsfp_parsed_lines) > 0) {
+
         .write_to_file(
           dbnsfp_parsed_lines,
           dbnsfp_destination,
