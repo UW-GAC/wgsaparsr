@@ -20,12 +20,27 @@
     desired_columns <- append(desired_columns, "sourceGroup")
   }
 
-  if ("nullValue" %in% colnames(config_tibble)) {
-    desired_columns <- append(desired_columns, "nullValue")
+  if ("toRemove" %in% colnames(config_tibble)) {
+    desired_columns <- append(desired_columns, "toRemove")
+
+  # make the toRemove values into regular expressions (don't get carried away!)
+    cleaned_config <- config_tibble %>%
+      # first replace "." with "\\."
+      dplyr::mutate_at(dplyr::vars(toRemove),
+                       dplyr::funs(
+                         stringr::str_replace(., "^\\.$", "\\\\."))) %>%
+      # prepend "^" for start of string
+      dplyr::mutate_at(dplyr::vars(toRemove),
+                       dplyr::funs(paste0("^", .))) %>%
+      # append "$" for end of string
+      dplyr::mutate_at(dplyr::vars(toRemove),
+                       dplyr::funs(paste0(., "$")))
+  } else {
+    cleaned_config <- config_tibble
   }
 
   # remove rows that don't have field names and select desired columns
-  cleaned_config <- config_tibble %>%
+  cleaned_config <- cleaned_config %>%
     dplyr::filter(!(is.na(.data$field))) %>%
     dplyr::select(rlang::UQ(desired_columns))
 
@@ -204,9 +219,11 @@ validate_config <- function(config_tibble) {
 #'   \item \strong{order} numerical value for column ordering in parsed output
 #'   \item \strong{sourceGroup} numerical value for column grouping/ordering in
 #'   output
-#'   \item \strong{nullValue} the character used to encode a NULL value in the
-#'   WGSA field. If included, WGSAParsr will convert the NULL value to a blank
-#'   in output to facilitate downstream processing.
+#'   \item \strong{toRemove} any characters to remove in the output tsv. For
+#'   example, if a WGSA field uses a character used to encode a NULL value, it
+#'   may need to be removed to facilitate database import. If this field is
+#'   included in the config file, WGSAParsr will convert the specified string to
+#'   a blank field in output
 #' }
 #'
 #' Other columns (such as notes) may be included in the configuration file,
