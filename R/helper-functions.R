@@ -7,7 +7,7 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
                          "dbnsfp", "sourceGroup", "pivotGroup", "pivotChar",
                          "parseGroup", "transformation", ".", "p_list",
                          "match_mask", "r_list", "r_corresponding",
-                         "new_p", "p_max", "p_min"))
+                         "new_p", "p_max", "p_min", "toRemove"))
 
 
 #' Check if the current chunk includes a header row describing the fields
