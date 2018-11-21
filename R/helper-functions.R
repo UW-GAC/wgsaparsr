@@ -19,6 +19,26 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
   return(first_line)
 }
 
+#' get header line from source file or header file
+#' @noRd
+.get_header <- function(source_file, header_file){
+  first_line <- .get_first_line(source_file)
+  source_header_flag <- .has_header(first_line)
+  if (is.na(header_file) & !source_header_flag) {
+    stop("no header in source_file or header_file")
+  }
+  if (!is.na(header_file) & source_header_flag) {
+    stop("headers in both header_file and source_file")
+  }
+  if (is.na(header_file) & source_header_flag) {
+    raw_header <- first_line
+  }
+  if (!is.na(header_file) & !source_header_flag) {
+    raw_header <- .get_first_line(header_file)
+  }
+  return(raw_header)
+}
+
 #' Check whether the source_file is WGSA indel annotation
 #' @noRd
 .is_indel <- function(header){
@@ -635,10 +655,10 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
     split(.$all_cols) %>%
     purrr::map(as.list) %>%
     purrr::map2_dfc(chunk, function(info, text) {
-      if (is.na(info$toRemove)) {
+      if (is.na(info$toRemove)) { #nolint
         text
       } else {
-        stringr::str_replace_all(text, info$toRemove, "")
+        stringr::str_replace_all(text, info$toRemove, "") #nolint
       }
     })
 }
