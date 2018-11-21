@@ -169,6 +169,7 @@ validate_config <- function(config_tibble) {
   }
 
   # if order is a column, are rows in order?
+  # ? shouldn't this only be true after .clean_config()?
   if ("order" %in% colnames(config_tibble)) {
     if (is.unsorted(config_tibble$order)) {
       stop("configuration rows not arranged by order")

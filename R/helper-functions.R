@@ -39,6 +39,14 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
   return(raw_header)
 }
 
+#' initialize output files by writing header
+#' @noRd
+.write_output_header <-
+  function(raw_header, config, destination, dbnsfp_destination){
+    # STUB TODO
+    invisible(TRUE)
+  }
+
 #' Check whether the source_file is WGSA indel annotation
 #' @noRd
 .is_indel <- function(header){
