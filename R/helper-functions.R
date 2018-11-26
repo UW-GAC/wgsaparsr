@@ -19,6 +19,70 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
   return(first_line)
 }
 
+#' get header line from source file or header file
+#' @noRd
+.get_header <- function(source_file, header_file){
+  first_line <- .get_first_line(source_file)
+  source_header_flag <- .has_header(first_line)
+  if (is.na(header_file) & !source_header_flag) {
+    stop("no header in source_file or header_file")
+  }
+  if (!is.na(header_file) & source_header_flag) {
+    stop("headers in both header_file and source_file")
+  }
+  if (is.na(header_file) & source_header_flag) {
+    raw_header <- first_line
+  }
+  if (!is.na(header_file) & !source_header_flag) {
+    raw_header <- .get_first_line(header_file)
+  }
+  return(raw_header)
+}
+
+#' initialize output files by writing header
+#' @noRd
+.write_output_header <-
+  function(raw_header, config, destination, dbnsfp_destination){
+    indel_flag <- .is_indel(raw_header)
+    type <- ifelse(indel_flag, "indel", "SNV") #check this
+    
+    # get list of desired fields from config to ensure outfile column order
+    parsed_fields <-
+      unlist(.get_list_from_config(config, "desired", type))
+    
+    # freeze 5 has some different field names between indel and SNV. Fix that.
+    parsed_fields <-
+        stringr::str_replace(parsed_fields, "MAP35_149bp", "MAP35_149")
+    parsed_fields <-
+        stringr::str_replace(parsed_fields, "VEP_refseq_ProteinID(ENSP)",
+                             "VEP_refseq_ProteinID")
+    
+    if (type == "SNV") {
+      # parse dbnsfp fields from snv chunk
+      dbnsfp_parsed_lines <- .pivot_then_parse(all_fields, config, "dbnsfp")
+      dbnsfp_parsed_fields <-
+        unlist(.get_list_from_config(config, "desired", "dbnsfp"))
+      
+      # if present, write dbnsfp data to tsv file
+      if (nrow(dbnsfp_parsed_lines) > 0 & ncol(dbnsfp_parsed_lines) > 0) {
+        
+        .write_to_file(
+          dbnsfp_parsed_lines,
+          dbnsfp_destination,
+          dbnsfp_parsed_fields,
+          header_flag)
+      }
+    }
+    
+    # write processed indel or snv chunk to tsv file
+    .write_to_file(parsed_lines,
+                   destination,
+                   parsed_fields,
+                   header_flag)
+    # STUB TODO
+    invisible(TRUE)
+  }
+
 #' Check whether the source_file is WGSA indel annotation
 #' @noRd
 .is_indel <- function(header){
@@ -635,10 +699,10 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
     split(.$all_cols) %>%
     purrr::map(as.list) %>%
     purrr::map2_dfc(chunk, function(info, text) {
-      if (is.na(info$toRemove)) {
+      if (is.na(info$toRemove)) { #nolint
         text
       } else {
-        stringr::str_replace_all(text, info$toRemove, "")
+        stringr::str_replace_all(text, info$toRemove, "") #nolint
       }
     })
 }
