@@ -43,6 +43,42 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
 #' @noRd
 .write_output_header <-
   function(raw_header, config, destination, dbnsfp_destination){
+    indel_flag <- .is_indel(raw_header)
+    type <- ifelse(indel_flag, "indel", "SNV") #check this
+    
+    # get list of desired fields from config to ensure outfile column order
+    parsed_fields <-
+      unlist(.get_list_from_config(config, "desired", type))
+    
+    # freeze 5 has some different field names between indel and SNV. Fix that.
+    parsed_fields <-
+        stringr::str_replace(parsed_fields, "MAP35_149bp", "MAP35_149")
+    parsed_fields <-
+        stringr::str_replace(parsed_fields, "VEP_refseq_ProteinID(ENSP)",
+                             "VEP_refseq_ProteinID")
+    
+    if (type == "SNV") {
+      # parse dbnsfp fields from snv chunk
+      dbnsfp_parsed_lines <- .pivot_then_parse(all_fields, config, "dbnsfp")
+      dbnsfp_parsed_fields <-
+        unlist(.get_list_from_config(config, "desired", "dbnsfp"))
+      
+      # if present, write dbnsfp data to tsv file
+      if (nrow(dbnsfp_parsed_lines) > 0 & ncol(dbnsfp_parsed_lines) > 0) {
+        
+        .write_to_file(
+          dbnsfp_parsed_lines,
+          dbnsfp_destination,
+          dbnsfp_parsed_fields,
+          header_flag)
+      }
+    }
+    
+    # write processed indel or snv chunk to tsv file
+    .write_to_file(parsed_lines,
+                   destination,
+                   parsed_fields,
+                   header_flag)
     # STUB TODO
     invisible(TRUE)
   }
