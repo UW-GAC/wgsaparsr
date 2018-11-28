@@ -77,17 +77,10 @@
 #' @noRd
 .write_to_file <- function(parsed_lines,
                            destination,
-                           processed_fields,
-                           header_flag) {
-  if (header_flag) {
-    parsed_lines %>%
-      dplyr::select(dplyr::one_of(processed_fields)) %>% # ensure column order
-      readr::write_tsv(path = destination, append = FALSE)
-  } else {
-    parsed_lines %>%
+                           processed_fields) {
+  parsed_lines %>%
       dplyr::select(dplyr::one_of(processed_fields)) %>%
       readr::write_tsv(path = destination, append = TRUE)
-  }
 }
 
 #' Get path to load wgsaparsr example
