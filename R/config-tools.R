@@ -169,7 +169,6 @@ validate_config <- function(config_tibble) {
   }
 
   # if order is a column, are rows in order?
-  # ? shouldn't this only be true after .clean_config()?
   if ("order" %in% colnames(config_tibble)) {
     if (is.unsorted(config_tibble$order)) {
       stop("configuration rows not arranged by order")
@@ -321,7 +320,7 @@ load_config <- function(config_path) {
   }
 
   if (which_list == "desired") {
-    # returns list ## PERHAPS ORDER HERE?
+    # returns list ## PERHAPS ORDER HERE? - not needed b/c clean config ordered
     desired_fields <- fields_by_list_type %>%
       dplyr::select(field) %>%
       purrr::flatten()

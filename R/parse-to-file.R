@@ -55,15 +55,12 @@ parse_to_file <- function(source_file,
   # get header----------------------------------------
   raw_header <- .get_header(source_file, header_file)
 
-  # initialize output files by writing header
-  # TODO
-  # NOTE: will require change in logic around header_flag in .write_to_file()
-  #  and in calls to .write_to_file() below
-  # .write_output_header(raw_header, config, destination, dbnsfp_destination)
-
   # check if parsing indel file------------
   indel_flag <- .is_indel(raw_header)
-  
+
+  # initialize output file(s) by writing header(s)
+  .write_output_header(config, destination, dbnsfp_destination, indel_flag)
+
   # main loop - read file by chunk, process chunk, write chunk----------------
   readfile_con <- gzfile(source_file, "r")
   index <- 0L
@@ -134,16 +131,14 @@ parse_to_file <- function(source_file,
         .write_to_file(
           dbnsfp_parsed_lines,
           dbnsfp_destination,
-          dbnsfp_parsed_fields,
-          header_flag)
+          dbnsfp_parsed_fields)
       }
     }
 
     # write processed indel or snv chunk to tsv file
     .write_to_file(parsed_lines,
                    destination,
-                   parsed_fields,
-                   header_flag)
+                   parsed_fields)
 
     # update progress if desired
     if (verbose) {

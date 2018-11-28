@@ -9,80 +9,6 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
                          "match_mask", "r_list", "r_corresponding",
                          "new_p", "p_max", "p_min", "toRemove"))
 
-
-#' Check if the current chunk includes a header row describing the fields
-#' @noRd
-.get_first_line <- function(source_file){
-  readfile_con <- gzfile(source_file, "r")
-  first_line <- suppressWarnings(readLines(readfile_con, n = 1))
-  close(readfile_con)
-  return(first_line)
-}
-
-#' get header line from source file or header file
-#' @noRd
-.get_header <- function(source_file, header_file){
-  first_line <- .get_first_line(source_file)
-  source_header_flag <- .has_header(first_line)
-  if (is.na(header_file) & !source_header_flag) {
-    stop("no header in source_file or header_file")
-  }
-  if (!is.na(header_file) & source_header_flag) {
-    stop("headers in both header_file and source_file")
-  }
-  if (is.na(header_file) & source_header_flag) {
-    raw_header <- first_line
-  }
-  if (!is.na(header_file) & !source_header_flag) {
-    raw_header <- .get_first_line(header_file)
-  }
-  return(raw_header)
-}
-
-#' initialize output files by writing header
-#' @noRd
-.write_output_header <-
-  function(raw_header, config, destination, dbnsfp_destination){
-    indel_flag <- .is_indel(raw_header)
-    type <- ifelse(indel_flag, "indel", "SNV") #check this
-    
-    # get list of desired fields from config to ensure outfile column order
-    parsed_fields <-
-      unlist(.get_list_from_config(config, "desired", type))
-    
-    # freeze 5 has some different field names between indel and SNV. Fix that.
-    parsed_fields <-
-        stringr::str_replace(parsed_fields, "MAP35_149bp", "MAP35_149")
-    parsed_fields <-
-        stringr::str_replace(parsed_fields, "VEP_refseq_ProteinID(ENSP)",
-                             "VEP_refseq_ProteinID")
-    
-    if (type == "SNV") {
-      # parse dbnsfp fields from snv chunk
-      dbnsfp_parsed_lines <- .pivot_then_parse(all_fields, config, "dbnsfp")
-      dbnsfp_parsed_fields <-
-        unlist(.get_list_from_config(config, "desired", "dbnsfp"))
-      
-      # if present, write dbnsfp data to tsv file
-      if (nrow(dbnsfp_parsed_lines) > 0 & ncol(dbnsfp_parsed_lines) > 0) {
-        
-        .write_to_file(
-          dbnsfp_parsed_lines,
-          dbnsfp_destination,
-          dbnsfp_parsed_fields,
-          header_flag)
-      }
-    }
-    
-    # write processed indel or snv chunk to tsv file
-    .write_to_file(parsed_lines,
-                   destination,
-                   parsed_fields,
-                   header_flag)
-    # STUB TODO
-    invisible(TRUE)
-  }
-
 #' Check whether the source_file is WGSA indel annotation
 #' @noRd
 .is_indel <- function(header){
@@ -694,6 +620,7 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
   if (!("toRemove" %in% colnames(config))) {
     return(chunk)
   }
+  # see https://stackoverflow.com/questions/53071578/
   dplyr::tibble(all_cols = names(chunk)) %>%
     dplyr::left_join(config, by = c("all_cols" = "field")) %>%
     split(.$all_cols) %>%
@@ -879,38 +806,4 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
 #' @noRd
 .last <- function() {
   message("You're a rock star!")
-}
-
-#' select columns to set order and write_tsv
-#' @importFrom magrittr "%>%"
-#' @noRd
-.write_to_file <- function(parsed_lines,
-                           destination,
-                           processed_fields,
-                           header_flag) {
-  if (header_flag) {
-    parsed_lines %>%
-      dplyr::select(dplyr::one_of(processed_fields)) %>% # ensure column order
-      readr::write_tsv(path = destination, append = FALSE)
-  } else {
-    parsed_lines %>%
-      dplyr::select(dplyr::one_of(processed_fields)) %>%
-      readr::write_tsv(path = destination, append = TRUE)
-  }
-}
-
-#' Get path to load wgsaparsr example
-#'
-#' \code{wgsaparsr} comes bundled with sample files in its \code{inst/extdata}
-#' diretory. This function makes them easier to access. Based on
-#' \code{readr::readr_example()}
-#'
-#' @param path Name of file
-#'
-#' @examples
-#' wgsaparsr_example(path = "fr_5_config.tsv")
-#'
-#' @export
-wgsaparsr_example <- function(path) {
-  system.file("extdata", path, package = "wgsaparsr", mustWork = TRUE)
 }

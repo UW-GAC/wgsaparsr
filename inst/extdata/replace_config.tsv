@@ -21,19 +21,19 @@ MutationAssessor_score_rankscore	FALSE	FALSE	TRUE	5	1	|	NA	NA	NA	.
 MutationAssessor_score	FALSE	FALSE	TRUE	5	1	|	NA	NA	NA	.
 MutationAssessor_UniprotID	FALSE	FALSE	TRUE	5	1	|	NA	NA	NA	
 MutationAssessor_variant	FALSE	FALSE	TRUE	5	1	|	NA	NA	NA	
-MutationTaster_AAE	FALSE	FALSE	TRUE	6	1	|	NA	NA	NA	
+MutationTaster_AAE	FALSE	FALSE	FALSE	6	1	|	NA	NA	changed dbnsfp to FALSE b/c previously parsed but not imported to db	
 MutationTaster_converted_rankscore	FALSE	FALSE	TRUE	6	1	|	NA	NA	NA	.
-MutationTaster_model	FALSE	FALSE	TRUE	6	1	|	NA	NA	NA	
+MutationTaster_model	FALSE	FALSE	FALSE	6	1	|	NA	NA	changed dbnsfp to FALSE b/c previously parsed but not imported to db	
 MutationTaster_pred	FALSE	FALSE	TRUE	6	1	|	2	pick_A	NA	
 MutationTaster_score	FALSE	FALSE	TRUE	6	1	|	2	NA	NA	.
 MutPred_AAchange	FALSE	FALSE	TRUE	7	1	|	NA	NA	NA	
 MutPred_protID	FALSE	FALSE	TRUE	7	1	|	NA	NA	NA	
 MutPred_rankscore	FALSE	FALSE	TRUE	7	1	|	NA	NA	NA	.
 MutPred_score	FALSE	FALSE	TRUE	7	1	|	NA	NA	NA	.
-MutPred_Top5features	FALSE	FALSE	TRUE	7	1	|	NA	NA	NA	
-Uniprot_id_Polyphen2	FALSE	FALSE	TRUE	8	1	|	NA	NA	NA	
-Uniprot_aapos_Polyphen2	FALSE	FALSE	TRUE	8	1	|	NA	NA	NA	
-Uniprot_acc_Polyphen2	FALSE	FALSE	TRUE	8	1	|	NA	NA	NA	
+MutPred_Top5features	FALSE	FALSE	FALSE	7	1	|	NA	NA	changed dbnsfp to FALSE b/c previously parsed but not imported to db	
+Uniprot_id_Polyphen2	FALSE	FALSE	FALSE	8	1	|	NA	NA	changed dbnsfp to FALSE b/c previously parsed but not imported to db	
+Uniprot_aapos_Polyphen2	FALSE	FALSE	FALSE	8	1	|	NA	NA	changed dbnsfp to FALSE b/c previously parsed but not imported to db	
+Uniprot_acc_Polyphen2	FALSE	FALSE	FALSE	8	1	|	NA	NA	changed dbnsfp to FALSE b/c previously parsed but not imported to db	
 Polyphen2_HDIV_pred	FALSE	FALSE	TRUE	8a	1	|	4	NA	NA	
 Polyphen2_HDIV_rankscore	FALSE	FALSE	TRUE	8a	1	|	NA	NA	NA	.
 Polyphen2_HDIV_score	FALSE	FALSE	TRUE	8a	1	|	4	max	NA	.
@@ -45,17 +45,17 @@ PROVEAN_pred	FALSE	FALSE	TRUE	10	1	|	3	NA	NA
 PROVEAN_score	FALSE	FALSE	TRUE	10	1	|	3	min	NA	.
 REVEL_rankscore	FALSE	FALSE	TRUE	11	1	|	NA	NA	NA	.
 REVEL_score	FALSE	FALSE	TRUE	11	1	|	NA	NA	NA	.
-Transcript_id_VEST3	FALSE	FALSE	TRUE	12	1	|	NA	NA	NA	
-Transcript_var_VEST3	FALSE	FALSE	TRUE	12	1	|	NA	NA	NA	
+Transcript_id_VEST3	FALSE	FALSE	FALSE	12	1	|	NA	NA	changed dbnsfp to FALSE b/c previously parsed but not imported to db	
+Transcript_var_VEST3	FALSE	FALSE	FALSE	12	1	|	NA	NA	changed dbnsfp to FALSE b/c previously parsed but not imported to db	
 VEST3_rankscore	FALSE	FALSE	TRUE	12	1	|	NA	NA	NA	.
 VEST3_score	FALSE	FALSE	TRUE	12	1	|	NA	max	NA	.
 CADD_phred	TRUE	TRUE	FALSE	14	NA	NA	NA	NA	NA	.
 CADD_raw	TRUE	TRUE	FALSE	14	NA	NA	NA	NA	NA	.
 CADD_raw_rankscore	TRUE	FALSE	FALSE	14	NA	NA	NA	NA	NA	.
-clinvar_clnsig	FALSE	FALSE	FALSE	15	NA	NA	NA	NA	changed to FALSE b/c previously parsed but not imported to db	
-clinvar_golden_stars	FALSE	FALSE	FALSE	15	NA	NA	NA	NA	changed to FALSE b/c previously parsed but not imported to db	
-clinvar_rs	TRUE	TRUE	FALSE	15	NA	NA	NA	NA	NA	
-clinvar_trait	FALSE	FALSE	FALSE	15	NA	NA	NA	NA	changed to FALSE b/c previously parsed but not imported to db	
+clinvar_clnsig	FALSE	FALSE	FALSE	15	NA	NA	NA	NA	changed SNV to FALSE b/c previously parsed but not imported to db	
+clinvar_golden_stars	FALSE	FALSE	FALSE	15	NA	NA	NA	NA	changed SNV to FALSE b/c previously parsed but not imported to db	
+clinvar_rs	FALSE	FALSE	FALSE	15	NA	NA	NA	NA	changed SNV to FALSE b/c previously parsed but not imported to db	
+clinvar_trait	FALSE	FALSE	FALSE	15	NA	NA	NA	NA	changed SNV to FALSE b/c previously parsed but not imported to db	
 DANN_rank_score	FALSE	FALSE	FALSE	16	NA	NA	NA	NA	NA	
 DANN_score	TRUE	TRUE	FALSE	16	NA	NA	NA	NA	NA	
 Eigen_coding_or_noncoding	FALSE	FALSE	FALSE	17	NA	NA	NA	NA	single value per vairant for SNVs. But indels have mutiple values and correspondence cannot be established with the raw score	
@@ -132,11 +132,11 @@ ExAC_SAS_AC	TRUE	TRUE	FALSE	24	NA	NA	NA	NA	NA	.
 ExAC_SAS_AF	TRUE	TRUE	FALSE	24	NA	NA	NA	NA	NA	.
 FANTOM5_CAGE_peak_permissive	TRUE	TRUE	FALSE	25	NA	NA	NA	pick_Y	NA	
 FANTOM5_CAGE_peak_robust	TRUE	TRUE	FALSE	25	NA	NA	NA	pick_Y	NA	
-FANTOM5_enhancer_differentially_expressed_tissue_cell	FALSE	FALSE	FALSE	25	NA	NA	NA	NA	changed to FALSE b/c previously parsed but not imported to db	
+FANTOM5_enhancer_differentially_expressed_tissue_cell	FALSE	FALSE	FALSE	25	NA	NA	NA	NA	changed SNV to FALSE b/c previously parsed but not imported to db	
 FANTOM5_enhancer_expressed_tissue_cell	FALSE	FALSE	FALSE	25	NA	NA	NA	NA	NA	
 FANTOM5_enhancer_permissive	TRUE	TRUE	FALSE	25	NA	NA	NA	pick_Y	NA	
 FANTOM5_enhancer_robust	TRUE	TRUE	FALSE	25	NA	NA	NA	pick_Y	NA	
-FANTOM5_enhancer_target	FALSE	FALSE	FALSE	25	NA	NA	NA	NA	changed to FALSE b/c previously parsed but not imported to db	
+FANTOM5_enhancer_target	FALSE	FALSE	FALSE	25	NA	NA	NA	NA	changed SNV to FALSE b/c previously parsed but not imported to db	
 fathmm_MKL_coding_group	FALSE	FALSE	FALSE	26	NA	NA	NA	NA	single value per vairant for SNVs. But indels have mutiple values and correspondence cannot be established with the raw score	
 fathmm_MKL_coding_pred	FALSE	FALSE	FALSE	26	NA	NA	NA	NA	can be derived from raw score	
 fathmm_MKL_coding_rankscore	FALSE	FALSE	FALSE	26	NA	NA	NA	NA	NA	
@@ -223,8 +223,8 @@ GRASP_PMID	FALSE	FALSE	FALSE	32	NA	NA	NA	NA	NA
 GRASP_rs	FALSE	FALSE	FALSE	32	NA	NA	NA	NA	NA	
 GTEx_V6p_gene	TRUE	TRUE	FALSE	33	4	|	NA	NA	NA	
 GTEx_V6p_tissue	TRUE	TRUE	FALSE	33	4	|	NA	NA	NA	
-GWAS_catalog_pubmedid	FALSE	FALSE	FALSE	34	NA	NA	NA	NA	changed to FALSE b/c previously parsed but not imported to db	
-GWAS_catalog_rs	FALSE	FALSE	FALSE	34	NA	NA	NA	NA	changed to FALSE b/c previously parsed but not imported to db	
+GWAS_catalog_pubmedid	FALSE	FALSE	FALSE	34	NA	NA	NA	NA	changed SNV to FALSE b/c previously parsed but not imported to db	
+GWAS_catalog_rs	FALSE	FALSE	FALSE	34	NA	NA	NA	NA	changed SNV to FALSE b/c previously parsed but not imported to db	
 GWAS_catalog_trait	FALSE	FALSE	FALSE	34	NA	NA	NA	NA	changed to FALSE b/c previously parsed but not imported to db	
 hESC_Topological_Domain	TRUE	TRUE	FALSE	35a	NA	NA	NA	clean	do max_length to make sure there are no very long values	
 IMR90_Topological_Domain	TRUE	TRUE	FALSE	35b	NA	NA	NA	clean	do max_length to make sure there are no very long values	
@@ -391,8 +391,8 @@ ALSPAC_AC	TRUE	TRUE	FALSE	54	NA	NA	NA	NA	NA	.
 ALSPAC_AF	TRUE	TRUE	FALSE	54	NA	NA	NA	NA	NA	.
 ALSPAC_AN	TRUE	TRUE	FALSE	54	NA	NA	NA	NA	NA	.
 Ensembl_geneid	FALSE	FALSE	TRUE	55	1	|	NA	NA	NA	
-Ensembl_proteinid	FALSE	FALSE	TRUE	55	1	|	NA	NA	NA	
-Ensembl_transcriptid	FALSE	FALSE	TRUE	55	1	|	NA	NA	NA	
+Ensembl_proteinid	FALSE	FALSE	FALSE	55	1	|	NA	NA	changed dbnsfp to FALSE b/c previously parsed but not imported to db	
+Ensembl_transcriptid	FALSE	FALSE	FALSE	55	1	|	NA	NA	changed dbnsfp to FALSE b/c previously parsed but not imported to db	
 aaalt	FALSE	FALSE	TRUE	55	1	|	NA	NA	NA	
 aapos	FALSE	FALSE	TRUE	55	1	|	NA	NA	NA	
 aaref	FALSE	FALSE	TRUE	55	1	|	NA	NA	NA	
@@ -432,12 +432,12 @@ ANNOVAR_ucsc_HGVSc	FALSE	FALSE	FALSE	60	NA	NA	NA	NA	NA
 ANNOVAR_ucsc_HGVSp	FALSE	FALSE	FALSE	60	NA	NA	NA	NA	NA	
 ANNOVAR_ucsc_summary	FALSE	FALSE	FALSE	60	NA	NA	NA	NA	NA	
 ANNOVAR_ucsc_Transcript_ID	FALSE	FALSE	FALSE	60	NA	NA	NA	NA	NA	
-AltaiNeandertal_genotypes	TRUE	FALSE	FALSE	NA	NA	NA	NA	NA	NA	
-Ancestral_allele	TRUE	FALSE	FALSE	NA	NA	NA	NA	NA	NA	
-Denisova_genotypes	TRUE	FALSE	FALSE	NA	NA	NA	NA	NA	NA	
+AltaiNeandertal_genotypes	FALSE	FALSE	FALSE	NA	NA	NA	NA	NA	changed SNV to FALSE b/c previously parsed but not imported to db	
+Ancestral_allele	FALSE	FALSE	FALSE	NA	NA	NA	NA	NA	changed SNV to FALSE b/c previously parsed but not imported to db	
+Denisova_genotypes	FALSE	FALSE	FALSE	NA	NA	NA	NA	NA	changed SNV to FALSE b/c previously parsed but not imported to db	
 Motif_breaking	FALSE	FALSE	FALSE	NA	NA	NA	NA	NA	NA	
 RepeatMasker_masked	TRUE	TRUE	FALSE	NA	NA	NA	NA	pick_Y	NA	
 rs_dbSNP150	TRUE	TRUE	TRUE	NA	NA	NA	NA	NA	NA	
-VindijiaNeandertal_genotypes	TRUE	FALSE	FALSE	NA	NA	NA	NA	NA	NA	
+VindijiaNeandertal_genotypes	FALSE	FALSE	FALSE	NA	NA	NA	NA	NA	changed SNV to FALSE b/c previously parsed but not imported to db	
 focal_snv_number	FALSE	TRUE	FALSE	NA	NA	NA	NA	NA	NA	
 indel_focal_length	FALSE	TRUE	FALSE	NA	NA	NA	NA	NA	NA	
