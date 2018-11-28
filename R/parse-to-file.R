@@ -58,11 +58,10 @@ parse_to_file <- function(source_file,
   # check if parsing indel file------------
   indel_flag <- .is_indel(raw_header)
 
-  # initialize output file(s) by writing header
-  # TODO
+  # initialize output file(s) by writing header(s)
   # NOTE: will require change in logic around header_flag in .write_to_file()
   #  and in calls to .write_to_file() below
-  # .write_output_header(config, destination, dbnsfp_destination, indel_flag)
+  .write_output_header(config, destination, dbnsfp_destination, indel_flag)
 
   # main loop - read file by chunk, process chunk, write chunk----------------
   readfile_con <- gzfile(source_file, "r")

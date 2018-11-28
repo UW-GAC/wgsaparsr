@@ -34,11 +34,11 @@
 .write_output_header <-
   function(config, destination, dbnsfp_destination, indel_flag){
     # check inputs
-    if(is.na(destination) & is.na(dbnsfp_destination)){
+    if (is.na(destination) & is.na(dbnsfp_destination)){
       stop("must provide outupt destination")
     }
 
-    if(indel_flag){
+    if (indel_flag){
       type <- "indel"
     } else {
       type <- "SNV"
@@ -53,9 +53,11 @@
     desired_fields <-
       stringr::str_replace(desired_fields, "VEP_refseq_ProteinID(ENSP)",
                            "VEP_refseq_ProteinID")
+    # str_replace returns a character vector. Make it back into a list.
+    desired_fields <- as.list(desired_fields)
 
     # get fields for dbnsfp
-    if(!is.na(dbnsfp_destination) & type == "SNV") {
+    if (!is.na(dbnsfp_destination) & type == "SNV") {
       dbnsfp_fields <- .get_list_from_config(config, "desired", "dbnsfp")
     }
 
@@ -63,7 +65,7 @@
     readr::write_tsv(as.data.frame(desired_fields), destination, append = TRUE)
 
     # initialse dbnsfp file if present
-    if(exists("dbnsfp_fields")){
+    if (exists("dbnsfp_fields")){
       readr::write_tsv(
         as.data.frame(dbnsfp_fields), dbnsfp_destination, append = TRUE)
     }
