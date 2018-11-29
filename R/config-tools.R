@@ -1,6 +1,7 @@
 # functions for working with configuration files--------------------------------
 
 #' @importFrom magrittr "%>%"
+#' @importFrom rlang UQ
 #' @noRd
 .clean_config <- function(config_tibble) {
   # remove rows with field == NA, select required and optional cols, and order
@@ -26,14 +27,15 @@
   # make the toRemove values into regular expressions (don't get carried away!)
     cleaned_config <- config_tibble %>%
       # first replace "." with "\\."
-      dplyr::mutate_at(dplyr::vars(toRemove),
+      dplyr::mutate_at(dplyr::vars(toRemove), #nolint
                        dplyr::funs(
-                         stringr::str_replace(., "^\\.$", "\\\\."))) %>%
+                         stringr::str_replace(
+                           ., "^\\.$", "\\\\."))) %>%#nolint
       # prepend "^" for start of string
-      dplyr::mutate_at(dplyr::vars(toRemove),
+      dplyr::mutate_at(dplyr::vars(toRemove), #nolint
                        dplyr::funs(paste0("^", .))) %>%
       # append "$" for end of string
-      dplyr::mutate_at(dplyr::vars(toRemove),
+      dplyr::mutate_at(dplyr::vars(toRemove), #nolint
                        dplyr::funs(paste0(., "$")))
   } else {
     cleaned_config <- config_tibble
@@ -42,7 +44,7 @@
   # remove rows that don't have field names and select desired columns
   cleaned_config <- cleaned_config %>%
     dplyr::filter(!(is.na(.data$field))) %>%
-    dplyr::select(rlang::UQ(desired_columns))
+    dplyr::select(UQ(desired_columns))
 
   # replace NA values in config file with FALSE for some columns
   cleaned_config <- cleaned_config %>%
@@ -242,6 +244,7 @@ validate_config <- function(config_tibble) {
 #'
 #' freeze_5_config <- load_config(wgsaparsr_example("fr_5_config.tsv"))
 #'
+#' @importFrom rlang UQ
 #' @export
 
 load_config <- function(config_path) {
@@ -313,11 +316,11 @@ load_config <- function(config_path) {
     list_type <- rlang::sym(list_type) # I confess I don't understand this well
     fields_by_list_type <-
       config_df %>%
-      dplyr::filter(as.logical(rlang::UQ(list_type)))
+      dplyr::filter(as.logical(UQ(list_type)))
   }
 
   if (which_list == "desired") {
-    # returns list ## PERHAPS ORDER HERE?
+    # returns list ## PERHAPS ORDER HERE? - not needed b/c clean config ordered
     desired_fields <- fields_by_list_type %>%
       dplyr::select(field) %>%
       purrr::flatten()

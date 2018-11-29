@@ -9,16 +9,6 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
                          "match_mask", "r_list", "r_corresponding",
                          "new_p", "p_max", "p_min", "toRemove"))
 
-
-#' Check if the current chunk includes a header row describing the fields
-#' @noRd
-.get_first_line <- function(source_file){
-  readfile_con <- gzfile(source_file, "r")
-  first_line <- suppressWarnings(readLines(readfile_con, n = 1))
-  close(readfile_con)
-  return(first_line)
-}
-
 #' Check whether the source_file is WGSA indel annotation
 #' @noRd
 .is_indel <- function(header){
@@ -630,15 +620,16 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
   if (!("toRemove" %in% colnames(config))) {
     return(chunk)
   }
+  # see https://stackoverflow.com/questions/53071578/
   dplyr::tibble(all_cols = names(chunk)) %>%
     dplyr::left_join(config, by = c("all_cols" = "field")) %>%
     split(.$all_cols) %>%
     purrr::map(as.list) %>%
     purrr::map2_dfc(chunk, function(info, text) {
-      if (is.na(info$toRemove)) {
+      if (is.na(info$toRemove)) { #nolint
         text
       } else {
-        stringr::str_replace_all(text, info$toRemove, "")
+        stringr::str_replace_all(text, info$toRemove, "") #nolint
       }
     })
 }
@@ -815,38 +806,4 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
 #' @noRd
 .last <- function() {
   message("You're a rock star!")
-}
-
-#' select columns to set order and write_tsv
-#' @importFrom magrittr "%>%"
-#' @noRd
-.write_to_file <- function(parsed_lines,
-                           destination,
-                           processed_fields,
-                           header_flag) {
-  if (header_flag) {
-    parsed_lines %>%
-      dplyr::select(dplyr::one_of(processed_fields)) %>% # ensure column order
-      readr::write_tsv(path = destination, append = FALSE)
-  } else {
-    parsed_lines %>%
-      dplyr::select(dplyr::one_of(processed_fields)) %>%
-      readr::write_tsv(path = destination, append = TRUE)
-  }
-}
-
-#' Get path to load wgsaparsr example
-#'
-#' \code{wgsaparsr} comes bundled with sample files in its \code{inst/extdata}
-#' diretory. This function makes them easier to access. Based on
-#' \code{readr::readr_example()}
-#'
-#' @param path Name of file
-#'
-#' @examples
-#' wgsaparsr_example(path = "fr_5_config.tsv")
-#'
-#' @export
-wgsaparsr_example <- function(path) {
-  system.file("extdata", path, package = "wgsaparsr", mustWork = TRUE)
 }

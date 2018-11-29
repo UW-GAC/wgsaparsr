@@ -36,6 +36,8 @@ parse_to_file <- function(source_file,
                           chunk_size = 10000,
                           header_file = NA,
                           verbose = TRUE) {
+
+  # don't accidentally overwrite existing files---------
   if (file.exists(destination)) {
     stop("destination outfile already exists.")
   }
@@ -50,20 +52,14 @@ parse_to_file <- function(source_file,
     config <- load_config(config)
   }
 
-  # get header and check if indel file----------------------------------------
-  first_line <- .get_first_line(source_file)
+  # get header----------------------------------------
+  raw_header <- .get_header(source_file, header_file)
 
-  if (!.has_header(first_line)) {
-    if (is.na(header_file)) {
-      msg = paste0("source_file doesn't have header line and none provided in",
-                   "header_file parameter")
-                   stop(msg)
-    }
-    first_line <- .get_first_line(header_file)
-  }
+  # check if parsing indel file------------
+  indel_flag <- .is_indel(raw_header)
 
-  raw_header <- first_line
-  indel_flag <- .is_indel(first_line)
+  # initialize output file(s) by writing header(s)
+  .write_output_header(config, destination, dbnsfp_destination, indel_flag)
 
   # main loop - read file by chunk, process chunk, write chunk----------------
   readfile_con <- gzfile(source_file, "r")
@@ -135,16 +131,14 @@ parse_to_file <- function(source_file,
         .write_to_file(
           dbnsfp_parsed_lines,
           dbnsfp_destination,
-          dbnsfp_parsed_fields,
-          header_flag)
+          dbnsfp_parsed_fields)
       }
     }
 
     # write processed indel or snv chunk to tsv file
     .write_to_file(parsed_lines,
                    destination,
-                   parsed_fields,
-                   header_flag)
+                   parsed_fields)
 
     # update progress if desired
     if (verbose) {
