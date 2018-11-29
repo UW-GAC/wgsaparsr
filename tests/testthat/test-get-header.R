@@ -10,11 +10,21 @@ test_that(
 )
 
 test_that(
-  ".get_header stops with error if header given twice", {
+  ".get_header returns expected header if header given twice", {
     msg <- "headers in both header_file and source_file"
+    expected <- .get_first_line("fr_5_header.tsv")
+    result <- .get_header(source_file = "1k_annotation.gz",
+                          header_file = "fr_5_header.tsv")
+    expect_equal(expected, result)
+  }
+)
+
+test_that(
+  ".get_header returns error if two different headers", {
+    msg <- "headers in header_file and source_file don't match"
     expect_error(
       .get_header(source_file = "1k_annotation.gz",
-                  header_file = "snv_header.tsv"), msg)
+                  header_file = "bad_config.tsv"), msg)
   }
 )
 

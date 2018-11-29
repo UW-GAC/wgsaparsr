@@ -18,7 +18,12 @@
     stop("no header in source_file or header_file")
   }
   if (!is.na(header_file) & source_header_flag) {
-    stop("headers in both header_file and source_file")
+    header_line <- .get_first_line(header_file)
+    if (header_line != first_line) {
+      stop("headers in header_file and source_file don't match")
+    } else {
+      return(header_line)
+    }
   }
   if (is.na(header_file) & source_header_flag) {
     raw_header <- first_line
