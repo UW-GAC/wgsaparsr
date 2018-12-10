@@ -394,7 +394,7 @@ Ensembl_geneid	FALSE	FALSE	TRUE	55	1	|	NA	NA	NA
 Ensembl_proteinid	FALSE	FALSE	FALSE	55	1	|	NA	NA	changed dbnsfp to FALSE b/c previously parsed but not imported to db	
 Ensembl_transcriptid	FALSE	FALSE	FALSE	55	1	|	NA	NA	changed dbnsfp to FALSE b/c previously parsed but not imported to db	
 aaalt	FALSE	FALSE	TRUE	55	1	|	NA	NA	NA	
-aapos	FALSE	FALSE	TRUE	55	1	|	NA	NA	NA	
+aapos	FALSE	FALSE	FALSE	55	1	|	NA	NA	NA	
 aaref	FALSE	FALSE	TRUE	55	1	|	NA	NA	NA	
 cds_strand	FALSE	FALSE	TRUE	55	1	|	NA	NA	NA	
 codonpos	FALSE	FALSE	TRUE	55	1	|	NA	NA	NA	
