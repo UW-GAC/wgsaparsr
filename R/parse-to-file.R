@@ -58,7 +58,7 @@ parse_to_file <- function(source_file,
   # check if parsing indel file------------
   indel_flag <- .is_indel(raw_header)
 
-  # initialize output file(s) by writing header(s)
+  # initialize output file(s) by writing header(s)----------------
   .write_output_header(config, destination, dbnsfp_destination, indel_flag)
 
   # main loop - read file by chunk, process chunk, write chunk----------------
