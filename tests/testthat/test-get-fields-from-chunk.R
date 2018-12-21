@@ -17,6 +17,6 @@ test_that(
           ref = readr::col_character(),
           alt = readr::col_character()
         )
-    expect_identical(.get_fields_from_chunk(test_chunk), expected_result)
+    expect_equal(.get_fields_from_chunk(test_chunk), expected_result)
   }
 )

@@ -29,7 +29,7 @@ MutationTaster_score	FALSE	FALSE	TRUE	6	1	|	2	NA	NA	.
 MutPred_AAchange	FALSE	FALSE	TRUE	7	1	|	NA	NA	NA	
 MutPred_protID	FALSE	FALSE	TRUE	7	1	|	NA	NA	NA	
 MutPred_rankscore	FALSE	FALSE	TRUE	7	1	|	NA	NA	NA	.
-MutPred_score	FALSE	FALSE	TRUE	7	1	|	NA	NA	NA	.
+MutPred_score	FALSE	FALSE	TRUE	7	1	|	NA	NA	NA	-
 MutPred_Top5features	FALSE	FALSE	FALSE	7	1	|	NA	NA	changed dbnsfp to FALSE b/c previously parsed but not imported to db	
 Uniprot_id_Polyphen2	FALSE	FALSE	FALSE	8	1	|	NA	NA	changed dbnsfp to FALSE b/c previously parsed but not imported to db	
 Uniprot_aapos_Polyphen2	FALSE	FALSE	FALSE	8	1	|	NA	NA	changed dbnsfp to FALSE b/c previously parsed but not imported to db	

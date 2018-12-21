@@ -621,10 +621,14 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
     return(chunk)
   }
   # see https://stackoverflow.com/questions/53071578/
-  dplyr::tibble(all_cols = names(chunk)) %>%
+  listed_tibble_list <-
+    dplyr::tibble(all_cols = names(chunk)) %>%
     dplyr::left_join(config, by = c("all_cols" = "field")) %>%
     split(.$all_cols) %>%
-    purrr::map(as.list) %>%
+    purrr::map(as.list)
+
+  nullfixed <-
+    listed_tibble_list[names(chunk)] %>% # confirm column order
     purrr::map2_dfc(chunk, function(info, text) {
       if (is.na(info$toRemove)) { #nolint
         text
@@ -632,6 +636,8 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
         stringr::str_replace_all(text, info$toRemove, "") #nolint
       }
     })
+  colnames(nullfixed) <- colnames(chunk) # reconfirm column order
+  nullfixed
 }
 
 #' chunk = with colnames, as from wgsaparsr:::.get_fields_from_chunk()
@@ -712,7 +718,7 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
   pivoted <- .pivot_fields(parsed, to_pivot)
 
   # fix null values--------------------------
-  if ("nullValue" %in% colnames(config)) {
+  if ("toRemove" %in% colnames(config)) {
     pivoted <- .fix_nulls(pivoted, config)
   }
 
@@ -797,7 +803,7 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
   parsed <- .parse_pairs_a(parsed, parse_pairs_pick_a)
 
   # fix null values--------------------------
-  if ("nullValue" %in% colnames(config)) {
+  if ("toRemove" %in% colnames(config)) {
     parsed <- .fix_nulls(parsed, config)
   }
   return(parsed)
