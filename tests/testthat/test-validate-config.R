@@ -124,8 +124,8 @@ test_that("validate_config() gives error when not in order", {
     pivotChar = c(";", ";"),
     parseGroup = c("1", "1"),
     transformation = c("max", "max"),
-    order = c("2", "1")
+    outputOrder = c("2", "1")
   )
-  msg <- "configuration rows not arranged by order"
+  msg <- "configuration rows not arranged by outputOrder"
   expect_error(validate_config(example), msg)
 })

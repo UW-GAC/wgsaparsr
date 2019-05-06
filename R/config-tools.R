@@ -13,8 +13,8 @@
       "parseGroup", "transformation")
 
   # add in optional columns from config file
-  if ("order" %in% colnames(config_tibble)) {
-    desired_columns <- append(desired_columns, "order")
+  if ("outputOrder" %in% colnames(config_tibble)) {
+    desired_columns <- append(desired_columns, "outputOrder")
   }
 
   if ("sourceGroup" %in% colnames(config_tibble)) {
@@ -54,10 +54,10 @@
   cleaned_config <- cleaned_config %>%
     dplyr::filter(.data$SNV | .data$indel | .data$dbnsfp)
 
-  # sort the rows by the order column, if it's there
-  if ("order" %in% colnames(cleaned_config)) {
+  # sort the rows by the outputOrder column, if it's there
+  if ("outputOrder" %in% colnames(cleaned_config)) {
     cleaned_config <- cleaned_config %>%
-      dplyr::arrange(order)
+      dplyr::arrange(outputOrder)
   }
 
   return(cleaned_config)
@@ -168,10 +168,10 @@ validate_config <- function(config_tibble) {
     stop("all transformation values must be the same withinin a parseGroup")
   }
 
-  # if order is a column, are rows in order?
-  if ("order" %in% colnames(config_tibble)) {
-    if (is.unsorted(config_tibble$order)) {
-      stop("configuration rows not arranged by order")
+  # if outputOrder is a column, are rows in order?
+  if ("outputOrder" %in% colnames(config_tibble)) {
+    if (is.unsorted(config_tibble$outputOrder)) {
+      stop("configuration rows not arranged by outputOrder")
     }
   }
 
@@ -218,7 +218,8 @@ validate_config <- function(config_tibble) {
 #' Additionally, the following fields may be included, and are processed during
 #' configuration file loading, but are not required:
 #' \itemize{
-#'   \item \strong{order} numerical value for column ordering in parsed output
+#'   \item \strong{outputOrder} numerical value for column ordering in parsed
+#'   output
 #'   \item \strong{sourceGroup} numerical value for column grouping/ordering in
 #'   output
 #'   \item \strong{toRemove} any characters to remove in the output tsv. For

@@ -41,7 +41,7 @@ test_that(".clean_config() returns expected ordered tibble", {
     transformation = c(NA, "max", "min", NA),
     pivotChar = c("|", NA, ";", NA),
     notes = c("a note", "another", "foo", "bar"),
-    order = c(NA, "3", "2", "1")
+    outputOrder = c(NA, "3", "2", "1")
   )
 
   target <- dplyr::tibble(
@@ -53,7 +53,7 @@ test_that(".clean_config() returns expected ordered tibble", {
     pivotChar = c(";", "|"),
     parseGroup = c("2", "1"),
     transformation = c("min", NA),
-    order = c("2", NA),
+    outputOrder = c("2", NA),
     sourceGroup = c("2", "1")
   )
   result <- .clean_config(example)
