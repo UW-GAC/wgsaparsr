@@ -60,6 +60,18 @@
       dplyr::arrange(outputOrder) #nolint
   }
 
+  # if there are new fields in outputName, replace any NAs in outputName with
+  # the values from field
+  if("outputName" %in% colnames(cleaned_config)) {
+    # logical test: are there any values in outputName, but there are some NAs to
+    # replace
+    if (any(!is.na(cleaned_config$outputName)) &&
+        any(is.na(cleaned_config$outputName))) {
+      cleaned_config$outputName[is.na(cleaned_config$outputName)] <-
+        cleaned_config$field[is.na(cleaned_config$outputName)]
+    }
+  }
+
   return(cleaned_config)
 }
 
