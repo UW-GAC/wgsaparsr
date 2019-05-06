@@ -49,7 +49,8 @@ include a header with field names, and the following fields, in any order:
 Additionally, the following fields may be included, and are processed during
 configuration file loading, but are not required:
 \itemize{
-  \item \strong{order} numerical value for column ordering in parsed output
+  \item \strong{outputOrder} numerical value for column ordering in parsed
+  output
   \item \strong{sourceGroup} numerical value for column grouping/ordering in
   output
   \item \strong{toRemove} any characters to remove in the output tsv. For
