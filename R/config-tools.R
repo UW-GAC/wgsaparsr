@@ -17,8 +17,8 @@
     desired_columns <- append(desired_columns, "outputOrder")
   }
 
-  if ("sourceGroup" %in% colnames(config_tibble)) {
-    desired_columns <- append(desired_columns, "sourceGroup")
+  if ("outputName" %in% colnames(config_tibble)) {
+    desired_columns <- append(desired_columns, "outputName")
   }
 
   if ("toRemove" %in% colnames(config_tibble)) {
@@ -57,7 +57,7 @@
   # sort the rows by the outputOrder column, if it's there
   if ("outputOrder" %in% colnames(cleaned_config)) {
     cleaned_config <- cleaned_config %>%
-      dplyr::arrange(outputOrder)
+      dplyr::arrange(outputOrder) #nolint
   }
 
   return(cleaned_config)
@@ -170,7 +170,7 @@ validate_config <- function(config_tibble) {
 
   # if outputOrder is a column, are rows in order?
   if ("outputOrder" %in% colnames(config_tibble)) {
-    if (is.unsorted(config_tibble$outputOrder)) {
+    if (is.unsorted(config_tibble$outputOrder)) { #nolint
       stop("configuration rows not arranged by outputOrder")
     }
   }
@@ -220,8 +220,8 @@ validate_config <- function(config_tibble) {
 #' \itemize{
 #'   \item \strong{outputOrder} numerical value for column ordering in parsed
 #'   output
-#'   \item \strong{sourceGroup} numerical value for column grouping/ordering in
-#'   output
+#'   #'   \item \strong{outputName} a string that should be used for the field
+#'   name in the output file (useful for renaming fields)
 #'   \item \strong{toRemove} any characters to remove in the output tsv. For
 #'   example, if a WGSA field uses a character used to encode a NULL value, it
 #'   may need to be removed to facilitate database import. If this field is
@@ -265,7 +265,8 @@ load_config <- function(config_path) {
 #'
 #' @param config_df Tibble containing configuration parameters. Required columns
 #'   include "field", "SNV", "indel", "dbnsfp", "pivotGroup", "pivotChar",
-#'   "parseGroup", "transformation"
+#'   "parseGroup", and "transformation". Optional columns include "outputOrder",
+#'   "outputName", and "toRemove".
 #'
 #' @param which_list A string describing list to extract. Values may include
 #'   "desired", "max", "min", "pick_y", "pick_n", "pick_a", "clean", "distinct",

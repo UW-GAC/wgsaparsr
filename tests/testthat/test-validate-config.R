@@ -1,7 +1,7 @@
 context("test_validate_config() - unit tests")
 
 test_that("validate_config() gives error when required column is missing", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     #field = "a", #required field now missing
     SNV = "a",
     indel = "a",
@@ -17,7 +17,7 @@ test_that("validate_config() gives error when required column is missing", {
 })
 
 test_that("validate_config() gives error when SNV has bad value", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     field = "a",
     SNV = "a",
     indel = "TRUE",
@@ -33,7 +33,7 @@ test_that("validate_config() gives error when SNV has bad value", {
 })
 
 test_that("validate_config() gives error when indel has bad value", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     field = "a",
     SNV = "TRUE",
     indel = "a",
@@ -49,7 +49,7 @@ test_that("validate_config() gives error when indel has bad value", {
 })
 
 test_that("validate_config() gives error when dbnsfp has bad value", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     field = "a",
     SNV = "TRUE",
     indel = "TRUE",
@@ -65,7 +65,7 @@ test_that("validate_config() gives error when dbnsfp has bad value", {
 })
 
 test_that("validate_config() gives error when transformation has bad value", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     field = "a",
     SNV = "TRUE",
     indel = "TRUE",
@@ -81,7 +81,7 @@ test_that("validate_config() gives error when transformation has bad value", {
 })
 
 test_that("validate_config() gives error when pivot char wrong", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     field = c("a", "b"),
     SNV = c("TRUE", "TRUE"),
     indel = c("TRUE", "TRUE"),
@@ -97,7 +97,7 @@ test_that("validate_config() gives error when pivot char wrong", {
 })
 
 test_that("validate_config() gives error when transformation groups wrong", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     field = c("a", "b"),
     SNV = c("TRUE", "TRUE"),
     indel = c("TRUE", "TRUE"),
@@ -114,7 +114,7 @@ test_that("validate_config() gives error when transformation groups wrong", {
 })
 
 test_that("validate_config() gives error when not in order", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     field = c("a", "b"),
     SNV = c("TRUE", "TRUE"),
     indel = c("TRUE", "TRUE"),
