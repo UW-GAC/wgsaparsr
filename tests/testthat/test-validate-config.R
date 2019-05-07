@@ -129,3 +129,21 @@ test_that("validate_config() gives error when not in order", {
   msg <- "configuration rows not arranged by outputOrder"
   expect_error(validate_config(example), msg)
 })
+
+test_that("validate_config() gives error when outputName has NAs", {
+  example <- tibble::tibble(
+    field = c("a", "b"),
+    SNV = c("TRUE", "TRUE"),
+    indel = c("TRUE", "TRUE"),
+    dbnsfp = c("TRUE", "TRUE"),
+    sourceGroup = c("1", "1"),
+    pivotGroup = c("1", "1"),
+    pivotChar = c(";", ";"),
+    parseGroup = c("1", "1"),
+    transformation = c("max", "max"),
+    outputOrder = c("1", "2"),
+    outputName = c("d", NA)
+  )
+  msg <- "outputName has NA values"
+  expect_error(validate_config(example), msg)
+})

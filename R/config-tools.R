@@ -18,7 +18,9 @@
   }
 
   if ("outputName" %in% colnames(config_tibble)) {
-    desired_columns <- append(desired_columns, "outputName")
+    if (!all(is.na(config_tibble$outputName))) {
+      desired_columns <- append(desired_columns, "outputName")
+    }
   }
 
   if ("toRemove" %in% colnames(config_tibble)) {
@@ -52,7 +54,10 @@
 
   # drop rows that don't have at a TRUE for SNV, indel, or dbnsfp
   cleaned_config <- cleaned_config %>%
-    dplyr::filter(.data$SNV | .data$indel | .data$dbnsfp)
+    dplyr::filter(
+      as.logical(.data$SNV) |
+        as.logical(.data$indel) |
+        as.logical(.data$dbnsfp))
 
   # sort the rows by the outputOrder column, if it's there
   if ("outputOrder" %in% colnames(cleaned_config)) {
@@ -184,6 +189,13 @@ validate_config <- function(config_tibble) {
   if ("outputOrder" %in% colnames(config_tibble)) {
     if (is.unsorted(config_tibble$outputOrder)) { #nolint
       stop("configuration rows not arranged by outputOrder")
+    }
+  }
+
+  # check that there are no NA values in outputName
+  if ("outputName" %in% colnames(config_tibble)) {
+    if (any(is.na(config_tibble$outputName))) { #nolint
+      stop("outputName has NA values")
     }
   }
 
