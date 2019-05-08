@@ -84,6 +84,9 @@
 .write_to_file <- function(parsed_lines,
                            destination,
                            processed_fields) {
+  if (is.list(processed_fields)) {
+    processed_fields <- unlist(processed_fields)
+  }
   parsed_lines %>%
       dplyr::select(dplyr::one_of(processed_fields)) %>%
       readr::write_tsv(path = destination, append = TRUE)

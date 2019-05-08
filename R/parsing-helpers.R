@@ -813,3 +813,16 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
 .last <- function() {
   message("You're a rock star!")
 }
+
+#' config = tibble as from load_config()
+#' field_list - as from get_list_from_config(cleaned_config, "desired", "SNV")
+#' @importFrom magrittr "%>%"
+#' @importFrom dplyr rename
+#' @noRd
+.rename_chunk_variables <- function(config, chunk) {
+  to_rename <- config$field
+  names(to_rename) <- config$outputName
+
+  rename_set <- to_rename[to_rename %in% colnames(chunk)]
+  chunk %>% rename(!!! rename_set)
+}

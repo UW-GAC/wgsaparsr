@@ -488,6 +488,11 @@ load_config <- function(config_path) {
   }
 }
 
+#' config = tibble as from load_config()
+#' field_list - as from get_list_from_config(cleaned_config, "desired", "SNV")
+#' @importFrom magrittr "%>%"
+#' @importFrom dplyr recode
+#' @noRd
 .rename_fields <- function(config, field_list){
   # error checks
   if (!(all(c("outputName", "field") %in% names(config)))) {

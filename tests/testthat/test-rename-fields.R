@@ -14,7 +14,7 @@ test_that(".rename_fields() returns expected 1-length list", {
     toRemove = c("^\\.$", "^NULL$")
   )
 
-  snv_ex <- .get_list_from_config(cleaned_config, "desired", "SNV")
+  snv_ex <- .get_list_from_config(config, "desired", "SNV")
 
   result <- .rename_fields(config, snv_ex)
 
@@ -37,7 +37,7 @@ test_that(".rename_fields() returns expected 2-length list", {
     toRemove = c("^\\.$", "^NULL$")
   )
 
-  indel_ex <- .get_list_from_config(cleaned_config, "desired", "indel")
+  indel_ex <- .get_list_from_config(config, "desired", "indel")
 
   result <- .rename_fields(config, indel_ex)
 
@@ -60,7 +60,7 @@ test_that(".rename_fields() returns expected 0-length list", {
     toRemove = c("^\\.$", "^NULL$")
   )
 
-  dbnsfp_ex <- .get_list_from_config(cleaned_config, "desired", "dbnsfp")
+  dbnsfp_ex <- .get_list_from_config(config, "desired", "dbnsfp")
 
   result <- .rename_fields(config, dbnsfp_ex)
 
