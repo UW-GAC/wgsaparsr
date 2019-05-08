@@ -487,3 +487,17 @@ load_config <- function(config_path) {
     stop("Unknown list.")
   }
 }
+
+.rename_fields <- function(config, field_list){
+  # error checks
+  if (!(all(c("outputName", "field") %in% names(config)))) {
+    stop("Config filed doesn't have required 'outputName' and 'field' columns.")
+  }
+  if (length(field_list) == 0) {
+    return(field_list)
+  }
+  replacement <- unlist(config$outputName)
+  names(replacement) <- config$field
+
+  as.list(recode(unlist(field_list), !!!replacement))
+}

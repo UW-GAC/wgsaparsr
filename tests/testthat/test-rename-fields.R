@@ -1,0 +1,70 @@
+context("test_.rename_fields() - unit tests")
+
+test_that(".rename_fields() returns expected 1-length list", {
+  config <- tibble::tibble(
+    field = c("Header 1", "Header 3"),
+    SNV = c(TRUE, FALSE),
+    indel = c(TRUE, TRUE),
+    dbnsfp = c(FALSE, FALSE),
+    pivotGroup = c(NA, "1"),
+    pivotChar = c("|", ";"),
+    parseGroup = c("1", "2"),
+    transformation = c(NA, "min"),
+    outputName = c("Header A", "Header B"),
+    toRemove = c("^\\.$", "^NULL$")
+  )
+
+  snv_ex <- .get_list_from_config(cleaned_config, "desired", "SNV")
+
+  result <- .rename_fields(config, snv_ex)
+
+  target <- list("Header A")
+
+  expect_identical(result, target)
+})
+
+test_that(".rename_fields() returns expected 2-length list", {
+  config <- tibble::tibble(
+    field = c("Header 1", "Header 3"),
+    SNV = c(TRUE, FALSE),
+    indel = c(TRUE, TRUE),
+    dbnsfp = c(FALSE, FALSE),
+    pivotGroup = c(NA, "1"),
+    pivotChar = c("|", ";"),
+    parseGroup = c("1", "2"),
+    transformation = c(NA, "min"),
+    outputName = c("Header A", "Header B"),
+    toRemove = c("^\\.$", "^NULL$")
+  )
+
+  indel_ex <- .get_list_from_config(cleaned_config, "desired", "indel")
+
+  result <- .rename_fields(config, indel_ex)
+
+  target <- list("Header A", "Header B")
+
+  expect_identical(result, target)
+})
+
+test_that(".rename_fields() returns expected 0-length list", {
+  config <- tibble::tibble(
+    field = c("Header 1", "Header 3"),
+    SNV = c(TRUE, FALSE),
+    indel = c(TRUE, TRUE),
+    dbnsfp = c(FALSE, FALSE),
+    pivotGroup = c(NA, "1"),
+    pivotChar = c("|", ";"),
+    parseGroup = c("1", "2"),
+    transformation = c(NA, "min"),
+    outputName = c("Header A", "Header B"),
+    toRemove = c("^\\.$", "^NULL$")
+  )
+
+  dbnsfp_ex <- .get_list_from_config(cleaned_config, "desired", "dbnsfp")
+
+  result <- .rename_fields(config, dbnsfp_ex)
+
+  target <- list()
+
+  expect_identical(result, target)
+})
