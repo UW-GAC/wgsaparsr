@@ -78,3 +78,58 @@ test_that(".write_output_header() writes expected dbnsfp and snv header", {
   written <- readr::read_lines(dbnsfp_tmp, progress = FALSE)
   expect_equal(written, "Header 3")
 })
+
+test_that(".write_output_header() writes expected renamed header", {
+  indel_tmp <- tempfile()
+  on.exit(unlink(indel_tmp))
+
+  config <-
+    dplyr::tibble(
+      field = c("Header 1", "Header 3"),
+      SNV = c(TRUE, FALSE),
+      indel = c(TRUE, TRUE),
+      dbnsfp = c(FALSE, FALSE),
+      pivotGroup = c(NA, "1"),
+      pivotChar = c("|", ";"),
+      parseGroup = c("1", "2"),
+      transformation = c(NA, "min"),
+      sourceGroup = c("1", "2"),
+      toRemove = c("^\\.$", "^NULL$"),
+      ouptutOrder = c(1, 2),
+      outputName = c("Header A", "Header B")
+    )
+  .write_output_header(config,
+                       destination = indel_tmp,
+                       dbnsfp_destination = NA,
+                       indel_flag = TRUE)
+  written <- readr::read_lines(indel_tmp, progress = FALSE)
+  expect_equal(written, "Header A\tHeader B")
+})
+
+test_that(".write_output_header() writes expected renamed reordered header", {
+  indel_tmp <- tempfile()
+  on.exit(unlink(indel_tmp))
+
+  config <-
+    dplyr::tibble(
+      field = c("Header 1", "Header 3"),
+      SNV = c(TRUE, FALSE),
+      indel = c(TRUE, TRUE),
+      dbnsfp = c(FALSE, FALSE),
+      pivotGroup = c(NA, "1"),
+      pivotChar = c("|", ";"),
+      parseGroup = c("1", "2"),
+      transformation = c(NA, "min"),
+      sourceGroup = c("1", "2"),
+      toRemove = c("^\\.$", "^NULL$"),
+      outputOrder = c(2, 1),
+      outputName = c("Header A", "Header B")
+    )
+  config <- .clean_config(config)
+  .write_output_header(config,
+                       destination = indel_tmp,
+                       dbnsfp_destination = NA,
+                       indel_flag = TRUE)
+  written <- readr::read_lines(indel_tmp, progress = FALSE)
+  expect_equal(written, "Header B\tHeader A")
+})

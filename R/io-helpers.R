@@ -52,24 +52,25 @@
     # get fields for SNV or indel
     desired_fields <- .get_list_from_config(config, "desired", type)
 
-    # freeze 5 has some different field names between indel and SNV. Fix that.
-    desired_fields <-
-      stringr::str_replace(desired_fields, "MAP35_149bp", "MAP35_149")
-    desired_fields <-
-      stringr::str_replace(desired_fields, "VEP_refseq_ProteinID(ENSP)",
-                           "VEP_refseq_ProteinID")
-    # str_replace returns a character vector. Make it back into a list.
-    desired_fields <- as.list(desired_fields)
-
     # get fields for dbnsfp
     if (!is.na(dbnsfp_destination) & type == "SNV") {
       dbnsfp_fields <- .get_list_from_config(config, "desired", "dbnsfp")
     }
 
-    # initialize snv or indel file
+    # use config to update snv or indel field names in list
+    if ("outputName" %in% names(config)) {
+      desired_fields <- .rename_fields(config, desired_fields)
+    }
+
+    # use config to update dbnsfp field names in list
+    if ("outputName" %in% names(config) & exists("dbnsfp_fields")) {
+      dbnsfp_fields <- .rename_fields(config, dbnsfp_fields)
+    }
+
+    # initialize snv or indel file  (what if 0-length?)
     readr::write_tsv(as.data.frame(desired_fields), destination, append = TRUE)
 
-    # initialse dbnsfp file if present
+    # initialse dbnsfp file if present  (what if 0-length?)
     if (exists("dbnsfp_fields")){
       readr::write_tsv(
         as.data.frame(dbnsfp_fields), dbnsfp_destination, append = TRUE)
