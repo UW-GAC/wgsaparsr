@@ -13,3 +13,10 @@ test_that(
     expect_false(.has_header(test_string))
   }
 )
+
+test_that(
+  ".has_header wirks with mixed case", {
+    test_string <- paste("chrom", "POS", "REF", "ALT", sep = "\t")
+    expect_true(.has_header(test_string))
+  }
+)
