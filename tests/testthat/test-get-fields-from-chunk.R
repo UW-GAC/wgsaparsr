@@ -5,7 +5,7 @@ test_that(
     test_chunk <- c(paste("#chr", "pos", "ref", "alt", sep = "\t"),
                     paste("1", "42", "A", "G", sep = "\t"),
                     paste("2", "12", "C", "T", sep = "\t"))
-    expected_result <- dplyr::tibble("#chr" = c("1", "2"),
+    expected_result <- tibble::tibble("#chr" = c("1", "2"),
                               "pos" = c("42", "12"),
                               "ref" = c("A", "C"),
                               "alt" = c("G", "T"))

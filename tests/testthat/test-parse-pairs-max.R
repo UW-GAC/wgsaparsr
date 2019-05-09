@@ -1,7 +1,7 @@
 context("test_.parse_pairs_max() - unit tests")
 
 test_that(".parse_pairs_max() gives error if pair_columns is not a list", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     Eigen_PC_raw = c(".{1}", "-0.164398825586883{1}",
                      ".{5}-0.00506108216253831{4}0.0200792355286427{1}",
                      ".{5}0.636779480039485{1}0.651616016738356{2}", ".{5}",
@@ -24,7 +24,7 @@ test_that(".parse_pairs_max() gives error if pair_columns is not a list", {
 })
 
 test_that(".parse_pairs_max() gives error when parsing a tripple", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     Eigen_PC_raw = c(".{1}", "-0.164398825586883{1}",
                      ".{5}-0.00506108216253831{4}0.0200792355286427{1}",
                      ".{5}0.636779480039485{1}0.651616016738356{2}", ".{5}",
@@ -49,7 +49,7 @@ test_that(".parse_pairs_max() gives error when parsing a tripple", {
 })
 
 test_that(".parse_pairs_max() returns expected tibble when parsing a single", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     Eigen_PC_raw = c(".{1}", "-0.164398825586883{1}",
                      ".{5}-0.00506108216253831{4}0.0200792355286427{1}",
                      ".{5}0.636779480039485{1}0.651616016738356{2}", ".{5}",
@@ -67,7 +67,7 @@ test_that(".parse_pairs_max() returns expected tibble when parsing a single", {
                     "0.19464286{1}0.19821429{1}0.20178571{1}0.20535715{1}",
                     "0.19464286{1};0.19821429{1}0.20178571{1};0.20535715{1}")
   )
-  target <- dplyr::tibble(
+  target <- tibble::tibble(
     Eigen_PC_raw = c(".{1}", "-0.164398825586883{1}",
                      ".{5}-0.00506108216253831{4}0.0200792355286427{1}",
                      ".{5}0.636779480039485{1}0.651616016738356{2}", ".{5}",
@@ -105,7 +105,7 @@ test_that(".parse_pairs_max() returns expected tibble when parsing a pair", {
     "0.96;0.96;0.931", "D;D;P", "0.814;0.814;0.699", "P"
   )
 
-  target <- dplyr::tibble(
+  target <- tibble::tibble(
     Polyphen2_HDIV_score_unparsed =
       c("0.941;0.941;0.146", "1.0;1.0;0.999", "0.325;0.325;0.243",
         "0.999;0.999;0.994", "0.96;0.96;0.931"),
@@ -138,7 +138,7 @@ test_that(".parse_pairs_max() returns expected tibble when parsing two pairs", {
     "0.96;0.96;0.931", "D;D;P", "0.814;0.814;0.699", "P"
   )
 
-  target <- dplyr::tibble(
+  target <- tibble::tibble(
     Polyphen2_HDIV_score_unparsed =
       c("0.941;0.941;0.146", "1.0;1.0;0.999", "0.325;0.325;0.243",
         "0.999;0.999;0.994", "0.96;0.96;0.931"),

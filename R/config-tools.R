@@ -13,12 +13,14 @@
       "parseGroup", "transformation")
 
   # add in optional columns from config file
-  if ("order" %in% colnames(config_tibble)) {
-    desired_columns <- append(desired_columns, "order")
+  if ("outputOrder" %in% colnames(config_tibble)) {
+    desired_columns <- append(desired_columns, "outputOrder")
   }
 
-  if ("sourceGroup" %in% colnames(config_tibble)) {
-    desired_columns <- append(desired_columns, "sourceGroup")
+  if ("outputName" %in% colnames(config_tibble)) {
+    if (!all(is.na(config_tibble$outputName))) { #nolint
+      desired_columns <- append(desired_columns, "outputName")
+    }
   }
 
   if ("toRemove" %in% colnames(config_tibble)) {
@@ -52,12 +54,27 @@
 
   # drop rows that don't have at a TRUE for SNV, indel, or dbnsfp
   cleaned_config <- cleaned_config %>%
-    dplyr::filter(.data$SNV | .data$indel | .data$dbnsfp)
+    dplyr::filter(
+      as.logical(.data$SNV) |
+        as.logical(.data$indel) |
+        as.logical(.data$dbnsfp))
 
-  # sort the rows by the order column, if it's there
-  if ("order" %in% colnames(cleaned_config)) {
+  # sort the rows by the outputOrder column, if it's there
+  if ("outputOrder" %in% colnames(cleaned_config)) {
     cleaned_config <- cleaned_config %>%
-      dplyr::arrange(order)
+      dplyr::arrange(outputOrder) #nolint
+  }
+
+  # if there are new fields in outputName, replace any NAs in outputName with
+  # the values from field
+  if ("outputName" %in% colnames(cleaned_config)) {
+    # logical test: are there any values in outputName, but there are some NAs
+    # to replace
+    if (any(!is.na(cleaned_config$outputName)) && #nolint
+        any(is.na(cleaned_config$outputName))) { #nolint
+      cleaned_config$outputName[is.na(cleaned_config$outputName)] <- #nolint
+        cleaned_config$field[is.na(cleaned_config$outputName)] #nolint
+    }
   }
 
   return(cleaned_config)
@@ -110,6 +127,12 @@ validate_config <- function(config_tibble) {
     stop("Required columns missing")
   }
 
+  # a zero-row tibble would be okay, but wouldn't do anything
+  if (nrow(config_tibble) == 0) {
+    warning("configuration has zero rows")
+    return(invisible(TRUE))
+  }
+
   # check SNV field has allowed values
   if (!all(levels(as.factor(config_tibble$SNV)) %in% c(TRUE, FALSE))) {
     stop("SNV field has values other than TRUE, FALSE, or NA")
@@ -133,15 +156,17 @@ validate_config <- function(config_tibble) {
   }
 
   # pivotChar is the same within pivotGroup
-  char_count <- config_tibble %>%
-    dplyr::filter(!is.na(.$pivotGroup)) %>% #nolint
-    dplyr::group_by(pivotGroup) %>% #nolint
-    dplyr::summarize_at(
-      .funs = dplyr::funs(dplyr::n_distinct(levels(as.factor(.)))),
-      .vars = "pivotChar")
+  if (!(all(is.na(config_tibble$pivotChar)))) {
+    char_count <- config_tibble %>%
+      dplyr::filter(!is.na(.$pivotGroup)) %>% #nolint
+      dplyr::group_by(pivotGroup) %>% #nolint
+      dplyr::summarize_at(
+        .funs = dplyr::funs(dplyr::n_distinct(levels(as.factor(.)))),
+        .vars = "pivotChar")
 
-  if (any(char_count$pivotChar != 1)) { #nolint
-    stop("all pivotChar values must be the same withinin a pivotGroup")
+    if (any(char_count$pivotChar != 1)) { #nolint
+      stop("all pivotChar values must be the same withinin a pivotGroup")
+    }
   }
 
   # transformation is the same within parseGroup
@@ -156,22 +181,32 @@ validate_config <- function(config_tibble) {
 
   # now group the transformations by parseGroup and summarize
   # with check_too_many()
-  trans_count <- config_tibble %>%
-    dplyr::filter(!is.na(.$parseGroup)) %>% #nolint
-    dplyr::group_by(parseGroup) %>% #nolint
-    dplyr::arrange(transformation, .by_group = TRUE) %>%
-    dplyr::summarize_at(
-      .funs = dplyr::funs(check_too_many(.)),
-      .vars = "transformation")
+  if (!(all(is.na(config_tibble$parseGroup)))) {
+    trans_count <- config_tibble %>%
+      dplyr::filter(!is.na(.$parseGroup)) %>% #nolint
+      dplyr::group_by(parseGroup) %>% #nolint
+      dplyr::arrange(transformation, .by_group = TRUE) %>%
+      dplyr::summarize_at(
+        .funs = dplyr::funs(check_too_many(.)),
+        .vars = "transformation")
 
-  if (any(trans_count$transformation)) {
-    stop("all transformation values must be the same withinin a parseGroup")
+    if (any(trans_count$transformation)) {
+      stop("all transformation values must be the same withinin a parseGroup")
+    }
   }
 
-  # if order is a column, are rows in order?
-  if ("order" %in% colnames(config_tibble)) {
-    if (is.unsorted(config_tibble$order)) {
-      stop("configuration rows not arranged by order")
+  # if outputOrder is a column, are rows in order?
+  if ("outputOrder" %in% colnames(config_tibble)) {
+    if (is.unsorted(config_tibble$outputOrder)) { #nolint
+      stop("configuration rows not arranged by outputOrder")
+    }
+  }
+
+  # check that there are no NA values in outputName - they should be replaced
+  # by .clean_config()
+  if ("outputName" %in% colnames(config_tibble)) {
+    if (any(is.na(config_tibble$outputName))) { #nolint
+      stop("outputName has NA values")
     }
   }
 
@@ -180,6 +215,7 @@ validate_config <- function(config_tibble) {
   # pivotGroup numerical values
   # pivotChar single character
   # parseGroup numerical values
+  return(invisible(TRUE))
 }
 
 #' Load and validate configuration file
@@ -218,9 +254,10 @@ validate_config <- function(config_tibble) {
 #' Additionally, the following fields may be included, and are processed during
 #' configuration file loading, but are not required:
 #' \itemize{
-#'   \item \strong{order} numerical value for column ordering in parsed output
-#'   \item \strong{sourceGroup} numerical value for column grouping/ordering in
+#'   \item \strong{outputOrder} numerical value for column ordering in parsed
 #'   output
+#'   #'   \item \strong{outputName} a string that should be used for the field
+#'   name in the output file (useful for renaming fields)
 #'   \item \strong{toRemove} any characters to remove in the output tsv. For
 #'   example, if a WGSA field uses a character used to encode a NULL value, it
 #'   may need to be removed to facilitate database import. If this field is
@@ -264,7 +301,8 @@ load_config <- function(config_path) {
 #'
 #' @param config_df Tibble containing configuration parameters. Required columns
 #'   include "field", "SNV", "indel", "dbnsfp", "pivotGroup", "pivotChar",
-#'   "parseGroup", "transformation"
+#'   "parseGroup", and "transformation". Optional columns include "outputOrder",
+#'   "outputName", and "toRemove".
 #'
 #' @param which_list A string describing list to extract. Values may include
 #'   "desired", "max", "min", "pick_y", "pick_n", "pick_a", "clean", "distinct",
@@ -460,4 +498,23 @@ load_config <- function(config_path) {
   } else {
     stop("Unknown list.")
   }
+}
+
+#' config = tibble as from load_config()
+#' field_list - as from get_list_from_config(cleaned_config, "desired", "SNV")
+#' @importFrom magrittr "%>%"
+#' @importFrom dplyr recode
+#' @noRd
+.rename_fields <- function(config, field_list){
+  # error checks
+  if (!(all(c("outputName", "field") %in% names(config)))) {
+    stop("Config filed doesn't have required 'outputName' and 'field' columns.")
+  }
+  if (length(field_list) == 0) {
+    return(field_list)
+  }
+  replacement <- unlist(config$outputName) #nolint
+  names(replacement) <- config$field
+
+  as.list(recode(unlist(field_list), !!!replacement))
 }

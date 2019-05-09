@@ -49,9 +49,10 @@ include a header with field names, and the following fields, in any order:
 Additionally, the following fields may be included, and are processed during
 configuration file loading, but are not required:
 \itemize{
-  \item \strong{order} numerical value for column ordering in parsed output
-  \item \strong{sourceGroup} numerical value for column grouping/ordering in
+  \item \strong{outputOrder} numerical value for column ordering in parsed
   output
+  #'   \item \strong{outputName} a string that should be used for the field
+  name in the output file (useful for renaming fields)
   \item \strong{toRemove} any characters to remove in the output tsv. For
   example, if a WGSA field uses a character used to encode a NULL value, it
   may need to be removed to facilitate database import. If this field is

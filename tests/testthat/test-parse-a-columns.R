@@ -1,7 +1,7 @@
 context("test_.parse_a_columns - unit tests")
 
 test_that(".parse_a_columns returns expected tibble", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     "a_col" = c("1;2",
                 "42",
                 "37",
@@ -19,7 +19,7 @@ test_that(".parse_a_columns returns expected tibble", {
                    "P;A",
                    "8")
   )
-  target <- dplyr::tibble(
+  target <- tibble::tibble(
     "a_col" = c("1;2",
                 "42",
                 "37",

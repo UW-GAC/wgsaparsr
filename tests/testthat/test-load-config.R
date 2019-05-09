@@ -23,6 +23,6 @@ test_that(
                                       path = "fr_5_config.tsv",
                                       package = "wgsaparsr",
                                       mustWork = TRUE))
-    expect_true(all(dim(config) == c(289, 9)))
+    expect_true(all(dim(config) == c(289, 8)))
   }
 )

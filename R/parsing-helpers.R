@@ -7,7 +7,7 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
                          "dbnsfp", "sourceGroup", "pivotGroup", "pivotChar",
                          "parseGroup", "transformation", ".", "p_list",
                          "match_mask", "r_list", "r_corresponding",
-                         "new_p", "p_max", "p_min", "toRemove"))
+                         "new_p", "p_max", "p_min", "toRemove", "outputOrder"))
 
 #' Check whether the source_file is WGSA indel annotation
 #' @noRd
@@ -30,7 +30,8 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
     "(#chr\\tpos\\tref\\talt\\t)|",
     "(chr\\tpos\\tref\\talt\\t)"
   )
-  any(stringr::str_detect(raw_chunk, expression))
+  any(stringr::str_detect(raw_chunk,
+                          stringr::regex(expression, ignore_case = TRUE)))
 }
 
 #' add column_name_unparsed column to tibble prior to parsing (for debugging,
@@ -812,4 +813,20 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
 #' @noRd
 .last <- function() {
   message("You're a rock star!")
+}
+
+#' config = tibble as from load_config()
+#' field_list - as from get_list_from_config(cleaned_config, "desired", "SNV")
+#' @importFrom magrittr "%>%"
+#' @importFrom dplyr rename
+#' @noRd
+.rename_chunk_variables <- function(config, chunk) {
+  if (!("outputName" %in% colnames(config))) {
+    stop("outputName not in config")
+  }
+  to_rename <- config$field
+  names(to_rename) <- config$outputName #nolint
+
+  rename_set <- to_rename[to_rename %in% colnames(chunk)]
+  chunk %>% rename(!!! rename_set)
 }

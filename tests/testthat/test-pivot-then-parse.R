@@ -6,10 +6,10 @@ test_that(".pivot_then_parse() gives error when wrong type argument given", {
 })
 
 test_that(".pivot_then_parse() gives desired field not in chunk", {
-  chunk <- dplyr::tibble(
+  chunk <- tibble::tibble(
     a = c("foo")
   )
-  config <- dplyr::tibble(
+  config <- tibble::tibble(
     field = c("a", "b"),
     SNV = c(TRUE, TRUE), # or could be logical instead of string
     indel = c(TRUE, TRUE),
@@ -25,13 +25,13 @@ test_that(".pivot_then_parse() gives desired field not in chunk", {
 })
 
 test_that(".pivot_then_parse() returns expected tibble", {
-  chunk <- dplyr::tibble(
+  chunk <- tibble::tibble(
     a = c("2|2;3", "3", "1;4"),
     b = c("waa", "bim", "bam"),
     c = c("foo", "bar", "baz;bat")
 
   )
-  config <- dplyr::tibble(
+  config <- tibble::tibble(
     field = c("a", "b", "c"),
     SNV = c(FALSE, TRUE, FALSE),
     indel = c(FALSE, FALSE, FALSE),
@@ -42,7 +42,7 @@ test_that(".pivot_then_parse() returns expected tibble", {
     parseGroup = c("1", NA, NA),
     transformation = c("max", NA, NA)
   )
-  target <- dplyr::tibble(
+  target <- tibble::tibble(
     a = c("2", "3", "3", "4"),
     c = c("foo", "foo", "bar", "baz;bat"),
     a_unparsed = c("2", "2;3", "3", "1;4")
