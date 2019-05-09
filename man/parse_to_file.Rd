@@ -4,8 +4,9 @@
 \alias{parse_to_file}
 \title{Parse the WGSA output file to tidy and select columns of interest}
 \usage{
-parse_to_file(source_file, config, destination, dbnsfp_destination = NA,
-  chunk_size = 10000, header_file = NA, verbose = TRUE)
+parse_to_file(source_file, config, destination = NA,
+  dbnsfp_destination = NA, chunk_size = 10000, header_file = NA,
+  verbose = TRUE)
 }
 \arguments{
 \item{source_file}{Path to the WGSA output file to parse (indel or SNV
