@@ -31,11 +31,16 @@
 
 parse_to_file <- function(source_file,
                           config,
-                          destination,
+                          destination = NA,
                           dbnsfp_destination = NA,
                           chunk_size = 10000,
                           header_file = NA,
                           verbose = TRUE) {
+
+  # there must be an output destination------
+  if (all(is.na(c(destination, dbnsfp_destination)))) {
+    stop("no destination file(s) specified")
+  }
 
   # don't accidentally overwrite existing files---------
   if (file.exists(destination)) {
