@@ -824,7 +824,7 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
     stop("outputName not in config")
   }
   to_rename <- config$field
-  names(to_rename) <- config$outputName
+  names(to_rename) <- config$outputName #nolint
 
   rename_set <- to_rename[to_rename %in% colnames(chunk)]
   chunk %>% rename(!!! rename_set)

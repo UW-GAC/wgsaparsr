@@ -127,6 +127,12 @@ validate_config <- function(config_tibble) {
     stop("Required columns missing")
   }
 
+  # a zero-row tibble would be okay, but wouldn't do anything
+  if (nrow(config_tibble) == 0) {
+    warning("configuration has zero rows")
+    return(invisible(TRUE))
+  }
+
   # check SNV field has allowed values
   if (!all(levels(as.factor(config_tibble$SNV)) %in% c(TRUE, FALSE))) {
     stop("SNV field has values other than TRUE, FALSE, or NA")
@@ -150,15 +156,17 @@ validate_config <- function(config_tibble) {
   }
 
   # pivotChar is the same within pivotGroup
-  char_count <- config_tibble %>%
-    dplyr::filter(!is.na(.$pivotGroup)) %>% #nolint
-    dplyr::group_by(pivotGroup) %>% #nolint
-    dplyr::summarize_at(
-      .funs = dplyr::funs(dplyr::n_distinct(levels(as.factor(.)))),
-      .vars = "pivotChar")
+  if (!(all(is.na(config_tibble$pivotChar)))) {
+    char_count <- config_tibble %>%
+      dplyr::filter(!is.na(.$pivotGroup)) %>% #nolint
+      dplyr::group_by(pivotGroup) %>% #nolint
+      dplyr::summarize_at(
+        .funs = dplyr::funs(dplyr::n_distinct(levels(as.factor(.)))),
+        .vars = "pivotChar")
 
-  if (any(char_count$pivotChar != 1)) { #nolint
-    stop("all pivotChar values must be the same withinin a pivotGroup")
+    if (any(char_count$pivotChar != 1)) { #nolint
+      stop("all pivotChar values must be the same withinin a pivotGroup")
+    }
   }
 
   # transformation is the same within parseGroup
@@ -173,16 +181,18 @@ validate_config <- function(config_tibble) {
 
   # now group the transformations by parseGroup and summarize
   # with check_too_many()
-  trans_count <- config_tibble %>%
-    dplyr::filter(!is.na(.$parseGroup)) %>% #nolint
-    dplyr::group_by(parseGroup) %>% #nolint
-    dplyr::arrange(transformation, .by_group = TRUE) %>%
-    dplyr::summarize_at(
-      .funs = dplyr::funs(check_too_many(.)),
-      .vars = "transformation")
+  if (!(all(is.na(config_tibble$parseGroup)))) {
+    trans_count <- config_tibble %>%
+      dplyr::filter(!is.na(.$parseGroup)) %>% #nolint
+      dplyr::group_by(parseGroup) %>% #nolint
+      dplyr::arrange(transformation, .by_group = TRUE) %>%
+      dplyr::summarize_at(
+        .funs = dplyr::funs(check_too_many(.)),
+        .vars = "transformation")
 
-  if (any(trans_count$transformation)) {
-    stop("all transformation values must be the same withinin a parseGroup")
+    if (any(trans_count$transformation)) {
+      stop("all transformation values must be the same withinin a parseGroup")
+    }
   }
 
   # if outputOrder is a column, are rows in order?
@@ -192,7 +202,8 @@ validate_config <- function(config_tibble) {
     }
   }
 
-  # check that there are no NA values in outputName
+  # check that there are no NA values in outputName - they should be replaced
+  # by .clean_config()
   if ("outputName" %in% colnames(config_tibble)) {
     if (any(is.na(config_tibble$outputName))) { #nolint
       stop("outputName has NA values")
@@ -204,6 +215,7 @@ validate_config <- function(config_tibble) {
   # pivotGroup numerical values
   # pivotChar single character
   # parseGroup numerical values
+  return(invisible(TRUE))
 }
 
 #' Load and validate configuration file
