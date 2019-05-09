@@ -7,7 +7,7 @@ test_that(
     expected_chunk <- loaded_chunk %>%
       dplyr::select(pos, ref, alt, unique_variant)
 
-    test_config <- dplyr::tibble(
+    test_config <- tibble::tibble(
       field = c("pos", "ref", "alt", "unique_variant"),
       SNV = c(TRUE, TRUE, TRUE, TRUE),
       indel = c(FALSE, TRUE, FALSE, FALSE),

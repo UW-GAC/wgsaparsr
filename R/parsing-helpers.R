@@ -820,6 +820,9 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
 #' @importFrom dplyr rename
 #' @noRd
 .rename_chunk_variables <- function(config, chunk) {
+  if (!("outputName" %in% colnames(config))) {
+    stop("outputName not in config")
+  }
   to_rename <- config$field
   names(to_rename) <- config$outputName
 

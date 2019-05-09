@@ -18,7 +18,7 @@
   }
 
   if ("outputName" %in% colnames(config_tibble)) {
-    if (!all(is.na(config_tibble$outputName))) {
+    if (!all(is.na(config_tibble$outputName))) { #nolint
       desired_columns <- append(desired_columns, "outputName")
     }
   }
@@ -67,13 +67,13 @@
 
   # if there are new fields in outputName, replace any NAs in outputName with
   # the values from field
-  if("outputName" %in% colnames(cleaned_config)) {
-    # logical test: are there any values in outputName, but there are some NAs to
-    # replace
-    if (any(!is.na(cleaned_config$outputName)) &&
-        any(is.na(cleaned_config$outputName))) {
-      cleaned_config$outputName[is.na(cleaned_config$outputName)] <-
-        cleaned_config$field[is.na(cleaned_config$outputName)]
+  if ("outputName" %in% colnames(cleaned_config)) {
+    # logical test: are there any values in outputName, but there are some NAs
+    # to replace
+    if (any(!is.na(cleaned_config$outputName)) && #nolint
+        any(is.na(cleaned_config$outputName))) { #nolint
+      cleaned_config$outputName[is.na(cleaned_config$outputName)] <- #nolint
+        cleaned_config$field[is.na(cleaned_config$outputName)] #nolint
     }
   }
 
@@ -501,7 +501,7 @@ load_config <- function(config_path) {
   if (length(field_list) == 0) {
     return(field_list)
   }
-  replacement <- unlist(config$outputName)
+  replacement <- unlist(config$outputName) #nolint
   names(replacement) <- config$field
 
   as.list(recode(unlist(field_list), !!!replacement))

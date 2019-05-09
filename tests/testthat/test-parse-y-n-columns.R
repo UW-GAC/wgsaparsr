@@ -1,7 +1,7 @@
 context("test_.parse_y_n_columns - unit tests")
 
 test_that(".parse_y_n_columns returns expected yestibble", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     "a_col" = c("1;2",
                 "42",
                 "37",
@@ -19,7 +19,7 @@ test_that(".parse_y_n_columns returns expected yestibble", {
                      "N{23}Y{2}",
                      "N;Y{23}")
   )
-  target <- dplyr::tibble(
+  target <- tibble::tibble(
     "a_col" = c("1;2",
                 "42",
                 "37",
@@ -42,7 +42,7 @@ test_that(".parse_y_n_columns returns expected yestibble", {
 })
 
 test_that(".parse_y_n_columns returns expected no tibble", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     "a_col" = c("1;2",
                 "42",
                 "37",
@@ -60,7 +60,7 @@ test_that(".parse_y_n_columns returns expected no tibble", {
                     "N{23}Y{2}",
                     "N;Y{23}")
   )
-  target <- dplyr::tibble(
+  target <- tibble::tibble(
     "a_col" = c("1;2",
                 "42",
                 "37",

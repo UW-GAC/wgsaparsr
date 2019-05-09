@@ -14,7 +14,7 @@ test_that(".rename_fields() returns expected 1-length list", {
     toRemove = c("^\\.$", "^NULL$")
   )
 
-  snv_ex <- .get_list_from_config(config, "desired", "SNV")
+  snv_ex <- list(field = "Header 1")
 
   result <- .rename_fields(config, snv_ex)
 
@@ -37,7 +37,7 @@ test_that(".rename_fields() returns expected 2-length list", {
     toRemove = c("^\\.$", "^NULL$")
   )
 
-  indel_ex <- .get_list_from_config(config, "desired", "indel")
+  indel_ex <- list("Header 1", "Header 3")
 
   result <- .rename_fields(config, indel_ex)
 
@@ -60,11 +60,31 @@ test_that(".rename_fields() returns expected 0-length list", {
     toRemove = c("^\\.$", "^NULL$")
   )
 
-  dbnsfp_ex <- .get_list_from_config(config, "desired", "dbnsfp")
+  dbnsfp_ex <- list()
 
   result <- .rename_fields(config, dbnsfp_ex)
 
   target <- list()
 
   expect_identical(result, target)
+})
+
+test_that(".rename_fields() returns error if config doesn't have outputName", {
+  config <- tibble::tibble(
+    field = c("Header 1", "Header 3"),
+    SNV = c(TRUE, FALSE),
+    indel = c(TRUE, TRUE),
+    dbnsfp = c(FALSE, FALSE),
+    pivotGroup = c(NA, "1"),
+    pivotChar = c("|", ";"),
+    parseGroup = c("1", "2"),
+    transformation = c(NA, "min"),
+    toRemove = c("^\\.$", "^NULL$")
+  )
+
+  dbnsfp_ex <- list()
+
+  expect_error(
+    .rename_fields(config, dbnsfp_ex),
+    "Config filed doesn't have required 'outputName' and 'field' columns.")
 })

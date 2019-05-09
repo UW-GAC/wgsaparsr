@@ -112,11 +112,12 @@ parse_to_file <- function(source_file,
 
       # if present, write dbnsfp data to tsv file
       if (nrow(dbnsfp_parsed_lines) > 0 & ncol(dbnsfp_parsed_lines) > 0) {
-
-        # rename dbnsfp fields -> update dbnsfp_parsed_lines and dbnsfp_parsed_fields
-        dbnsfp_parsed_fields <- .rename_fields(config, dbnsfp_parsed_fields)
-browser()
-#TODO HERE
+        # rename dbnsfp fields if needed
+        if ("outputName" %in% colnames(config)) {
+          dbnsfp_parsed_fields <- .rename_fields(config, dbnsfp_parsed_fields)
+          dbnsfp_parsed_lines <-
+            .rename_chunk_variables(config, dbnsfp_parsed_lines)
+        }
         .write_to_file(
           dbnsfp_parsed_lines,
           dbnsfp_destination,
@@ -124,9 +125,11 @@ browser()
       }
     }
 
-    # rename indel/snv fields here -> update parsed_lines and parsed_fields
-    parsed_fields <- .rename_fields(config, parsed_fields)
-#TODO HERE
+    # rename indel/snv fields if needed
+    if ("outputName" %in% colnames(config)) {
+      parsed_fields <- .rename_fields(config, parsed_fields)
+      parsed_lines <- .rename_chunk_variables(config, parsed_lines)
+    }
 
     # write processed indel or snv chunk to tsv file
     .write_to_file(parsed_lines,

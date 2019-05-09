@@ -1,13 +1,13 @@
 context("test_.fix_nulls() - unit tests")
 
 test_that(".fix_nulls() returns expected tibble", {
-  chunk <- dplyr::tibble(
+  chunk <- tibble::tibble(
     a = c("1.0", ".", "4.3"),
     b = c("waa", "bim", "bam"),
     c = c("foo", "bar", "baz"),
     d = c("null", "3.1", "null")
   )
-  config <- dplyr::tibble(
+  config <- tibble::tibble(
     field = c("a", "b", "c", "d"),
     SNV = c(TRUE, FALSE, TRUE, TRUE),
     indel = c(FALSE, FALSE, FALSE, TRUE),
@@ -19,7 +19,7 @@ test_that(".fix_nulls() returns expected tibble", {
     transformation = c("max", NA, NA, NA),
     toRemove = c(".", NA, ".", "null")
   )
-  target <- dplyr::tibble(
+  target <- tibble::tibble(
     a = c("1.0", "", "4.3"),
     b = c("waa", "bim", "bam"),
     c = c("foo", "bar", "baz"),

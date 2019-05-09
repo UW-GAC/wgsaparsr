@@ -5,7 +5,7 @@ test_that(".write_output_header() writes expected indel header", {
   on.exit(unlink(indel_tmp))
 
   config <-
-    dplyr::tibble(
+    tibble::tibble(
       field = c("Header 1", "Header 3"),
       SNV = c(TRUE, FALSE),
       indel = c(TRUE, TRUE),
@@ -31,7 +31,7 @@ test_that(".write_output_header() writes expected snv header", {
   on.exit(unlink(snv_tmp))
 
   config <-
-    dplyr::tibble(
+    tibble::tibble(
       field = c("Header 1", "Header 3"),
       SNV = c(TRUE, FALSE),
       indel = c(TRUE, TRUE),
@@ -59,7 +59,7 @@ test_that(".write_output_header() writes expected dbnsfp and snv header", {
   on.exit(unlink(dbnsfp_tmp))
 
   config <-
-    dplyr::tibble(
+    tibble::tibble(
       field = c("Header 1", "Header 3"),
       SNV = c(TRUE, FALSE),
       indel = c(TRUE, TRUE),
@@ -84,7 +84,7 @@ test_that(".write_output_header() writes expected renamed header", {
   on.exit(unlink(indel_tmp))
 
   config <-
-    dplyr::tibble(
+    tibble::tibble(
       field = c("Header 1", "Header 3"),
       SNV = c(TRUE, FALSE),
       indel = c(TRUE, TRUE),
@@ -111,7 +111,7 @@ test_that(".write_output_header() writes expected renamed reordered header", {
   on.exit(unlink(indel_tmp))
 
   config <-
-    dplyr::tibble(
+    tibble::tibble(
       field = c("Header 1", "Header 3"),
       SNV = c(TRUE, FALSE),
       indel = c(TRUE, TRUE),
