@@ -30,7 +30,7 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
     "(#chr\\tpos\\tref\\talt\\t)|",
     "(chr\\tpos\\tref\\talt\\t)"
   )
-  any(stringr::str_detect(raw_chunk, expression))
+  any(stringr::str_detect(raw_chunk, regex(expression, ignore_case = TRUE)))
 }
 
 #' add column_name_unparsed column to tibble prior to parsing (for debugging,
