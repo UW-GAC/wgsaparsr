@@ -125,7 +125,7 @@ test_that(".write_output_header() writes expected renamed reordered header", {
       outputOrder = c(2, 1),
       outputName = c("Header A", "Header B")
     )
-  config <- .clean_config(config)
+  config <- .clean_config(config) #shouldn't do this in test
   .write_output_header(config,
                        destination = indel_tmp,
                        dbnsfp_destination = NA,

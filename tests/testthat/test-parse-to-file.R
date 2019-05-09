@@ -1,15 +1,32 @@
-# note
-# foo <- .get_list_from_config(config, "desired", "indel")
-# write_tsv(as.data.frame(foo), indel_tmp, append = TRUE)
-#
-# example:
-# test_that("write_lines uses UTF-8 encoding", {
-#   tmp <- tempfile()
-#   on.exit(unlink(tmp))
-#   write_lines(c("fran\u00e7ais", "\u00e9l\u00e8ve"), tmp)
-#   x <- read_lines(tmp, locale = locale(encoding = "UTF-8"), progress = FALSE)
-#   expect_equal(x, c("fran\u00e7ais", "\u00e9l\u00e8ve"))
-# })
-
 context("test_parse-to-file - unit tests")
-# STUB TODO
+
+test_that("parse_to_file() selects SNV fields", {
+  snv_tmp <- tempfile()
+  on.exit(unlink(snv_tmp))
+
+  source_file <- "unparsed_simple.tsv"
+  config <-
+    tibble::tibble(
+      field = c("Header 1", "Header 3"),
+      SNV = c(TRUE, TRUE),
+      indel = c(FALSE, FALSE),
+      dbnsfp = c(FALSE, FALSE),
+      pivotGroup = c(NA, NA),
+      pivotChar = c(NA, NA),
+      parseGroup = c(NA, NA),
+      transformation = c(NA, NA),
+      toRemove = c(NA, NA)
+    )
+  destination = snv_tmp
+
+  parse_to_file(source_file = source_file,
+                 config = config,
+                 destination = snv_tmp,
+                 dbnsfp_destination = NA,
+                 chunk_size = 10000,
+                 header_file = NA,
+                 verbose = FALSE)
+
+  written <- readr::read_lines(snv_tmp, progress = FALSE)
+  expect_equal(written, c("Header 1\tHeader 3", "foo\tbat"))
+})
