@@ -1,6 +1,7 @@
 # wgsaparsr 6.2.4
 
-* added outputName as a field to config file (not using it yet, though)
+* bugfixes and enhancements to close github issues 90, 96, 95, 83, 75, 92, 99
+* added outputName as a field to config file and functionality for renaming fields for output
 * changed dplyr::tibble() to tibble::tibble() to avoid warning (mostly in tests)
 * updated DESCRIPTION to import tibble library
 
