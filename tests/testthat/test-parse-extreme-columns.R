@@ -1,13 +1,13 @@
 context("test_.parse_extreme_columns() - unit tests")
 
 test_that(".parse_extreme_columns() returns expected tibble for snv max", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     Polyphen2_HDIV_score = c(".", "1"),
     Eigen_PC_raw = c("-0.178845453566383", "2"),
     fathmm_MKL_coding_score = c("0.87811", "3"),
     MAP20_149bp = c("0.0", "4")
   )
-  target <- dplyr::tibble(
+  target <- tibble::tibble(
     Polyphen2_HDIV_score = c(".", "1"),
     Eigen_PC_raw = c("-0.178845453566383", "2"),
     fathmm_MKL_coding_score = c("0.87811", "3"),
@@ -23,7 +23,7 @@ test_that(".parse_extreme_columns() returns expected tibble for snv max", {
 })
 
 test_that(".parse_extreme_columns() returns expected tibble for indel max", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     Eigen_PC_raw = c(".{1}", "-0.164398825586883{1}",
                      ".{5}-0.00506108216253831{4}0.0200792355286427{1}",
                      ".{5}0.636779480039485{1}0.651616016738356{2}", ".{5}",
@@ -41,7 +41,7 @@ test_that(".parse_extreme_columns() returns expected tibble for indel max", {
                     "0.19464286{1}0.19821429{1}0.20178571{1}0.20535715{1}",
                     "0.19464286{1};0.19821429{1}0.20178571{1};0.20535715{1}")
   )
-  target <- dplyr::tibble(
+  target <- tibble::tibble(
     Eigen_PC_raw = c(".", "-0.164398825586883", "0.0200792355286427",
                      "0.651616016738356", ".", "0.394216023865136",
                      "-0.0842385276257326", # or do we want -0.0880785370562746?
@@ -64,14 +64,14 @@ test_that(".parse_extreme_columns() returns expected tibble for indel max", {
 
 # add test based on observed bug when max_columns is a 1-length named list
 test_that(".parse_extreme_columns() returns expected tibble for indel max", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     VEST3_score =
       c(".",
         "0.759;0.258;0.652;0.296;0.652;0.759;0.652;0.652;0.723",
         "0.75;0.205;0.663;0.236;0.663;0.75;0.663;0.663;0.705"),
     fathmm_MKL_coding_score = c(".{1}", "0.87811{1}", ".{5}0.90605{5}")
   )
-  target <- dplyr::tibble(
+  target <- tibble::tibble(
     VEST3_score = c(".", "0.759", "0.75"),
     fathmm_MKL_coding_score = c(".{1}", "0.87811{1}", ".{5}0.90605{5}")
   )
@@ -83,13 +83,13 @@ test_that(".parse_extreme_columns() returns expected tibble for indel max", {
 })
 
 test_that(".parse_extreme_columns() returns expected tibble for snv min", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     Polyphen2_HDIV_score = c(".", "1"),
     Eigen_PC_raw = c("-0.178845453566383", "2"),
     fathmm_MKL_coding_score = c("0.87811", "3"),
     MAP20_149bp = c("0.0", "4")
   )
-  target <- dplyr::tibble(
+  target <- tibble::tibble(
     Polyphen2_HDIV_score = c(".", "1"),
     Eigen_PC_raw = c("-0.178845453566383", "2"),
     fathmm_MKL_coding_score = c("0.87811", "3"),
@@ -105,7 +105,7 @@ test_that(".parse_extreme_columns() returns expected tibble for snv min", {
 })
 
 test_that(".parse_min_columns() returns expected tibble for indel min", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     Eigen_PC_raw = c(".{1}", "-0.164398825586883{1}",
                      ".{5}-0.00506108216253831{4}0.0200792355286427{1}",
                      ".{5}0.636779480039485{1}0.651616016738356{2}", ".{5}",
@@ -123,7 +123,7 @@ test_that(".parse_min_columns() returns expected tibble for indel min", {
                     "0.19464286{1}0.19821429{1}0.20178571{1}0.20535715{1}",
                     "0.19464286{1};0.19821429{1}0.20178571{1};0.20535715{1}")
   )
-  target <- dplyr::tibble(
+  target <- tibble::tibble(
     Eigen_PC_raw = c(".", "-0.164398825586883", "-0.00506108216253831",
                      "0.636779480039485", ".", "0.382030178748437",
                      "-0.0880785370562746", "-0.0880785370562746"),

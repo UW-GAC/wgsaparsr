@@ -101,38 +101,34 @@ parse_to_file <- function(source_file,
     parsed_lines <- .parse_then_pivot(all_fields, config, type)
 
     # get list of desired fields from config to ensure outfile column order
-    parsed_fields <-
-      unlist(.get_list_from_config(config, "desired", type))
-
-    # freeze 5 has some different field names between indel and SNV. Fix that.
-    if ("MAP35_149bp" %in% names(parsed_lines)) {
-      parsed_lines <- dplyr::rename(parsed_lines, MAP35_149 = "MAP35_149bp")
-      parsed_fields <-
-        stringr::str_replace(parsed_fields, "MAP35_149bp", "MAP35_149")
-    }
-    if ("VEP_refseq_ProteinID(ENSP)" %in% names(parsed_lines)) {
-      parsed_lines <-
-        dplyr::rename(parsed_lines,
-                      VEP_refseq_ProteinID = "VEP_refseq_ProteinID(ENSP)")
-      parsed_fields <-
-        stringr::str_replace(parsed_fields, "VEP_refseq_ProteinID(ENSP)",
-                             "VEP_refseq_ProteinID")
-    }
+    parsed_fields <- .get_list_from_config(config, "desired", type)
 
     if (type == "SNV") {
       # parse dbnsfp fields from snv chunk
       dbnsfp_parsed_lines <- .pivot_then_parse(all_fields, config, "dbnsfp")
-      dbnsfp_parsed_fields <-
-        unlist(.get_list_from_config(config, "desired", "dbnsfp"))
+
+      # get list of desired fields from config to ensure outfile column order
+      dbnsfp_parsed_fields <- .get_list_from_config(config, "desired", "dbnsfp")
 
       # if present, write dbnsfp data to tsv file
       if (nrow(dbnsfp_parsed_lines) > 0 & ncol(dbnsfp_parsed_lines) > 0) {
-
+        # rename dbnsfp fields if needed
+        if ("outputName" %in% colnames(config)) {
+          dbnsfp_parsed_fields <- .rename_fields(config, dbnsfp_parsed_fields)
+          dbnsfp_parsed_lines <-
+            .rename_chunk_variables(config, dbnsfp_parsed_lines)
+        }
         .write_to_file(
           dbnsfp_parsed_lines,
           dbnsfp_destination,
           dbnsfp_parsed_fields)
       }
+    }
+
+    # rename indel/snv fields if needed
+    if ("outputName" %in% colnames(config)) {
+      parsed_fields <- .rename_fields(config, parsed_fields)
+      parsed_lines <- .rename_chunk_variables(config, parsed_lines)
     }
 
     # write processed indel or snv chunk to tsv file

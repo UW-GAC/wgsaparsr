@@ -1,7 +1,7 @@
 context("test_.parse_pairs_a() - unit tests")
 
 test_that(".parse_pairs_a() gives error if pair_columns is not a list", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     "a_col" = c("1;2", "42", "37", "waa", "Y", "N", ".", "8"),
     "col_to_a" = c("A;D;P;N;foo",
                    "D;P;N;foo",
@@ -18,7 +18,7 @@ test_that(".parse_pairs_a() gives error if pair_columns is not a list", {
 })
 
 test_that(".parse_pairs_a() gives expected tibble when parsing a pair", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     "MutationTaster_pred" = c("N",
                               "D;D",
                               "D;N",
@@ -33,7 +33,7 @@ test_that(".parse_pairs_a() gives expected tibble when parsing a pair", {
                                       "0.990216;0.990216;0.990216;0.990216"),
                                ".")
   )
-  target <- dplyr::tibble(
+  target <- tibble::tibble(
    "MutationTaster_pred_unparsed" = c("N",
                                       "D;D",
                                       "D;N",
@@ -70,7 +70,7 @@ test_that(".parse_pairs_a() gives expected tibble when parsing a pair", {
 })
 
 test_that(".parse_pairs_a() returns expected tibble when parsing a single", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     "a_col" = c("1;2", "42", "37", "waa", "Y", "N", ".", "8"),
     "col_to_a" = c("A;D;P;N;foo",
                    "D;P;N;foo",
@@ -82,7 +82,7 @@ test_that(".parse_pairs_a() returns expected tibble when parsing a single", {
                    "8"),
     "b_col" = c("1;2", "42", "37", "waa", "Y", "N", ".", "8")
   )
-  target <- dplyr::tibble(
+  target <- tibble::tibble(
     "a_col" = c("1;2", "42", "37", "waa", "Y", "N", ".", "8"),
     "col_to_a" = c("A", "D", "P", ".", "N", "D", "A", "."),
     "b_col" = c("1;2", "42", "37", "waa", "Y", "N", ".", "8"),
@@ -100,7 +100,7 @@ test_that(".parse_pairs_a() returns expected tibble when parsing a single", {
 })
 
 test_that(".parse_pairs_a() gives error when parsing a tripple", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     "a_col" = c("1;2", "42", "37", "waa", "Y", "N", ".", "8"),
     "col_to_a" = c("A;D;P;N;foo",
                    "D;P;N;foo",

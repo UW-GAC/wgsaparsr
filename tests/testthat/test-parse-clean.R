@@ -1,13 +1,13 @@
 context("test_.parse_clean() - unit tests")
 
 test_that(".parse_clean() returns expected tibble when parsing snv", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     "Ensembl_Regulatory_Build_feature_type" = c(
       ".", "Enhancer"),
     "hESC_Topological_Domain" = c("1:834758-1314757", "."),
     "IMR90_Topological_Domain" = c("1:834758-1314757", ".")
   )
-  target <- dplyr::tibble(
+  target <- tibble::tibble(
     "Ensembl_Regulatory_Build_feature_type" = c(
       ".", "Enhancer"),
     "hESC_Topological_Domain" = c("1:834758-1314757", "."),
@@ -21,7 +21,7 @@ test_that(".parse_clean() returns expected tibble when parsing snv", {
 })
 
 test_that(".parse_clean() returns expected tibble when parsing indel", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     "Ensembl_Regulatory_Build_feature_type" =
       c(".{1}", ".{1}", "MA0341.1;MA0366.1{1}", "MA0341.1;MA0366.1{1}", ".{1}",
       ".{1}MA0341.1;MA0366.1{1}", "MA0341.1;MA0366.1{1}"),
@@ -33,7 +33,7 @@ test_that(".parse_clean() returns expected tibble when parsing indel", {
         "HepG2,K562{1}", "HepG2,K562{2}", "HepG2,K562{2}")
   )
 
-  target <- dplyr::tibble(
+  target <- tibble::tibble(
     "Ensembl_Regulatory_Build_feature_type" =
       c(".", ".", "MA0341.1;MA0366.1", "MA0341.1;MA0366.1", ".",
         ".,MA0341.1;MA0366.1", "MA0341.1;MA0366.1"), # 6th entry may be wrong

@@ -1,7 +1,7 @@
 context("test_.clean_config() - unit tests")
 
 test_that(".clean_config() returns expected tibble", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     parseGroup = c("1", "1", "2", NA),
     field = c("Header 1", NA, "Header 3", "Header 4"),
     pivotGroup = c(NA, "1", "1", NA),
@@ -14,7 +14,7 @@ test_that(".clean_config() returns expected tibble", {
     notes = c("a note", "another", "foo", "bar")
   )
 
-  target <- dplyr::tibble(
+  target <- tibble::tibble(
     field = c("Header 1", "Header 3"),
     SNV = c(TRUE, FALSE),
     indel = c(TRUE, TRUE),
@@ -22,15 +22,14 @@ test_that(".clean_config() returns expected tibble", {
     pivotGroup = c(NA, "1"),
     pivotChar = c("|", ";"),
     parseGroup = c("1", "2"),
-    transformation = c(NA, "min"),
-    sourceGroup = c("1", "2")
+    transformation = c(NA, "min")
   )
   result <- .clean_config(example)
   expect_identical(result, target)
 })
 
 test_that(".clean_config() returns expected ordered tibble", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     parseGroup = c("1", "1", "2", NA),
     field = c("Header 1", NA, "Header 3", "Header 4"),
     pivotGroup = c(NA, "1", "1", NA),
@@ -44,7 +43,7 @@ test_that(".clean_config() returns expected ordered tibble", {
     outputOrder = c(NA, "3", "2", "1")
   )
 
-  target <- dplyr::tibble(
+  target <- tibble::tibble(
     field = c("Header 3", "Header 1"),
     SNV = c(FALSE, TRUE),
     indel = c(TRUE, TRUE),
@@ -53,15 +52,14 @@ test_that(".clean_config() returns expected ordered tibble", {
     pivotChar = c(";", "|"),
     parseGroup = c("2", "1"),
     transformation = c("min", NA),
-    outputOrder = c("2", NA),
-    sourceGroup = c("2", "1")
+    outputOrder = c("2", NA)
   )
   result <- .clean_config(example)
   expect_identical(result, target)
 })
 
 test_that(".clean_config() returns expected tibble with toRemove", {
-  example <- dplyr::tibble(
+  example <- tibble::tibble(
     parseGroup = c("1", "1", "2", NA),
     field = c("Header 1", NA, "Header 3", "Header 4"),
     pivotGroup = c(NA, "1", "1", NA),
@@ -75,7 +73,7 @@ test_that(".clean_config() returns expected tibble with toRemove", {
     toRemove = c(".", "NA", "NULL", ".")
   )
 
-  target <- dplyr::tibble(
+  target <- tibble::tibble(
     field = c("Header 1", "Header 3"),
     SNV = c(TRUE, FALSE),
     indel = c(TRUE, TRUE),
@@ -84,8 +82,67 @@ test_that(".clean_config() returns expected tibble with toRemove", {
     pivotChar = c("|", ";"),
     parseGroup = c("1", "2"),
     transformation = c(NA, "min"),
-    sourceGroup = c("1", "2"),
     toRemove = c("^\\.$", "^NULL$")
+  )
+  result <- .clean_config(example)
+  expect_identical(result, target)
+})
+
+test_that(".clean_config() returns expected tibble with outputName", {
+  example <- tibble::tibble(
+    parseGroup = c("1", "1", "2", NA),
+    field = c("Header 1", NA, "Header 3", "Header 4"),
+    pivotGroup = c(NA, "1", "1", NA),
+    indel = c(TRUE, NA, TRUE, NA),
+    sourceGroup = c("1", "1", "2", "2"),
+    dbnsfp = c(NA, FALSE, FALSE, NA),
+    SNV = c(TRUE, FALSE, NA, NA),
+    transformation = c(NA, "max", "min", NA),
+    pivotChar = c("|", NA, ";", NA),
+    notes = c("a note", "another", "foo", "bar"),
+    outputName = c("Header A", NA, "Header B", "Header C")
+  )
+
+  target <- tibble::tibble(
+    field = c("Header 1", "Header 3"),
+    SNV = c(TRUE, FALSE),
+    indel = c(TRUE, TRUE),
+    dbnsfp = c(FALSE, FALSE),
+    pivotGroup = c(NA, "1"),
+    pivotChar = c("|", ";"),
+    parseGroup = c("1", "2"),
+    transformation = c(NA, "min"),
+    outputName = c("Header A", "Header B")
+  )
+  result <- .clean_config(example)
+  expect_identical(result, target)
+})
+
+test_that(".clean_config() returns expected tibble with NA in outputName", {
+  example <- tibble::tibble(
+    parseGroup = c("1", "1", "2", NA),
+    field = c("Header 1", NA, "Header 3", "Header 4"),
+    pivotGroup = c(NA, "1", "1", NA),
+    indel = c(TRUE, NA, TRUE, NA),
+    sourceGroup = c("1", "1", "2", "2"),
+    dbnsfp = c(NA, FALSE, FALSE, NA),
+    SNV = c(TRUE, FALSE, NA, NA),
+    transformation = c(NA, "max", "min", NA),
+    pivotChar = c("|", NA, ";", NA),
+    notes = c("a note", "another", "foo", "bar"),
+    outputName = c("Header A", NA, NA, "Header C")
+  )
+
+  target <- tibble::tibble(
+    field = c("Header 1", "Header 3"),
+    SNV = c(TRUE, FALSE),
+    indel = c(TRUE, TRUE),
+    dbnsfp = c(FALSE, FALSE),
+    pivotGroup = c(NA, "1"),
+    pivotChar = c("|", ";"),
+    parseGroup = c("1", "2"),
+    transformation = c(NA, "min"),
+    outputName = c("Header A", "Header 3")
   )
   result <- .clean_config(example)
   expect_identical(result, target)

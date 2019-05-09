@@ -51,8 +51,8 @@ configuration file loading, but are not required:
 \itemize{
   \item \strong{outputOrder} numerical value for column ordering in parsed
   output
-  \item \strong{sourceGroup} numerical value for column grouping/ordering in
-  output
+  #'   \item \strong{outputName} a string that should be used for the field
+  name in the output file (useful for renaming fields)
   \item \strong{toRemove} any characters to remove in the output tsv. For
   example, if a WGSA field uses a character used to encode a NULL value, it
   may need to be removed to facilitate database import. If this field is

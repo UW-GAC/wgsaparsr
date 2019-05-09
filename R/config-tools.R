@@ -17,8 +17,10 @@
     desired_columns <- append(desired_columns, "outputOrder")
   }
 
-  if ("sourceGroup" %in% colnames(config_tibble)) {
-    desired_columns <- append(desired_columns, "sourceGroup")
+  if ("outputName" %in% colnames(config_tibble)) {
+    if (!all(is.na(config_tibble$outputName))) { #nolint
+      desired_columns <- append(desired_columns, "outputName")
+    }
   }
 
   if ("toRemove" %in% colnames(config_tibble)) {
@@ -52,12 +54,27 @@
 
   # drop rows that don't have at a TRUE for SNV, indel, or dbnsfp
   cleaned_config <- cleaned_config %>%
-    dplyr::filter(.data$SNV | .data$indel | .data$dbnsfp)
+    dplyr::filter(
+      as.logical(.data$SNV) |
+        as.logical(.data$indel) |
+        as.logical(.data$dbnsfp))
 
   # sort the rows by the outputOrder column, if it's there
   if ("outputOrder" %in% colnames(cleaned_config)) {
     cleaned_config <- cleaned_config %>%
-      dplyr::arrange(outputOrder)
+      dplyr::arrange(outputOrder) #nolint
+  }
+
+  # if there are new fields in outputName, replace any NAs in outputName with
+  # the values from field
+  if ("outputName" %in% colnames(cleaned_config)) {
+    # logical test: are there any values in outputName, but there are some NAs
+    # to replace
+    if (any(!is.na(cleaned_config$outputName)) && #nolint
+        any(is.na(cleaned_config$outputName))) { #nolint
+      cleaned_config$outputName[is.na(cleaned_config$outputName)] <- #nolint
+        cleaned_config$field[is.na(cleaned_config$outputName)] #nolint
+    }
   }
 
   return(cleaned_config)
@@ -170,8 +187,15 @@ validate_config <- function(config_tibble) {
 
   # if outputOrder is a column, are rows in order?
   if ("outputOrder" %in% colnames(config_tibble)) {
-    if (is.unsorted(config_tibble$outputOrder)) {
+    if (is.unsorted(config_tibble$outputOrder)) { #nolint
       stop("configuration rows not arranged by outputOrder")
+    }
+  }
+
+  # check that there are no NA values in outputName
+  if ("outputName" %in% colnames(config_tibble)) {
+    if (any(is.na(config_tibble$outputName))) { #nolint
+      stop("outputName has NA values")
     }
   }
 
@@ -220,8 +244,8 @@ validate_config <- function(config_tibble) {
 #' \itemize{
 #'   \item \strong{outputOrder} numerical value for column ordering in parsed
 #'   output
-#'   \item \strong{sourceGroup} numerical value for column grouping/ordering in
-#'   output
+#'   #'   \item \strong{outputName} a string that should be used for the field
+#'   name in the output file (useful for renaming fields)
 #'   \item \strong{toRemove} any characters to remove in the output tsv. For
 #'   example, if a WGSA field uses a character used to encode a NULL value, it
 #'   may need to be removed to facilitate database import. If this field is
@@ -265,7 +289,8 @@ load_config <- function(config_path) {
 #'
 #' @param config_df Tibble containing configuration parameters. Required columns
 #'   include "field", "SNV", "indel", "dbnsfp", "pivotGroup", "pivotChar",
-#'   "parseGroup", "transformation"
+#'   "parseGroup", and "transformation". Optional columns include "outputOrder",
+#'   "outputName", and "toRemove".
 #'
 #' @param which_list A string describing list to extract. Values may include
 #'   "desired", "max", "min", "pick_y", "pick_n", "pick_a", "clean", "distinct",
@@ -461,4 +486,23 @@ load_config <- function(config_path) {
   } else {
     stop("Unknown list.")
   }
+}
+
+#' config = tibble as from load_config()
+#' field_list - as from get_list_from_config(cleaned_config, "desired", "SNV")
+#' @importFrom magrittr "%>%"
+#' @importFrom dplyr recode
+#' @noRd
+.rename_fields <- function(config, field_list){
+  # error checks
+  if (!(all(c("outputName", "field") %in% names(config)))) {
+    stop("Config filed doesn't have required 'outputName' and 'field' columns.")
+  }
+  if (length(field_list) == 0) {
+    return(field_list)
+  }
+  replacement <- unlist(config$outputName) #nolint
+  names(replacement) <- config$field
+
+  as.list(recode(unlist(field_list), !!!replacement))
 }

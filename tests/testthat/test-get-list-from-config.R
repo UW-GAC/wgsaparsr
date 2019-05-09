@@ -5,7 +5,7 @@ test_that(".get_list_from_config() gives error for bad which_list argument", {
                 '"pick_Y", "pick_N", "pick_A", "clean", "distinct", ',
                 '"pivots", "max_pairs", "min_pairs", "pick_Y_pairs", ',
                 '"pick_N_pairs", or "pick_A_pairs"')
-  test_df <- dplyr::tibble(
+  test_df <- tibble::tibble(
     field = c("Header 1", "Header 2", "Header 3"),
     SNV = c(TRUE, FALSE, FALSE),
     indel = c(FALSE, TRUE, FALSE),
@@ -22,7 +22,7 @@ test_that(".get_list_from_config() gives error for bad which_list argument", {
 
 test_that(".get_list_from_config() gives error for bad type argument", {
   msg <- 'list_type must be one of: "SNV", "indel", "dbnsfp", or "all"'
-  test_df <- dplyr::tibble(
+  test_df <- tibble::tibble(
     field = c("Header 1", "Header 2", "Header 3"),
     SNV = c(TRUE, FALSE, FALSE),
     indel = c(FALSE, TRUE, FALSE),
@@ -38,7 +38,7 @@ test_that(".get_list_from_config() gives error for bad type argument", {
 })
 
 test_that(".get_list_from_config() returns expected 'desired' list for all", {
-  test_config <- dplyr::tibble(
+  test_config <- tibble::tibble(
     field = c("Header 1", "Header 2", "Header 3"),
     SNV = c(TRUE, FALSE, FALSE),
     indel = c(FALSE, TRUE, FALSE),
@@ -56,7 +56,7 @@ test_that(".get_list_from_config() returns expected 'desired' list for all", {
 })
 
 test_that(".get_list_from_config() returns expected 'desired' list for SNV", {
-  test_config <- dplyr::tibble(
+  test_config <- tibble::tibble(
     field = c("Header 1", "Header 2", "Header 3", "Header 4"),
     SNV = c(TRUE, FALSE, FALSE, TRUE),
     indel = c(FALSE, TRUE, FALSE, TRUE),
@@ -74,7 +74,7 @@ test_that(".get_list_from_config() returns expected 'desired' list for SNV", {
 })
 
 test_that(".get_list_from_config() returns expected 'desired' list for indel", {
-  test_config <- dplyr::tibble(
+  test_config <- tibble::tibble(
     field = c("Header 1", "Header 2", "Header 3"),
     SNV = c(TRUE, FALSE, FALSE),
     indel = c(FALSE, TRUE, FALSE),
@@ -92,7 +92,7 @@ test_that(".get_list_from_config() returns expected 'desired' list for indel", {
 })
 
 test_that(".get_list_from_config() returns expected 'desired' dbnsfp list", {
-  test_config <- dplyr::tibble(
+  test_config <- tibble::tibble(
     field = c("Header 1", "Header 2", "Header 3"),
     SNV = c(TRUE, FALSE, FALSE),
     indel = c(FALSE, TRUE, FALSE),
@@ -110,7 +110,7 @@ test_that(".get_list_from_config() returns expected 'desired' dbnsfp list", {
 })
 
 test_that(".get_list_from_config() returns expected 'max' list for SNV", {
-  test_config <- dplyr::tibble(
+  test_config <- tibble::tibble(
     field = c("Header 1", "Header 2", "Header 3"),
     SNV = c(TRUE, FALSE, TRUE),
     indel = c(FALSE, TRUE, FALSE),
@@ -128,7 +128,7 @@ test_that(".get_list_from_config() returns expected 'max' list for SNV", {
 })
 
 test_that(".get_list_from_config() returns expected 'min' list for SNV", {
-  test_config <- dplyr::tibble(
+  test_config <- tibble::tibble(
     field = c("Header 1", "Header 2", "Header 3"),
     SNV = c(TRUE, FALSE, FALSE),
     indel = c(FALSE, TRUE, FALSE),
@@ -146,7 +146,7 @@ test_that(".get_list_from_config() returns expected 'min' list for SNV", {
 })
 
 test_that(".get_list_from_config() returns expected 'min' list for indel", {
-  test_config <- dplyr::tibble(
+  test_config <- tibble::tibble(
     field = c("Header 1", "Header 2", "Header 3"),
     SNV = c(TRUE, FALSE, FALSE),
     indel = c(FALSE, TRUE, FALSE),
@@ -164,7 +164,7 @@ test_that(".get_list_from_config() returns expected 'min' list for indel", {
 })
 
 test_that(".get_list_from_config() returns expected 'pick_Y' list for SNV", {
-  test_config <- dplyr::tibble(
+  test_config <- tibble::tibble(
     field = c("Header 1", "Header 2", "Header 3"),
     SNV = c(TRUE, FALSE, FALSE),
     indel = c(FALSE, TRUE, FALSE),
@@ -182,7 +182,7 @@ test_that(".get_list_from_config() returns expected 'pick_Y' list for SNV", {
 })
 
 test_that(".get_list_from_config() returns expected 'pick_N' list for SNV", {
-  test_config <- dplyr::tibble(
+  test_config <- tibble::tibble(
     field = c("Header 1", "Header 2", "Header 3"),
     SNV = c(TRUE, FALSE, FALSE),
     indel = c(FALSE, TRUE, FALSE),
@@ -200,7 +200,7 @@ test_that(".get_list_from_config() returns expected 'pick_N' list for SNV", {
 })
 
 test_that(".get_list_from_config() returns expected 'pick_A' list for SNV", {
-  test_config <- dplyr::tibble(
+  test_config <- tibble::tibble(
     field = c("Header 1", "Header 2", "Header 3"),
     SNV = c(TRUE, FALSE, FALSE),
     indel = c(FALSE, TRUE, FALSE),
@@ -218,7 +218,7 @@ test_that(".get_list_from_config() returns expected 'pick_A' list for SNV", {
 })
 
 test_that(".get_list_from_config() returns expected 'clean' list for SNV", {
-  test_config <- dplyr::tibble(
+  test_config <- tibble::tibble(
     field = c("Header 1", "Header 2", "Header 3"),
     SNV = c(TRUE, FALSE, FALSE),
     indel = c(FALSE, TRUE, FALSE),
@@ -236,7 +236,7 @@ test_that(".get_list_from_config() returns expected 'clean' list for SNV", {
 })
 
 test_that(".get_list_from_config() returns expected 'distinct' list for SNV", {
-  test_config <- dplyr::tibble(
+  test_config <- tibble::tibble(
     field = c("Header 1", "Header 2", "Header 3"),
     SNV = c(TRUE, FALSE, FALSE),
     indel = c(FALSE, TRUE, FALSE),
@@ -254,7 +254,7 @@ test_that(".get_list_from_config() returns expected 'distinct' list for SNV", {
 })
 
 test_that(".get_list_from_config() returns expected 'pivots' list for SNV", {
-  test_config <- dplyr::tibble(
+  test_config <- tibble::tibble(
     field = c("Header 1", "Header 2", "Header 3", "Header 4"),
     SNV = c(TRUE, TRUE, TRUE, TRUE),
     indel = c(FALSE, TRUE, FALSE, FALSE),
@@ -267,10 +267,10 @@ test_that(".get_list_from_config() returns expected 'pivots' list for SNV", {
   )
 
   target <- list(
-    "1" = dplyr::tibble(field = c("Header 1", "Header 2"),
+    "1" = tibble::tibble(field = c("Header 1", "Header 2"),
                         pivotChar = c("|", "|")
     ),
-    "2" = dplyr::tibble(field = c("Header 3", "Header 4"),
+    "2" = tibble::tibble(field = c("Header 3", "Header 4"),
                         pivotChar = c(";", ";")
     )
   )
@@ -280,7 +280,7 @@ test_that(".get_list_from_config() returns expected 'pivots' list for SNV", {
 })
 
 test_that(".get_list_from_config() returns expected 'pivots' tibble for SNV", {
-  test_config <- dplyr::tibble(
+  test_config <- tibble::tibble(
     field = c("Header 1", "Header 2", "Header 3"),
     SNV = c(TRUE, TRUE, FALSE),
     indel = c(FALSE, TRUE, FALSE),
@@ -293,7 +293,7 @@ test_that(".get_list_from_config() returns expected 'pivots' tibble for SNV", {
   )
 
   target <- list(
-    "1" = dplyr::tibble(field = c("Header 1", "Header 2"),
+    "1" = tibble::tibble(field = c("Header 1", "Header 2"),
                         pivotChar = c("|", "|")
     )
   )
@@ -302,7 +302,7 @@ test_that(".get_list_from_config() returns expected 'pivots' tibble for SNV", {
 })
 
 test_that(".get_list_from_config() returns expected 'max_pairs' list for SNV", {
-  test_config <- dplyr::tibble(
+  test_config <- tibble::tibble(
     field = c("Header 1", "Header 2", "Header 3"),
     SNV = c(TRUE, TRUE, FALSE),
     indel = c(FALSE, TRUE, FALSE),
@@ -321,7 +321,7 @@ test_that(".get_list_from_config() returns expected 'max_pairs' list for SNV", {
 
 test_that(
   ".get_list_from_config() returns expected 'max_pairs' list for SNV", {
-    test_config <- dplyr::tibble(
+    test_config <- tibble::tibble(
       field = c("Header 1", "Header 2", "Header 3", "Header 4"),
       SNV = c(TRUE, TRUE, TRUE, TRUE),
       indel = c(FALSE, TRUE, FALSE, FALSE),
@@ -340,7 +340,7 @@ test_that(
   })
 
 test_that(".get_list_from_config() returns expected 'min_pairs' list for SNV", {
-  test_config <- dplyr::tibble(
+  test_config <- tibble::tibble(
     field = c("Header 1", "Header 2", "Header 3"),
     SNV = c(TRUE, TRUE, FALSE),
     indel = c(FALSE, TRUE, FALSE),
@@ -359,7 +359,7 @@ test_that(".get_list_from_config() returns expected 'min_pairs' list for SNV", {
 
 test_that(
   ".get_list_from_config() returns expected 'pick_Y_pairs' list for SNV", {
-  test_config <- dplyr::tibble(
+  test_config <- tibble::tibble(
     field = c("Header 1", "Header 2", "Header 3"),
     SNV = c(TRUE, TRUE, FALSE),
     indel = c(FALSE, TRUE, FALSE),
@@ -378,7 +378,7 @@ test_that(
 
 test_that(
   ".get_list_from_config() returns expected 'pick_N_pairs' list for SNV", {
-    test_config <- dplyr::tibble(
+    test_config <- tibble::tibble(
       field = c("Header 1", "Header 2", "Header 3"),
       SNV = c(TRUE, TRUE, FALSE),
       indel = c(FALSE, TRUE, FALSE),
@@ -397,7 +397,7 @@ test_that(
 
 test_that(
   ".get_list_from_config() returns expected 'pick_A_pairs' list for SNV", {
-    test_config <- dplyr::tibble(
+    test_config <- tibble::tibble(
       field = c("Header 1", "Header 2", "Header 3"),
       SNV = c(TRUE, TRUE, FALSE),
       indel = c(FALSE, TRUE, FALSE),
