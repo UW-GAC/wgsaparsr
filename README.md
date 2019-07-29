@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3352386.svg)](https://doi.org/10.5281/zenodo.3352386)
+
 | **Service** | **Master** | **Develop** |
 |:-------------:|:------:|:-------:|
 | CI Status | [![Travis-CI Build Status](https://travis-ci.org/UW-GAC/wgsaparsr.svg?branch=master)](https://travis-ci.org/UW-GAC/wgsaparsr) | [![Travis-CI Build Status](https://travis-ci.org/UW-GAC/wgsaparsr.svg?branch=develop)](https://travis-ci.org/UW-GAC/wgsaparsr?branch=develop) |
