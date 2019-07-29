@@ -110,13 +110,13 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
     return(selected_columns)
   }
 
-  # if no ; or {*}, only single values, so no parsing needed
+  # if no ;, |, or {*}, only single values, so no parsing needed
   # suppressWarnings to avoid warning - stri_detect_regex argument is not an
   # atomic vector
   if (!any(suppressWarnings(
     selected_columns %>%
     dplyr::select(target_columns) %>%
-    stringr::str_detect("\\{[^\\}]+\\}|;")))
+    stringr::str_detect("\\{[^\\}]+\\}|;|\\|")))
   ){
     return(selected_columns)
   }
@@ -124,8 +124,8 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
   if (! sense %in% c("max", "min")){
     stop('sense must be "max" or "min"')
   }
-  # if ; or {*}, replace with a space, split on whitespace, and return extreme
-  # value
+  # if ; or {*} or |, replace with a space, split on whitespace, and return
+  # extreme value
   if (sense == "max") {
     to_replace <- "-Inf"
   } else {
@@ -139,7 +139,7 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
         dplyr::mutate_at(
           .vars = dplyr::vars(target_columns),
           .funs = dplyr::funs(
-            stringr::str_replace_all(., "(?:\\{.*?\\})|;", " "))
+            stringr::str_replace_all(., "(?:\\{.*?\\})|;|\\|", " ")) # added |
         ) %>%
         # trim white space padding to be safe
         dplyr::mutate_at(

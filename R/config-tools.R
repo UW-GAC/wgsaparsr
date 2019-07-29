@@ -156,7 +156,7 @@ validate_config <- function(config_tibble) {
   }
 
   # pivotChar is the same within pivotGroup
-  if (!(all(is.na(config_tibble$pivotChar)))) {
+  if (!(all(is.na(config_tibble$pivotChar)))) { #nolint
     char_count <- config_tibble %>%
       dplyr::filter(!is.na(.$pivotGroup)) %>% #nolint
       dplyr::group_by(pivotGroup) %>% #nolint
@@ -181,7 +181,7 @@ validate_config <- function(config_tibble) {
 
   # now group the transformations by parseGroup and summarize
   # with check_too_many()
-  if (!(all(is.na(config_tibble$parseGroup)))) {
+  if (!(all(is.na(config_tibble$parseGroup)))) { #nolint
     trans_count <- config_tibble %>%
       dplyr::filter(!is.na(.$parseGroup)) %>% #nolint
       dplyr::group_by(parseGroup) %>% #nolint

@@ -141,3 +141,74 @@ test_that(".parse_min_columns() returns expected tibble for indel min", {
                                "min")
   expect_identical(result, target)
 })
+
+# add tests for new indel format - see github issue #108
+test_that(".parse_extreme_columns() returns expected tibble for indel max 2", {
+  example <- tibble::tibble(
+    Eigen_PC_raw = c(".",
+                     "-0.1643988",
+                     ".|.|-0.00506108|-0.00506108|0.0200792",
+                     ".{3}-0.0842385276257326{1}-0.0880785370562746{1}",
+                     ".;-0.0842385276257326;-0.0880785370562746{1}"),
+    fathmm_MKL_coding_score = c(".{1}",
+                                ".|.|0.10317|.|.|.|0.10722|0.11031|0.11230|.",
+                                ".{5}0.90605{5}",
+                                ".{5}0.90734{3}",
+                                ".{5}"),
+    MAP20_149bp = c("0.0{1}",
+                    "0.004166664{1}",
+                    "0.015773803{10}",
+                    ".|.|0.10317|.|.|.|0.10722|0.11031",
+                    "0.09196428{1}0.09553571{1}0.09732143{1}0.09910714{1}")
+  )
+  target <- tibble::tibble(
+    Eigen_PC_raw = c(".", "-0.1643988", "0.0200792", "-0.0842385276257326",
+                     "-0.0842385276257326"),
+    fathmm_MKL_coding_score = c(".", "0.1123", "0.90605", "0.90734", "."),
+    # note: first value of parsed MAP20_149bp is "0", not "0.0". I think that's
+    # okay
+    MAP20_149bp = c("0", "0.004166664", "0.015773803", "0.11031",
+                    "0.09910714")
+  )
+  result <- .parse_extreme_columns(example,
+                                   c("Eigen_PC_raw",
+                                     "fathmm_MKL_coding_score",
+                                     "MAP20_149bp"),
+                                   "max")
+  expect_identical(result, target)
+})
+
+test_that(".parse_min_columns() returns expected tibble for indel min 2", {
+  example <- tibble::tibble(
+    Eigen_PC_raw = c(".",
+                     "-0.1643988",
+                     ".|.|-0.00506108|-0.00506108|0.0200792",
+                     ".{3}-0.0842385276257326{1}-0.0880785370562746{1}",
+                     ".;-0.0842385276257326;-0.0880785370562746{1}"),
+    fathmm_MKL_coding_score = c(".{1}",
+                                ".|.|0.10317|.|.|.|0.10722|0.11031|0.11230|.",
+                                ".{5}0.90605{5}",
+                                ".{5}0.90734{3}",
+                                ".{5}"),
+    MAP20_149bp = c("0.0{1}",
+                    "0.004166664{1}",
+                    "0.015773803{10}",
+                    ".|.|0.10317|.|.|.|0.10722|0.11031",
+                    "0.09196428{1}0.09553571{1}0.09732143{1}0.09910714{1}")
+  )
+  target <- tibble::tibble(
+    Eigen_PC_raw = c(".", "-0.1643988", "-0.00506108", "-0.0880785370562746",
+                     "-0.0880785370562746"),
+    fathmm_MKL_coding_score = c(".", "0.10317", "0.90605", "0.90734", "."),
+    # note: first value of parsed MAP20_149bp is "0", not "0.0". I think that's
+    # okay
+    MAP20_149bp = c("0", "0.004166664", "0.015773803", "0.10317",
+                    "0.09196428")
+  )
+  result <- .parse_extreme_columns(example,
+                                   c("Eigen_PC_raw",
+                                     "fathmm_MKL_coding_score",
+                                     "MAP20_149bp"),
+                                   "min")
+  expect_identical(result, target)
+})
