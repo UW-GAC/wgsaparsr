@@ -26,7 +26,7 @@ test_that("parse_to_file() selects SNV fields", {
       transformation = c(NA, NA),
       toRemove = c(NA, NA)
     )
-  destination = snv_tmp
+  destination <- snv_tmp
 
   parse_to_file(source_file = source_file,
                  config = config,
