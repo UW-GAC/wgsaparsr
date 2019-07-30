@@ -23,6 +23,12 @@
     }
   }
 
+  if ("pivotChar2" %in% colnames(config_tibble)) {
+    if (!all(is.na(config_tibble$pivotChar2))) { #nolint
+      desired_columns <- append(desired_columns, "pivotChar2")
+    }
+  }
+
   if ("toRemove" %in% colnames(config_tibble)) {
     desired_columns <- append(desired_columns, "toRemove")
 
@@ -165,7 +171,23 @@ validate_config <- function(config_tibble) {
         .vars = "pivotChar")
 
     if (any(char_count$pivotChar != 1)) { #nolint
-      stop("all pivotChar values must be the same withinin a pivotGroup")
+      stop("all pivotChar values must be the same within a pivotGroup")
+    }
+  }
+
+  # if defined, pivotChar2 is the same within pivotGroup
+  if ("pivotChar2" %in% colnames(config_tibble)) {
+    if (!(all(is.na(config_tibble$pivotChar2)))) { #nolint
+      char_count <- config_tibble %>%
+        dplyr::filter(!is.na(.$pivotGroup)) %>% #nolint
+        dplyr::group_by(pivotGroup) %>% #nolint
+        dplyr::summarize_at(
+          .funs = dplyr::funs(dplyr::n_distinct(levels(as.factor(.)))),
+          .vars = "pivotChar2")
+
+      if (any(char_count$pivotChar2 != 1)) { #nolint
+        stop("all pivotChar2 values must be the same within a pivotGroup")
+      }
     }
   }
 
@@ -263,6 +285,10 @@ validate_config <- function(config_tibble) {
 #'   may need to be removed to facilitate database import. If this field is
 #'   included in the config file, WGSAParsr will convert the specified string to
 #'   a blank field in output
+#'   \item \strong{pivotChar2} character separating fields that should be used
+#'   for a second level of pivoting (as required for newer dbnsfp field format -
+#'   e.g. foo;bar|waa;woo may need to be pivoted on the `|` and the `;`
+#'   characters)
 #' }
 #'
 #' Other columns (such as notes) may be included in the configuration file,

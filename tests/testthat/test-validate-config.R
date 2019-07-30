@@ -93,7 +93,7 @@ test_that("validate_config() gives error when pivot char wrong", {
     transformation = c("max", "max")
   )
   expect_error(validate_config(example),
-               "all pivotChar values must be the same withinin a pivotGroup")
+               "all pivotChar values must be the same within a pivotGroup")
 })
 
 test_that("validate_config() gives error when transformation groups wrong", {
