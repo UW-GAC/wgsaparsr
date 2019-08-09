@@ -334,3 +334,21 @@ test_that("validate_config() works with outputOrder NA", {
   )
   expect_true(validate_config(example))
 })
+
+
+test_that("validate_config() gives error when pivotChar2 wrong", {
+  example <- tibble::tibble(
+    field = c("a", "b"),
+    SNV = c("TRUE", "TRUE"),
+    indel = c("TRUE", "TRUE"),
+    dbnsfp = c("TRUE", "TRUE"),
+    sourceGroup = c("1", "1"),
+    pivotGroup = c("1", "1"),
+    pivotChar = c("|", "|"),
+    pivotChar2 = c(";", "|"),
+    parseGroup = c("1", "1"),
+    transformation = c("max", "max")
+  )
+  expect_error(validate_config(example),
+               "all pivotChar2 values must be the same within a pivotGroup")
+})

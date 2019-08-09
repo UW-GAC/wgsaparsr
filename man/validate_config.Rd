@@ -23,7 +23,8 @@ the SNV, indel, and dbnsfp fields may contain NA or logical values
 the transformation field may contain NA or "max", "min", "pick_Y", "pick_N",
 "pick_A", "clean", "distinct".
 
-all members of each pivotGroup must have the same pivotChar
+all members of each pivotGroup must have the same pivotChar (and pivotChar 2,
+if defined)
 
 a parseGroup may not have multiple transformations
 }
