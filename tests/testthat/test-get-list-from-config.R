@@ -3,8 +3,8 @@ context("test_.get_list_from_config() - unit tests")
 test_that(".get_list_from_config() gives error for bad which_list argument", {
   msg <- paste0('which_list must be one of: "desired", "max", "min", ',
                 '"pick_Y", "pick_N", "pick_A", "clean", "distinct", ',
-                '"pivots", "max_pairs", "min_pairs", "pick_Y_pairs", ',
-                '"pick_N_pairs", or "pick_A_pairs"')
+                '"pivots", "max_pairs", "min_pairs", "pick_Y_pairs"',
+                ', "pick_N_pairs", or "pick_A_pairs"')
   test_df <- tibble::tibble(
     field = c("Header 1", "Header 2", "Header 3"),
     SNV = c(TRUE, FALSE, FALSE),
@@ -413,3 +413,56 @@ test_that(
     result <- .get_list_from_config(test_config, "pick_A_pairs", "SNV")
     expect_identical(result, target)
   })
+
+test_that(".get_list_from_config() returns expected dbnsfp 'pivots2' list", {
+  test_config <- tibble::tibble(
+    field = c("Header 1", "Header 2", "Header 3", "Header 4"),
+    SNV = c(TRUE, TRUE, TRUE, TRUE),
+    indel = c(FALSE, TRUE, FALSE, FALSE),
+    dbnsfp = c(TRUE, TRUE, TRUE, TRUE),
+    sourceGroup = c("1", "2", "3", "4"),
+    pivotGroup = c("1", "1", "2", "2"),
+    pivotChar = c("|", "|", ";", ";"),
+    pivotChar2 = c(NA, ";", NA, "|"),
+    parseGroup = c("1", NA, "1", NA),
+    transformation = c(NA, "min", "max", NA)
+  )
+
+  target <- list(
+    "1" = tibble::tibble(field = c("Header 1", "Header 2"),
+                         pivotChar = c("|", "|"),
+                         pivotChar2 = c(NA, ";")
+    ),
+    "2" = tibble::tibble(field = c("Header 3", "Header 4"),
+                         pivotChar = c(";", ";"),
+                         pivotChar2 = c(NA, "|")
+    )
+  )
+
+  result <- .get_list_from_config(test_config, "pivots", "dbnsfp")
+  expect_identical(result, target)
+})
+
+test_that(".get_list_from_config() returns expected dbnsfp 'pivots2' tibble", {
+  test_config <- tibble::tibble(
+    field = c("Header 1", "Header 2", "Header 3"),
+    SNV = c(TRUE, TRUE, FALSE),
+    indel = c(FALSE, TRUE, FALSE),
+    dbnsfp = c(TRUE, TRUE, FALSE),
+    sourceGroup = c("1", "2", "3"),
+    pivotGroup = c("1", "1", "1"),
+    pivotChar = c("|", "|", "|"),
+    pivotChar2 = c(";", NA, ";"),
+    parseGroup = c("1", NA, "1"),
+    transformation = c("clean", "min", NA)
+  )
+
+  target <- list(
+    "1" = tibble::tibble(field = c("Header 1", "Header 2"),
+                         pivotChar = c("|", "|"),
+                         pivotChar2 = c(";", NA)
+    )
+  )
+  result <- .get_list_from_config(test_config, "pivots", "dbnsfp")
+  expect_identical(result, target)
+})

@@ -9,7 +9,7 @@ test_that(
 
 test_that(
   "load_config() returns a tibble", {
-    expect_true(tibble::is.tibble(
+    expect_true(tibble::is_tibble(
       load_config(system.file("extdata",
                               path = "fr_5_config.tsv",
                               package = "wgsaparsr",
