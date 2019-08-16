@@ -104,6 +104,10 @@
 #' all members of each pivotGroup must have the same pivotChar (and pivotChar 2,
 #' if defined)
 #'
+#' fields that have a pivotChar value must have a pivotGroup value
+#'
+#' fields that have a pivotChar2 value must have a pivotChar
+#'
 #' a parseGroup may not have multiple transformations
 #'
 #' @param config_tibble tibble containing parsing configuration details.
@@ -386,7 +390,7 @@ load_config <- function(config_path) {
   if (!any(which_list == c("desired", "max", "min", "pick_Y", "pick_N",
                            "pick_A", "clean", "distinct", "pivots",
                            "max_pairs", "min_pairs", "pick_Y_pairs",
-                           "pick_N_pairs", "pick_A_pairs", "pivot2s"))
+                           "pick_N_pairs", "pick_A_pairs"))
       ) {
     msg <- paste0('which_list must be one of: "desired", "max", "min", ',
                  '"pick_Y", "pick_N", "pick_A", "clean", "distinct", ',

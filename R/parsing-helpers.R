@@ -609,6 +609,15 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
     regexp <- paste0("\\", pivot_set$pivotChar[[1]]) #nolint
     pivoted_columns <- pivoted_columns %>%
       tidyr::separate_rows(dplyr::one_of(pivot_set$field), sep = regexp)
+    if ("pivotChar2" %in% names(pivot_set)) {
+      pivot2 <- pivot_set %>%
+        dplyr::filter(!is.na(pivotChar2))
+      if (dplyr::n_distinct(pivot2) > 0) {
+        regexp2 <- paste0("\\", pivot2$pivotChar2[[1]])
+        pivoted_columns <- pivoted_columns %>%
+          tidyr::separate_rows(dplyr::one_of(pivot2$field), sep = regexp2)
+      }
+    }
   }
   pivoted_columns <- dplyr::distinct(pivoted_columns)
   return(pivoted_columns)

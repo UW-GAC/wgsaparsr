@@ -26,6 +26,10 @@ the transformation field may contain NA or "max", "min", "pick_Y", "pick_N",
 all members of each pivotGroup must have the same pivotChar (and pivotChar 2,
 if defined)
 
+fields that have a pivotChar value must have a pivotGroup value
+
+fields that have a pivotChar2 value must have a pivotChar
+
 a parseGroup may not have multiple transformations
 }
 \examples{
