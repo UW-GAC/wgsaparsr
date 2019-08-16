@@ -26,3 +26,23 @@ test_that(".pivot_fields() returns expected tibble when parsing a single", {
   result <- .pivot_fields(example, to_pivot)
   expect_identical(result, target)
 })
+
+test_that(".pivot_fields() returns expected tibble with pivotChar2", {
+  example <- tibble::tibble(
+    a = c("1;2|3;4"),
+    b = c("5|6")
+  )
+  target <- tibble::tibble(
+    a = c("1", "2", "3", "4"),
+    b = c("5", "5", "6", "6")
+  )
+  to_pivot <- list(
+    "1" = tibble::tibble(
+      field = c("a", "b"),
+      pivotChar = c("|", "|"),
+      pivotChar2 = c(";", NA)
+    )
+  )
+  result <- .pivot_fields(example, to_pivot)
+  expect_identical(result, target)
+})

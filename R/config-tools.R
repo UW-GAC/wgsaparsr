@@ -13,6 +13,12 @@
       "parseGroup", "transformation")
 
   # add in optional columns from config file
+  if ("pivotChar2" %in% colnames(config_tibble)) {
+    if (!all(is.na(config_tibble$pivotChar2))) { #nolint
+      desired_columns <- append(desired_columns, "pivotChar2")
+    }
+  }
+
   if ("outputOrder" %in% colnames(config_tibble)) {
     desired_columns <- append(desired_columns, "outputOrder")
   }
@@ -95,7 +101,12 @@
 #' the transformation field may contain NA or "max", "min", "pick_Y", "pick_N",
 #' "pick_A", "clean", "distinct".
 #'
-#' all members of each pivotGroup must have the same pivotChar
+#' all members of each pivotGroup must have the same pivotChar (and pivotChar 2,
+#' if defined)
+#'
+#' fields that have a pivotChar value must have a pivotGroup value
+#'
+#' fields that have a pivotChar2 value must have a pivotChar
 #'
 #' a parseGroup may not have multiple transformations
 #'
@@ -156,7 +167,7 @@ validate_config <- function(config_tibble) {
   }
 
   # pivotChar is the same within pivotGroup
-  if (!(all(is.na(config_tibble$pivotChar)))) {
+  if (!(all(is.na(config_tibble$pivotChar)))) { #nolint
     char_count <- config_tibble %>%
       dplyr::filter(!is.na(.$pivotGroup)) %>% #nolint
       dplyr::group_by(pivotGroup) %>% #nolint
@@ -165,7 +176,47 @@ validate_config <- function(config_tibble) {
         .vars = "pivotChar")
 
     if (any(char_count$pivotChar != 1)) { #nolint
-      stop("all pivotChar values must be the same withinin a pivotGroup")
+      stop("all pivotChar values must be the same within a pivotGroup")
+    }
+  }
+
+  # all fields with pivotChar value have pivotGroup value
+  if (!(all(is.na(config_tibble$pivotChar)))) { #nolint
+    na_count <- config_tibble %>%
+      dplyr::filter(!is.na(pivotChar)) %>%  #nolint
+      dplyr::filter(is.na(pivotGroup)) %>%  #nolint
+      dplyr::count()
+    if (na_count$n > 0) {
+      stop("Fields with pivotChar values must have pivotGroup")
+    }
+  }
+
+  # if defined, pivotChar2 is the same within pivotGroup
+  if ("pivotChar2" %in% colnames(config_tibble)) {
+    if (!(all(is.na(config_tibble$pivotChar2)))) { #nolint
+      char_count <- config_tibble %>%
+        dplyr::filter(!is.na(.$pivotGroup)) %>% #nolint
+        dplyr::group_by(pivotGroup) %>% #nolint
+        dplyr::summarize_at(
+          .funs = dplyr::funs(dplyr::n_distinct(levels(as.factor(.)))),
+          .vars = "pivotChar2")
+
+      if (any(char_count$pivotChar2 != 1)) { #nolint
+        stop("all pivotChar2 values must be the same within a pivotGroup")
+      }
+    }
+  }
+
+  # if defined, all fields with pivotChar2 value have a pivotChar value
+  if ("pivotChar2" %in% colnames(config_tibble)) { #nolint
+    if (!(all(is.na(config_tibble$pivotChar2)))) { #nolint
+      na_count <- config_tibble %>%
+        dplyr::filter(!is.na(pivotChar2)) %>%  #nolint
+        dplyr::filter(is.na(pivotChar)) %>%  #nolint
+        dplyr::count()
+      if (na_count$n > 0) {
+        stop("Fields with pivotChar2 values must have pivotChar values")
+      }
     }
   }
 
@@ -181,7 +232,7 @@ validate_config <- function(config_tibble) {
 
   # now group the transformations by parseGroup and summarize
   # with check_too_many()
-  if (!(all(is.na(config_tibble$parseGroup)))) {
+  if (!(all(is.na(config_tibble$parseGroup)))) { #nolint
     trans_count <- config_tibble %>%
       dplyr::filter(!is.na(.$parseGroup)) %>% #nolint
       dplyr::group_by(parseGroup) %>% #nolint
@@ -263,6 +314,10 @@ validate_config <- function(config_tibble) {
 #'   may need to be removed to facilitate database import. If this field is
 #'   included in the config file, WGSAParsr will convert the specified string to
 #'   a blank field in output
+#'   \item \strong{pivotChar2} character separating fields that should be used
+#'   for a second level of pivoting (as required for newer dbnsfp field format -
+#'   e.g. foo;bar|waa;woo may need to be pivoted on the `|` and the `;`
+#'   characters)
 #' }
 #'
 #' Other columns (such as notes) may be included in the configuration file,
@@ -306,8 +361,8 @@ load_config <- function(config_path) {
 #'
 #' @param which_list A string describing list to extract. Values may include
 #'   "desired", "max", "min", "pick_y", "pick_n", "pick_a", "clean", "distinct",
-#'   "pivots", "max_pairs", "min_pairs", "pick_Y_pairs", "pick_N_pairs",
-#'   or "pick_A_pairs"
+#'   "pivots", max_pairs", "min_pairs", "pick_Y_pairs", "pick_N_pairs", or
+#'   "pick_A_pairs"
 #'
 #' @param list_type "SNV", "indel", "dbnsfp", or "all"
 #'
@@ -421,15 +476,28 @@ load_config <- function(config_path) {
     return(distinct_fields)
   } else if (which_list == "pivots") {
     # returns tibble # TEST THIS ONE OUT CAREFULLY!
+    if ("pivotChar2" %in% names(fields_by_list_type)) {
     pivot_groups <- fields_by_list_type %>%
       dplyr::filter(!is.na(.data$pivotGroup)) %>% #nolint
       dplyr::select(.data$field,
                     .data$pivotGroup, #nolint
-                    .data$pivotChar) %>% #nolint
+                    .data$pivotChar,  #nolint
+                    .data$pivotChar2) %>% #nolint
       dplyr::arrange(.data$pivotGroup, .data$pivotChar) %>% #nolint
       split(.$pivotGroup) %>% #nolint
       purrr::map(~dplyr::select(., -pivotGroup)) #nolint
     return(pivot_groups)
+    } else {
+      pivot_groups <- fields_by_list_type %>%
+        dplyr::filter(!is.na(.data$pivotGroup)) %>% #nolint
+        dplyr::select(.data$field,
+                      .data$pivotGroup, #nolint
+                      .data$pivotChar) %>% #nolint
+        dplyr::arrange(.data$pivotGroup, .data$pivotChar) %>% #nolint
+        split(.$pivotGroup) %>% #nolint
+        purrr::map(~dplyr::select(., -pivotGroup)) #nolint
+      return(pivot_groups)
+    }
   } else if (which_list == "max_pairs") {
     # returns list # TEST THIS ONE OUT CAREFULLY!
     group_tibble <- fields_by_list_type %>%

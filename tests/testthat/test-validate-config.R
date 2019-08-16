@@ -93,7 +93,7 @@ test_that("validate_config() gives error when pivot char wrong", {
     transformation = c("max", "max")
   )
   expect_error(validate_config(example),
-               "all pivotChar values must be the same withinin a pivotGroup")
+               "all pivotChar values must be the same within a pivotGroup")
 })
 
 test_that("validate_config() gives error when transformation groups wrong", {
@@ -250,23 +250,6 @@ test_that("validate_config() works with sourceGroup NA", {
   expect_true(validate_config(example))
 })
 
-test_that("validate_config() works with pivotGroup NA", {
-  example <- tibble::tibble(
-    field = c("a"),
-    SNV = c("TRUE"),
-    indel = c("TRUE"),
-    dbnsfp = c("TRUE"),
-    sourceGroup = c("1"),
-    pivotGroup = c(NA),
-    pivotChar = c(";"),
-    parseGroup = c("1"),
-    transformation = c("max"),
-    outputOrder = c("1"),
-    outputName = c("d")
-  )
-  expect_true(validate_config(example))
-})
-
 test_that("validate_config() works with pivotChar NA", {
   example <- tibble::tibble(
     field = c("a"),
@@ -333,4 +316,55 @@ test_that("validate_config() works with outputOrder NA", {
     outputName = c("d")
   )
   expect_true(validate_config(example))
+})
+
+test_that("validate_config() gives error when pivotChar2 wrong", {
+  example <- tibble::tibble(
+    field = c("a", "b"),
+    SNV = c("TRUE", "TRUE"),
+    indel = c("TRUE", "TRUE"),
+    dbnsfp = c("TRUE", "TRUE"),
+    sourceGroup = c("1", "1"),
+    pivotGroup = c("1", "1"),
+    pivotChar = c("|", "|"),
+    pivotChar2 = c(";", "|"),
+    parseGroup = c("1", "1"),
+    transformation = c("max", "max")
+  )
+  expect_error(validate_config(example),
+               "all pivotChar2 values must be the same within a pivotGroup")
+})
+
+test_that("validate_config() gives error if pivotChar2 w/o pivotChar", {
+  example <- tibble::tibble(
+    field = c("a", "b"),
+    SNV = c("TRUE", "TRUE"),
+    indel = c("TRUE", "TRUE"),
+    dbnsfp = c("TRUE", "TRUE"),
+    sourceGroup = c("1", "1"),
+    pivotGroup = c("1", "1"),
+    pivotChar = c(NA, "|"),
+    pivotChar2 = c("|", "|"),
+    parseGroup = c("1", "1"),
+    transformation = c("max", "max")
+  )
+  expect_error(validate_config(example),
+               "Fields with pivotChar2 values must have pivotChar values")
+})
+
+test_that("validate_config() gives error if pivotChar without pivotGroup", {
+  example <- tibble::tibble(
+    field = c("a", "b"),
+    SNV = c("TRUE", "TRUE"),
+    indel = c("TRUE", "TRUE"),
+    dbnsfp = c("TRUE", "TRUE"),
+    sourceGroup = c("1", "1"),
+    pivotGroup = c(NA, "1"),
+    pivotChar = c("|", "|"),
+    pivotChar2 = c(NA, NA),
+    parseGroup = c("1", "1"),
+    transformation = c("max", "max")
+  )
+  expect_error(validate_config(example),
+               "Fields with pivotChar values must have pivotGroup")
 })

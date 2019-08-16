@@ -58,6 +58,10 @@ configuration file loading, but are not required:
   may need to be removed to facilitate database import. If this field is
   included in the config file, WGSAParsr will convert the specified string to
   a blank field in output
+  \item \strong{pivotChar2} character separating fields that should be used
+  for a second level of pivoting (as required for newer dbnsfp field format -
+  e.g. foo;bar|waa;woo may need to be pivoted on the `|` and the `;`
+  characters)
 }
 
 Other columns (such as notes) may be included in the configuration file,

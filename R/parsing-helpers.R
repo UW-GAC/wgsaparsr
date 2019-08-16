@@ -7,7 +7,8 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
                          "dbnsfp", "sourceGroup", "pivotGroup", "pivotChar",
                          "parseGroup", "transformation", ".", "p_list",
                          "match_mask", "r_list", "r_corresponding",
-                         "new_p", "p_max", "p_min", "toRemove", "outputOrder"))
+                         "new_p", "p_max", "p_min", "toRemove", "outputOrder",
+                         "pivotChar2"))
 
 #' Check whether the source_file is WGSA indel annotation
 #' @noRd
@@ -110,13 +111,13 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
     return(selected_columns)
   }
 
-  # if no ; or {*}, only single values, so no parsing needed
+  # if no ;, |, or {*}, only single values, so no parsing needed
   # suppressWarnings to avoid warning - stri_detect_regex argument is not an
   # atomic vector
   if (!any(suppressWarnings(
     selected_columns %>%
     dplyr::select(target_columns) %>%
-    stringr::str_detect("\\{[^\\}]+\\}|;")))
+    stringr::str_detect("\\{[^\\}]+\\}|;|\\|")))
   ){
     return(selected_columns)
   }
@@ -124,8 +125,8 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
   if (! sense %in% c("max", "min")){
     stop('sense must be "max" or "min"')
   }
-  # if ; or {*}, replace with a space, split on whitespace, and return extreme
-  # value
+  # if ; or {*} or |, replace with a space, split on whitespace, and return
+  # extreme value
   if (sense == "max") {
     to_replace <- "-Inf"
   } else {
@@ -139,7 +140,7 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
         dplyr::mutate_at(
           .vars = dplyr::vars(target_columns),
           .funs = dplyr::funs(
-            stringr::str_replace_all(., "(?:\\{.*?\\})|;", " "))
+            stringr::str_replace_all(., "(?:\\{.*?\\})|;|\\|", " ")) # added |
         ) %>%
         # trim white space padding to be safe
         dplyr::mutate_at(
@@ -608,6 +609,15 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
     regexp <- paste0("\\", pivot_set$pivotChar[[1]]) #nolint
     pivoted_columns <- pivoted_columns %>%
       tidyr::separate_rows(dplyr::one_of(pivot_set$field), sep = regexp)
+    if ("pivotChar2" %in% names(pivot_set)) {
+      pivot2 <- pivot_set %>%
+        dplyr::filter(!is.na(pivotChar2))
+      if (dplyr::n_distinct(pivot2) > 0) {
+        regexp2 <- paste0("\\", pivot2$pivotChar2[[1]])
+        pivoted_columns <- pivoted_columns %>%
+          tidyr::separate_rows(dplyr::one_of(pivot2$field), sep = regexp2)
+      }
+    }
   }
   pivoted_columns <- dplyr::distinct(pivoted_columns)
   return(pivoted_columns)
