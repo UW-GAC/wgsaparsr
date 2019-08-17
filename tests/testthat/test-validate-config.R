@@ -368,3 +368,19 @@ test_that("validate_config() gives error if pivotChar without pivotGroup", {
   expect_error(validate_config(example),
                "Fields with pivotChar values must have pivotGroup")
 })
+
+test_that("validate_config() works if pivotChar2 in 2nd pivot group has NA", {
+  example <- tibble::tibble(
+    field = c("a", "b", "c"),
+    SNV = c("TRUE", "TRUE", "TRUE"),
+    indel = c("TRUE", "TRUE", "TRUE"),
+    dbnsfp = c("TRUE", "TRUE", "TRUE"),
+    sourceGroup = c("1", "1", "1"),
+    pivotGroup = c("1", "1", "2"),
+    pivotChar = c("|", "|", "|"),
+    pivotChar2 = c(NA, ";", NA),
+    parseGroup = c("1", "1", "1"),
+    transformation = c("max", "max", "max")
+  )
+  expect_error(validate_config(example), NA)
+})
