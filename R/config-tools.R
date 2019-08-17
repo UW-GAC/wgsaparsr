@@ -196,6 +196,7 @@ validate_config <- function(config_tibble) {
     if (!(all(is.na(config_tibble$pivotChar2)))) { #nolint
       char_count <- config_tibble %>%
         dplyr::filter(!is.na(.$pivotGroup)) %>% #nolint
+        dplyr::filter(!is.na(.$pivotChar2)) %>% #nolint
         dplyr::group_by(pivotGroup) %>% #nolint
         dplyr::summarize_at(
           .funs = dplyr::funs(dplyr::n_distinct(levels(as.factor(.)))),
