@@ -21,7 +21,6 @@
 get_problem_chunk <- function(source_file,
                               chunk_size,
                               problem_index){
-
   # get header and check if indel file----------------------------------------
   first_line <- .get_first_line(source_file)
 
@@ -69,7 +68,7 @@ get_problem_chunk <- function(source_file,
         index <- index + 1L
         next
       }
-      break
+#      break
     }
     close(readfile_con)
     return(all_fields)
