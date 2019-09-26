@@ -597,6 +597,75 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
   return(parsed_columns)
 }
 
+# this function is required to work around a bug relating to fields requiring
+# a second pivoting operation (e.g. fields like value;value|value;value). In
+# some cases, this is mistakenly annotated as value;value|.) Thus, the number of
+# dots needs to be padded to enable the second pivot operation.
+#' @importFrom magrittr "%>%"
+#' @noRd
+.pad_dots <- function(pivoted_columns, cols_to_pad){
+  # filter to get rows with ";" in them
+  semicolon_rows <- pivoted_columns %>%
+    dplyr::filter_all(dplyr::any_vars(stringr::str_detect(., pattern = ";")))
+
+  # from that, filter rows that have cells with just "."
+  semicolon_rows_2 <- semicolon_rows %>%
+    dplyr::filter_all(
+      dplyr::any_vars(stringr::str_detect(., pattern = "^\\.$")))
+
+  # short circuit evaluation if there's no padding needed
+  if (nrow(semicolon_rows_2) == 0){
+    return(pivoted_columns)
+  }
+
+  # next want to get column names we want to do 2nd pivot on that have just "."
+  # as value from those rows
+  dot_cols <- semicolon_rows_2 %>%
+    dplyr::select(tidyselect::one_of(unlist(cols_to_pad))) %>%
+    dplyr::select_if(
+      .predicate = (stringr::str_detect(., pattern = "^\\.$"))) %>%
+    names()
+
+  # get number of semicolons from cells in rows we want to pivot that have them.
+  # first find cols with semicolons in
+  semicolon_cols <- semicolon_rows_2 %>%
+    dplyr::select(tidyselect::one_of(unlist(cols_to_pad))) %>%
+    dplyr::select_if(.predicate = (stringr::str_detect(., pattern = ";"))) %>%
+    names()
+
+  # Count semicolons in one of them, confirm they're all the same
+  semicolon_counts <- semicolon_rows_2 %>%
+    dplyr::select(semicolon_cols) %>%
+    stringr::str_count(pattern = ";")
+
+  if (length(unique(semicolon_counts)) != 1){
+    msg <-
+      paste0("cells in desired pivot2 columns have differing numbers of ",
+             "semicolons.")
+    stop()
+  } else {
+    semicolon_count <- unique(semicolon_counts)
+  }
+
+  replacement_string <- paste0(rep(".", semicolon_count + 1), collapse = ";")
+
+  # now transmute_at the dot_cols with a if_else() function to replace "."
+  padded <- semicolon_rows_2 %>%
+    dplyr::mutate_at(.vars = dplyr::vars(dot_cols),
+                     .funs = ~ dplyr::if_else(stringr::str_detect(., "^\\.$"),
+                                              true = replacement_string,
+                                              false = .))
+
+  # next replace original rows in pivoted_columns:
+  # get the rows that didn't need padding
+  compliment <- dplyr::anti_join(pivoted_columns, semicolon_rows_2)
+
+  # then concatinate the padded rows and the rows that didn't need padding
+  pre_pivot <- dplyr::bind_rows(compliment, padded)
+
+  return(pre_pivot)
+}
+
 #' @importFrom magrittr "%>%"
 #' @noRd
 .pivot_fields <- function(selected_columns, pivot_columns) {
@@ -609,11 +678,18 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
     regexp <- paste0("\\", pivot_set$pivotChar[[1]]) #nolint
     pivoted_columns <- pivoted_columns %>%
       tidyr::separate_rows(dplyr::one_of(pivot_set$field), sep = regexp)
+    # with WGSA v 0.8, need to do second pivot for some fields
     if ("pivotChar2" %in% names(pivot_set)) {
+      # get the list of fields that have non-NA pivotChar
       pivot2 <- pivot_set %>%
-        dplyr::filter(!is.na(pivotChar2))
+        dplyr::filter(!is.na(pivotChar2)) #nolint
+      # if there are any fields that should be pivoted, make regex of
+      # pivotChar2, prepare as needed (pad dots), then pivot
       if (dplyr::n_distinct(pivot2) > 0) {
-        regexp2 <- paste0("\\", pivot2$pivotChar2[[1]])
+        regexp2 <- paste0("\\", pivot2$pivotChar2[[1]]) #nolint
+        # pad here - CAUTION: this assumes pivotChar is ";"
+        pivoted_columns <- .pad_dots(pivoted_columns, pivot2$field)
+        # do the second pivot
         pivoted_columns <- pivoted_columns %>%
           tidyr::separate_rows(dplyr::one_of(pivot2$field), sep = regexp2)
       }
