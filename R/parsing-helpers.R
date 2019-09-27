@@ -620,21 +620,26 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
 
   # next want to get column names we want to do 2nd pivot on that have just "."
   # as value from those rows
-  dot_cols <- semicolon_rows_2 %>%
+  desired_cols <- semicolon_rows_2 %>%
     dplyr::select(tidyselect::one_of(unlist(cols_to_pad))) %>%
-    dplyr::select_if(
-      .predicate = (stringr::str_detect(., pattern = "^\\.$"))) %>%
-    names()
+    purrr::map(function(x) stringr::str_detect(x, pattern = "^\\.$")) %>%
+    purrr::map_lgl(function(x) any(x)) # or do I want "all?
+
+  dot_cols <- semicolon_rows_2 %>% 
+    dplyr::select(which(desired_cols)) %>% names()
 
   # get number of semicolons from cells in rows we want to pivot that have them.
   # first find cols with semicolons in
-  semicolon_cols <- semicolon_rows_2 %>%
+  desired_cols <- semicolon_rows_2 %>%
     dplyr::select(tidyselect::one_of(unlist(cols_to_pad))) %>%
-    dplyr::select_if(.predicate = (stringr::str_detect(., pattern = ";"))) %>%
-    names()
+    purrr::map(function(x) stringr::str_detect(x, pattern = ";")) %>%
+    purrr::map_lgl(function(x) any(x)) # or do I want "all?
+
+  semicolon_cols <- semicolon_rows_2 %>% 
+    dplyr::select(which(desired_cols)) %>% names()
 
   # Count semicolons in one of them, confirm they're all the same
-  semicolon_counts <- semicolon_rows_2 %>%
+  semicolon_counts <- semicolon_rows[1,] %>%
     dplyr::select(semicolon_cols) %>%
     stringr::str_count(pattern = ";")
 
