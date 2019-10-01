@@ -604,13 +604,16 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
 #' @importFrom magrittr "%>%"
 #' @noRd
 .pad_dots <- function(pivoted_columns, cols_to_pad){
-  # filter to get rows with ";" in them
+  # filter to get rows with ";" in the cols_to_pad columns
   semicolon_rows <- pivoted_columns %>%
-    dplyr::filter_all(dplyr::any_vars(stringr::str_detect(., pattern = ";")))
+    dplyr::filter_at(
+      .vars = unlist(cols_to_pad),
+      dplyr::any_vars(stringr::str_detect(., pattern = ";")))
 
-  # from that, filter rows that have cells with just "."
+  # from that, filter rows that have cells with just "." in the cols_to_pad
   semicolon_rows_2 <- semicolon_rows %>%
-    dplyr::filter_all(
+    dplyr::filter_at(
+      .vars = unlist(cols_to_pad),
       dplyr::any_vars(stringr::str_detect(., pattern = "^\\.$")))
 
   # short circuit evaluation if there's no padding needed
@@ -659,7 +662,8 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
   distinct_counts <- purrr::map(semicolon_counts$counts,
                                 function(x) length(unique(x))) %>%
     unlist()
-  if (any(distinct_counts != 1)){
+
+  if (any(distinct_counts != 1 & distinct_counts != 0)){
     msg <-
       paste0("cells in desired pivot2 columns have differing numbers of ",
              "semicolons.")
