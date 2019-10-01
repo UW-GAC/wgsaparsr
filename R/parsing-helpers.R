@@ -8,7 +8,7 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
                          "parseGroup", "transformation", ".", "p_list",
                          "match_mask", "r_list", "r_corresponding",
                          "new_p", "p_max", "p_min", "toRemove", "outputOrder",
-                         "pivotChar2"))
+                         "pivotChar2", ".out", "counts", "replacement"))
 
 #' Check whether the source_file is WGSA indel annotation
 #' @noRd
@@ -604,6 +604,7 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
 #' @importFrom magrittr "%>%"
 #' @noRd
 .pad_dots <- function(pivoted_columns, cols_to_pad){
+  (browser)
   # filter to get rows with ";" in them
   semicolon_rows <- pivoted_columns %>%
     dplyr::filter_all(dplyr::any_vars(stringr::str_detect(., pattern = ";")))
@@ -625,7 +626,7 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
     purrr::map(function(x) stringr::str_detect(x, pattern = "^\\.$")) %>%
     purrr::map_lgl(function(x) any(x)) # or do I want "all?
 
-  dot_cols <- semicolon_rows_2 %>% 
+  dot_cols <- semicolon_rows_2 %>%
     dplyr::select(which(desired_cols)) %>% names()
 
   # get number of semicolons from cells in rows we want to pivot that have them.
@@ -635,31 +636,45 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
     purrr::map(function(x) stringr::str_detect(x, pattern = ";")) %>%
     purrr::map_lgl(function(x) any(x)) # or do I want "all?
 
-  semicolon_cols <- semicolon_rows_2 %>% 
+  semicolon_cols <- semicolon_rows_2 %>%
     dplyr::select(which(desired_cols)) %>% names()
 
-  # Count semicolons in one of them, confirm they're all the same
-  semicolon_counts <- semicolon_rows[1,] %>%
+  # Count nonzero semicolons in each row, confirm they're all the same
+  semicolon_counts <- semicolon_rows_2 %>%
     dplyr::select(semicolon_cols) %>%
-    stringr::str_count(pattern = ";")
+    purrrlyr::by_row(function(x) stringr::str_count(x, pattern = ";")) %>%
+    rename(counts = .out) %>% dplyr::select(counts) %>%
+    purrr::map_depth(2, function(x) x[!x == 0])
 
-  if (length(unique(semicolon_counts)) != 1){
+  # error if any semicolon_counts have more than one nonzero value
+  distinct_counts <- purrr::map(semicolon_counts$counts,
+                                function(x) length(unique(x))) %>%
+    unlist()
+  if(any(distinct_counts != 1)){
     msg <-
       paste0("cells in desired pivot2 columns have differing numbers of ",
              "semicolons.")
-    stop()
-  } else {
-    semicolon_count <- unique(semicolon_counts)
+    stop(msg)
   }
 
-  replacement_string <- paste0(rep(".", semicolon_count + 1), collapse = ";")
+  # here's a vector of the semicolon counts by row
+  semicolon_counts <- purrr::map(semicolon_counts$counts,
+                                 function(x) unique(x)) %>%
+    unlist()
+
+  #next make a vector of replacement_strings
+  replacement_strings <- purrr::map_chr(semicolon_counts,
+                                        function(x) paste0(rep(".", x + 1),
+                                                           collapse = ";"))
 
   # now transmute_at the dot_cols with a if_else() function to replace "."
   padded <- semicolon_rows_2 %>%
+    dplyr::mutate(replacement = replacement_strings) %>%
     dplyr::mutate_at(.vars = dplyr::vars(dot_cols),
                      .funs = ~ dplyr::if_else(stringr::str_detect(., "^\\.$"),
-                                              true = replacement_string,
-                                              false = .))
+                                              true = replacement,
+                                              false = .)) %>%
+    dplyr::select(-replacement)
 
   # next replace original rows in pivoted_columns:
   # get the rows that didn't need padding
