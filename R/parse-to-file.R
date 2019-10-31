@@ -109,11 +109,11 @@ parse_to_file <- function(source_file,
     parsed_fields <- .get_list_from_config(config, "desired", type)
 
     if (type == "SNV") {
-      # parse dbnsfp fields from snv chunk
-      dbnsfp_parsed_lines <- .pivot_then_parse(all_fields, config, "dbnsfp")
-
       # get list of desired fields from config to ensure outfile column order
       dbnsfp_parsed_fields <- .get_list_from_config(config, "desired", "dbnsfp")
+
+      # parse dbnsfp fields from snv chunk - includes filtering rows
+      dbnsfp_parsed_lines <- .pivot_then_parse(all_fields, config, "dbnsfp")
 
       # if present, write dbnsfp data to tsv file
       if (nrow(dbnsfp_parsed_lines) > 0 & ncol(dbnsfp_parsed_lines) > 0) {

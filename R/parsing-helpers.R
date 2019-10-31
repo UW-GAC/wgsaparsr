@@ -8,7 +8,8 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
                          "parseGroup", "transformation", ".", "p_list",
                          "match_mask", "r_list", "r_corresponding",
                          "new_p", "p_max", "p_min", "toRemove", "outputOrder",
-                         "pivotChar2", ".out", "counts", "replacement"))
+                         "pivotChar2", ".out", "counts", "replacement",
+                         "aaref", "aaalt"))
 
 #' Check whether the source_file is WGSA indel annotation
 #' @noRd
@@ -860,10 +861,21 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
 
   # get desired fields from config to validate
   desired <- .get_list_from_config(config, "desired", type)
+  # short circuit if no desired dbnsfp fields
+  if (length(desired) == 0) {
+    return(dplyr::tibble())
+  }
 
   # validate the config against chunk-----
   if (!all(unlist(desired) %in% names(chunk))) {
     stop("not all desired fields are in sourcefile")
+  }
+
+  # warn if can't filter rows for mostly-missing values
+  if (! all(c("aaref", "aaalt") %in% desired)) {
+    msg <- paste0("'aaref' and 'aaalt' not in desired dbnsfp fields. Can't ",
+                  "filter variants not annotated by dbnsfp.")
+    warning(msg)
   }
 
   # build lists from config file---------
@@ -891,6 +903,11 @@ utils::globalVariables(c("MAP35_140bp", ".data", "field", "SNV", "indel",
 
   # pivot chunk on pivot fields--------------
   pivoted <- .pivot_fields(selected, to_pivot)
+
+  # filter rows for which both aaref and aaalt are "."
+  if (all(c("aaref", "aaalt") %in% desired)) {
+    pivoted <- pivoted %>% dplyr::filter(!(aaref == "." & aaalt == "."))
+  }
 
   # parse the chunk single fields-------------
   # preserve unparsed, first (maybe with flag?)
